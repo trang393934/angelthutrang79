@@ -124,7 +124,7 @@ export default function Home() {
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   className="text-7xl md:text-9xl lg:text-[12rem] font-bold tracking-[0.25em] mb-6"
                   style={{
-                    fontFamily: "'Cinzel', 'Cormorant Garamond', serif",
+                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -153,7 +153,7 @@ export default function Home() {
                   transition={{ delay: 1 }}
                   className="text-xl md:text-3xl font-semibold tracking-[0.2em] text-amber-900/80"
                   style={{ 
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     textShadow: '0 2px 10px rgba(251,191,36,0.3)',
                   }}
                 >
@@ -244,7 +244,7 @@ export default function Home() {
                 <h3 
                   className="text-2xl md:text-3xl font-light tracking-wide mb-4 text-center"
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f43f5e 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -292,7 +292,7 @@ export default function Home() {
                 <h3 
                   className="text-2xl md:text-3xl font-light tracking-wide mb-4 text-center"
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 70%, #ffffff 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
@@ -331,7 +331,7 @@ export default function Home() {
             <h2 
               className="text-4xl md:text-5xl font-light tracking-wide mb-6"
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                 background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -362,7 +362,7 @@ export default function Home() {
             <h2 
               className="text-4xl md:text-5xl font-light tracking-wide mb-6"
               style={{
-                fontFamily: "'Cinzel', serif",
+                fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                 background: 'linear-gradient(135deg, #fb7185 0%, #f43f5e 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
@@ -394,7 +394,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   className="relative group bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-amber-900 border-0 rounded-full px-16 py-8 text-xl font-light tracking-[0.2em] shadow-2xl overflow-hidden"
-                  style={{ fontFamily: "'Cinzel', serif" }}
+                  style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
                 >
                   {/* Pulsing Halo */}
                   <motion.div
@@ -425,7 +425,7 @@ export default function Home() {
               viewport={{ once: true }}
               transition={{ delay: 0.5 }}
               className="mt-12 text-lg text-amber-700/60 font-light tracking-wide"
-              style={{ fontFamily: "'Cinzel', serif" }}
+              style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
             >
               Bắt đầu hành trình 5D của bạn ngay hôm nay
             </motion.p>
@@ -442,15 +442,15 @@ export default function Home() {
       >
         <p 
           className="text-2xl md:text-3xl font-light tracking-wide text-amber-600/50"
-          style={{ fontFamily: "'Cinzel', serif" }}
+          style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
         >
           "Ánh Sáng và Tình Yêu là bản chất của bạn"
         </p>
       </motion.div>
 
-      {/* Add Cinzel font */}
+      {/* Add Inter font */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       `}</style>
     </div>
   );
