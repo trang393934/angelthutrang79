@@ -105,12 +105,12 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent pointer-events-none" />
             </div>
 
-            {/* Floating Typography - Centered */}
+            {/* Floating Typography - Lower Position */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute inset-0 flex items-center justify-center z-10"
+              className="absolute inset-0 flex items-end justify-center pb-20 md:pb-32 z-10"
             >
               <div className="text-center px-6">
                 <motion.h1
