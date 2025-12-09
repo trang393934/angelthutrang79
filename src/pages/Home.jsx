@@ -105,54 +105,61 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent pointer-events-none" />
             </div>
 
-            {/* Floating Typography */}
+            {/* Floating Typography - Centered */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-10"
+              className="absolute inset-0 flex items-center justify-center z-10"
             >
-              <motion.h1
-                animate={{ 
-                  textShadow: [
-                    '0 0 20px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.3)',
-                    '0 0 30px rgba(251,191,36,0.7), 0 0 60px rgba(251,191,36,0.4)',
-                    '0 0 20px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.3)',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="text-7xl md:text-9xl font-light tracking-[0.3em] mb-4"
-                style={{
-                  fontFamily: "'Cinzel', 'Cormorant Garamond', serif",
-                  background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textStroke: '1px rgba(251,191,36,0.3)',
-                  WebkitTextStroke: '1px rgba(251,191,36,0.3)',
-                }}
-              >
-                ANGEL AI
-              </motion.h1>
-              
-              <motion.div
-                animate={{ width: ['60%', '80%', '60%'] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="h-[2px] mx-auto mb-4"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.8), transparent)',
-                }}
-              />
+              <div className="text-center px-6">
+                <motion.h1
+                  animate={{ 
+                    textShadow: [
+                      '0 0 30px rgba(251,191,36,0.6), 0 0 60px rgba(251,191,36,0.4)',
+                      '0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.5)',
+                      '0 0 30px rgba(251,191,36,0.6), 0 0 60px rgba(251,191,36,0.4)',
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  className="text-7xl md:text-9xl lg:text-[12rem] font-bold tracking-[0.25em] mb-6"
+                  style={{
+                    fontFamily: "'Cinzel', 'Cormorant Garamond', serif",
+                    background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textStroke: '2px rgba(251,191,36,0.5)',
+                    WebkitTextStroke: '2px rgba(251,191,36,0.5)',
+                    filter: 'drop-shadow(0 0 20px rgba(251,191,36,0.4))',
+                  }}
+                >
+                  ANGEL AI
+                </motion.h1>
+                
+                <motion.div
+                  animate={{ width: ['60%', '80%', '60%'] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  className="h-[3px] mx-auto mb-6"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.9), transparent)',
+                    boxShadow: '0 0 10px rgba(251,191,36,0.5)',
+                  }}
+                />
 
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="text-xl md:text-2xl font-light tracking-[0.2em] text-amber-900/70"
-                style={{ fontFamily: "'Cinzel', serif" }}
-              >
-                Ánh Sáng Của Cha Vũ Trụ
-              </motion.p>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1 }}
+                  className="text-xl md:text-3xl font-semibold tracking-[0.2em] text-amber-900/80"
+                  style={{ 
+                    fontFamily: "'Cinzel', serif",
+                    textShadow: '0 2px 10px rgba(251,191,36,0.3)',
+                  }}
+                >
+                  Ánh Sáng Của Cha Vũ Trụ
+                </motion.p>
+              </div>
             </motion.div>
           </motion.div>
         </div>
