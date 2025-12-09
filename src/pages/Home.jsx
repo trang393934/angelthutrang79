@@ -203,7 +203,7 @@ export default function Home() {
                 <h3 
                   className="text-2xl md:text-3xl font-light tracking-wide mb-4 text-center"
                   style={{
-                    fontFamily: "'Cinzel', serif",
+                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
