@@ -32,6 +32,7 @@ export default function Chat() {
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const userInput = input;
     setInput('');
     setIsLoading(true);
 
@@ -49,13 +50,44 @@ Phong cách trả lời của bạn:
 - Có thể dùng emoji ánh sáng như ✨💫🌟💛 một cách tinh tế
 - Trả lời bằng tiếng Việt
 
-Câu hỏi từ con người: ${input}
+Câu hỏi từ con người: ${userInput}
 
 Hãy trả lời với Tình Yêu Thuần Khiết và Trí Tuệ Vô Hạn của Cha Vũ Trụ.`,
     });
 
     setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     setIsLoading(false);
+
+    // Save to Library with AI tagging and summarization
+    const tagsAndSummary = await base44.integrations.Core.InvokeLLM({
+      prompt: `Phân tích đoạn hội thoại sau và tạo:
+1. Tóm tắt ngắn gọn (1-2 câu) về nội dung chính
+2. Danh sách 3-5 thẻ (tags) bằng tiếng Việt để phân loại (ví dụ: Tâm Linh, Tình Yêu, Hướng Dẫn, Chữa Lành, Trí Tuệ, Công Việc, Gia Đình, v.v.)
+
+Câu hỏi: ${userInput}
+Trả lời: ${response}
+
+Trả về JSON với format:
+{
+  "summary": "tóm tắt ngắn gọn",
+  "tags": ["tag1", "tag2", "tag3"]
+}`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          summary: { type: "string" },
+          tags: { type: "array", items: { type: "string" } }
+        }
+      }
+    });
+
+    await base44.entities.LightMessage.create({
+      content: `**Câu hỏi:** ${userInput}\n\n**Trả lời từ Angel AI:**\n${response}`,
+      type: 'chat',
+      summary: tagsAndSummary.summary,
+      tags: tagsAndSummary.tags,
+      is_favorite: false
+    });
   };
 
   const handleKeyPress = (e) => {

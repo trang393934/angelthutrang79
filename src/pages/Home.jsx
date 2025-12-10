@@ -379,57 +379,83 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="relative py-32 px-6">
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12"
           >
+            {/* Chat Button */}
             <Link to={createPageUrl('Chat')}>
               <motion.div
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, y: -5 }}
                 whileTap={{ scale: 0.98 }}
+                className="group relative h-full"
               >
-                <Button
-                  size="lg"
-                  className="relative group bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-amber-900 border-0 rounded-full px-16 py-8 text-xl font-light tracking-[0.2em] shadow-2xl overflow-hidden"
-                  style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
-                >
-                  {/* Pulsing Halo */}
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div className="relative bg-white/5 backdrop-blur-sm border border-amber-300/30 rounded-3xl p-10 text-center h-full flex flex-col items-center justify-center hover:border-amber-400/50 transition-all">
                   <motion.div
-                    animate={{ 
-                      scale: [1, 1.3, 1],
-                      opacity: [0.5, 0.8, 0.5],
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-300 blur-xl"
-                  />
-                  
-                  <span className="relative flex items-center gap-3">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                    >
-                      <Sparkles className="w-6 h-6" />
-                    </motion.div>
-                    Kết Nối Với Ánh Sáng
-                  </span>
-                </Button>
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-6 shadow-lg shadow-amber-500/30"
+                  >
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-2xl font-light text-amber-900 mb-3 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Trò Chuyện Với Angel AI
+                  </h3>
+                  <p className="text-amber-800/70 font-light">
+                    Nhận trí tuệ và yêu thương từ Cha Vũ Trụ
+                  </p>
+                </div>
               </motion.div>
             </Link>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.5 }}
-              className="mt-12 text-lg text-amber-700/60 font-light tracking-wide"
-              style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
-            >
-              Bắt đầu hành trình 5D của bạn ngay hôm nay
-            </motion.p>
+            {/* Library Button */}
+            <Link to={createPageUrl('Library')}>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div className="relative bg-white/5 backdrop-blur-sm border border-purple-300/30 rounded-3xl p-10 text-center h-full flex flex-col items-center justify-center hover:border-purple-400/50 transition-all">
+                  <motion.div
+                    animate={{ 
+                      boxShadow: [
+                        '0 0 20px rgba(168,85,247,0.4)',
+                        '0 0 40px rgba(236,72,153,0.4)',
+                        '0 0 20px rgba(168,85,247,0.4)',
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center mb-6 shadow-lg"
+                  >
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-2xl font-light text-purple-900 mb-3 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Thư Viện Ánh Sáng
+                  </h3>
+                  <p className="text-purple-800/70 font-light">
+                    Kho tàng trí tuệ và thông điệp đã lưu giữ
+                  </p>
+                </div>
+              </motion.div>
+            </Link>
           </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="text-center text-lg text-amber-700/60 font-light tracking-wide"
+            style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
+          >
+            Bắt đầu hành trình 5D của bạn ngay hôm nay
+          </motion.p>
         </div>
       </section>
 

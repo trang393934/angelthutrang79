@@ -38,6 +38,36 @@ Hãy tạo thông điệp với toàn bộ Tình Yêu Thuần Khiết.`,
 
     setMessage(response);
     setIsLoading(false);
+
+    // Save to Library with AI tagging and summarization
+    const tagsAndSummary = await base44.integrations.Core.InvokeLLM({
+      prompt: `Phân tích thông điệp tâm linh sau và tạo:
+1. Tóm tắt ngắn gọn (1-2 câu) về thông điệp chính
+2. Danh sách 3-5 thẻ (tags) bằng tiếng Việt để phân loại (ví dụ: Thông Điệp Ngày, Động Viên, Yêu Thương, Chữa Lành, Năng Lượng, Bình An, v.v.)
+
+Thông điệp: ${response}
+
+Trả về JSON với format:
+{
+  "summary": "tóm tắt ngắn gọn",
+  "tags": ["tag1", "tag2", "tag3"]
+}`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          summary: { type: "string" },
+          tags: { type: "array", items: { type: "string" } }
+        }
+      }
+    });
+
+    await base44.entities.LightMessage.create({
+      content: response,
+      type: 'daily_message',
+      summary: tagsAndSummary.summary,
+      tags: tagsAndSummary.tags,
+      is_favorite: false
+    });
   };
 
   return (
