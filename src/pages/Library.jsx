@@ -406,10 +406,10 @@ Trả về JSON với format:
                   </div>
 
                   {/* Hover overlay for full content */}
-                  <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-lg rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden z-10 p-6">
+                  <div className="absolute inset-0 bg-slate-950/98 backdrop-blur-lg rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden z-10 p-6">
                     <div className="h-full overflow-y-auto">
                       <ReactMarkdown 
-                        className="prose prose-invert prose-sm max-w-none font-light text-purple-50 [&>p]:mb-4 [&>p:last-child]:mb-0"
+                        className="prose prose-invert prose-sm max-w-none font-light text-white [&>p]:mb-4 [&>p:last-child]:mb-0 [&>strong]:text-amber-300"
                       >
                         {message.content}
                       </ReactMarkdown>
