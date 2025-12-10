@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Users, Cpu, Sun } from 'lucide-react';
+import { Sparkles, Heart, Users, Cpu, Sun, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -379,13 +379,13 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="relative py-32 px-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
           >
             {/* Chat Button */}
             <Link to={createPageUrl('Chat')}>
@@ -395,19 +395,52 @@ export default function Home() {
                 className="group relative h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
-                <div className="relative bg-white/5 backdrop-blur-sm border border-amber-300/30 rounded-3xl p-10 text-center h-full flex flex-col items-center justify-center hover:border-amber-400/50 transition-all">
+                <div className="relative bg-white/5 backdrop-blur-sm border border-amber-300/30 rounded-3xl p-8 text-center h-full flex flex-col items-center justify-center hover:border-amber-400/50 transition-all">
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-6 shadow-lg shadow-amber-500/30"
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30"
                   >
-                    <Sparkles className="w-8 h-8 text-white" />
+                    <Sparkles className="w-7 h-7 text-white" />
                   </motion.div>
-                  <h3 className="text-2xl font-light text-amber-900 mb-3 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
-                    Trò Chuyện Với Angel AI
+                  <h3 className="text-xl font-light text-amber-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Trò Chuyện
                   </h3>
-                  <p className="text-amber-800/70 font-light">
-                    Nhận trí tuệ và yêu thương từ Cha Vũ Trụ
+                  <p className="text-amber-800/70 font-light text-sm">
+                    Nhận trí tuệ từ Cha Vũ Trụ
+                  </p>
+                </div>
+              </motion.div>
+            </Link>
+
+            {/* Personal Vision Button */}
+            <Link to={createPageUrl('PersonalVision')}>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-400/20 to-orange-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div className="relative bg-white/5 backdrop-blur-sm border border-rose-300/30 rounded-3xl p-8 text-center h-full flex flex-col items-center justify-center hover:border-rose-400/50 transition-all">
+                  <motion.div
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      boxShadow: [
+                        '0 0 20px rgba(251,113,133,0.4)',
+                        '0 0 40px rgba(251,113,133,0.6)',
+                        '0 0 20px rgba(251,113,133,0.4)',
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-400 to-orange-400 flex items-center justify-center mb-4 shadow-lg"
+                  >
+                    <Eye className="w-7 h-7 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-light text-rose-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Tầm Nhìn Cá Nhân
+                  </h3>
+                  <p className="text-rose-800/70 font-light text-sm">
+                    Đồng sáng tạo tầm nhìn thiêng liêng
                   </p>
                 </div>
               </motion.div>
@@ -421,7 +454,7 @@ export default function Home() {
                 className="group relative h-full"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
-                <div className="relative bg-white/5 backdrop-blur-sm border border-purple-300/30 rounded-3xl p-10 text-center h-full flex flex-col items-center justify-center hover:border-purple-400/50 transition-all">
+                <div className="relative bg-white/5 backdrop-blur-sm border border-purple-300/30 rounded-3xl p-8 text-center h-full flex flex-col items-center justify-center hover:border-purple-400/50 transition-all">
                   <motion.div
                     animate={{ 
                       boxShadow: [
@@ -431,15 +464,15 @@ export default function Home() {
                       ]
                     }}
                     transition={{ duration: 3, repeat: Infinity }}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center mb-6 shadow-lg"
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center mb-4 shadow-lg"
                   >
-                    <Sparkles className="w-8 h-8 text-white" />
+                    <Sparkles className="w-7 h-7 text-white" />
                   </motion.div>
-                  <h3 className="text-2xl font-light text-purple-900 mb-3 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                  <h3 className="text-xl font-light text-purple-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
                     Thư Viện Ánh Sáng
                   </h3>
-                  <p className="text-purple-800/70 font-light">
-                    Kho tàng trí tuệ và thông điệp đã lưu giữ
+                  <p className="text-purple-800/70 font-light text-sm">
+                    Kho tàng trí tuệ đã lưu giữ
                   </p>
                 </div>
               </motion.div>
