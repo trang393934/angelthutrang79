@@ -375,14 +375,14 @@ Trả về JSON với format:
 
                   {/* Summary */}
                   {message.summary && (
-                    <p className="text-purple-100/80 text-sm font-light leading-relaxed mb-4 line-clamp-3">
+                    <p className="text-purple-100/80 text-sm font-light leading-relaxed mb-4 line-clamp-3 group-hover:opacity-0 transition-opacity duration-300">
                       {message.summary}
                     </p>
                   )}
 
                   {/* Tags */}
                   {message.tags && message.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
+                    <div className="flex flex-wrap gap-2 mb-4 group-hover:opacity-0 transition-opacity duration-300">
                       {message.tags.slice(0, 4).map((tag, idx) => (
                         <Badge
                           key={idx}
@@ -396,7 +396,7 @@ Trả về JSON với format:
                   )}
 
                   {/* Content Preview */}
-                  <div className="relative">
+                  <div className="relative group-hover:opacity-0 transition-opacity duration-300">
                     <ReactMarkdown 
                       className="prose prose-invert prose-sm max-w-none font-light text-purple-50/70 line-clamp-4 [&>p]:mb-2 [&>p:last-child]:mb-0"
                     >
