@@ -223,7 +223,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                     setShowForm(false);
                     setInput('');
                   }}
-                  className="border-white/20 text-white hover:bg-white/10 rounded-full flex-1"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full flex-1"
                 >
                   Hủy
                 </Button>
@@ -308,7 +308,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                 <Button
                   onClick={() => setShowForm(true)}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 rounded-full px-8"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full px-8"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Tạo Tầm Nhìn Mới
