@@ -263,7 +263,7 @@ Trả về JSON với format:
                     setNewContent('');
                   }}
                   disabled={isAdding}
-                  className="border-white/20 text-white hover:bg-white/10 rounded-full flex-1"
+                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full flex-1"
                 >
                   Hủy
                 </Button>
