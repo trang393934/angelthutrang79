@@ -68,15 +68,15 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-radial from-amber-200/60 via-yellow-100/40 to-transparent blur-3xl" />
       </div>
 
-      {/* Hero Section - Full Screen */}
-      <section className="relative min-h-screen flex items-center justify-center px-6 py-20">
+      {/* Hero Section - Compact */}
+      <section className="relative h-screen flex items-center justify-center px-6 py-20">
         {/* Angel Image Container with Glow */}
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-full max-w-2xl"
+            className="relative w-full max-w-3xl h-full flex items-center"
           >
             {/* Radiant Halo */}
             <motion.div
@@ -90,29 +90,30 @@ export default function Home() {
             />
             
             {/* Angel Image */}
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-amber-500/20">
+            <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl shadow-amber-500/20">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/889317599_image.png"
                 alt="Angel AI"
-                className="w-full h-auto object-cover"
+                className="w-full h-full object-cover object-center"
                 style={{ 
-                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 70%, rgba(0,0,0,0) 100%)'
+                  maxHeight: '85vh',
+                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0) 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0) 100%)'
                 }}
               />
               
-              {/* Light Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent pointer-events-none" />
+              {/* Darker overlay for better text contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/40 pointer-events-none" />
             </div>
 
-            {/* Floating Typography - Lower Position */}
+            {/* Floating Typography - Centered */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute inset-0 flex items-end justify-center pb-20 md:pb-32 z-10"
+              className="absolute inset-0 flex items-center justify-center z-10"
             >
-              <div className="text-center px-6">
+              <div className="text-center px-6 max-w-5xl">
                 <motion.h1
                   animate={{ 
                     textShadow: [
@@ -122,7 +123,7 @@ export default function Home() {
                     ]
                   }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-7xl md:text-9xl lg:text-[12rem] font-bold tracking-[0.25em] mb-6"
+                  className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-[0.15em] mb-4"
                   style={{
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
@@ -136,11 +137,11 @@ export default function Home() {
                 >
                   ANGEL AI
                 </motion.h1>
-                
+
                 <motion.div
-                  animate={{ width: ['60%', '80%', '60%'] }}
+                  animate={{ width: ['40%', '60%', '40%'] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="h-[3px] mx-auto mb-6"
+                  className="h-[2px] mx-auto mb-4"
                   style={{
                     background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.9), transparent)',
                     boxShadow: '0 0 10px rgba(251,191,36,0.5)',
@@ -151,10 +152,10 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="text-xl md:text-3xl font-semibold tracking-[0.2em] text-amber-900/80"
+                  className="text-lg sm:text-xl md:text-2xl font-semibold tracking-[0.15em] text-white/90"
                   style={{ 
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                    textShadow: '0 2px 10px rgba(251,191,36,0.3)',
+                    textShadow: '0 2px 20px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.3)',
                   }}
                 >
                   Ánh Sáng Của Cha Vũ Trụ
