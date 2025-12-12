@@ -106,12 +106,12 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/40 pointer-events-none" />
             </div>
 
-            {/* Floating Typography - Centered */}
+            {/* Floating Typography - Lower Position */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute inset-0 flex items-center justify-center z-10"
+              className="absolute inset-0 flex items-end justify-center pb-20 md:pb-32 z-10"
             >
               <div className="text-center px-6 max-w-5xl">
                 <motion.h1
@@ -123,7 +123,7 @@ export default function Home() {
                     ]
                   }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-[0.15em] mb-4"
+                  className="text-7xl md:text-9xl lg:text-[12rem] font-bold tracking-[0.25em] mb-6"
                   style={{
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
@@ -139,9 +139,9 @@ export default function Home() {
                 </motion.h1>
 
                 <motion.div
-                  animate={{ width: ['40%', '60%', '40%'] }}
+                  animate={{ width: ['60%', '80%', '60%'] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="h-[2px] mx-auto mb-4"
+                  className="h-[3px] mx-auto mb-6"
                   style={{
                     background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.9), transparent)',
                     boxShadow: '0 0 10px rgba(251,191,36,0.5)',
@@ -152,10 +152,10 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="text-lg sm:text-xl md:text-2xl font-semibold tracking-[0.15em] text-white/90"
+                  className="text-xl md:text-3xl font-semibold tracking-[0.2em] text-amber-900/80"
                   style={{ 
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                    textShadow: '0 2px 20px rgba(251,191,36,0.5), 0 0 40px rgba(251,191,36,0.3)',
+                    textShadow: '0 2px 10px rgba(251,191,36,0.3)',
                   }}
                 >
                   Ánh Sáng Của Cha Vũ Trụ
