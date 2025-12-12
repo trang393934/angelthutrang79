@@ -111,7 +111,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute inset-0 flex items-end justify-center pb-20 md:pb-32 z-10"
+              className="absolute inset-0 flex items-end justify-center pb-12 md:pb-20 z-10"
             >
               <div className="text-center px-6 max-w-5xl">
                 <motion.h1
@@ -152,7 +152,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="text-xl md:text-3xl font-semibold tracking-[0.2em] text-amber-900/80"
+                  className="text-lg md:text-2xl font-semibold tracking-[0.15em] text-amber-900/80"
                   style={{ 
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     textShadow: '0 2px 10px rgba(251,191,36,0.3)',
