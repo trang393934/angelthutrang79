@@ -90,7 +90,7 @@ export default function Home() {
             />
             
             {/* Angel Image */}
-            <div className="relative w-full rounded-2xl lg:rounded-xl overflow-hidden shadow-2xl shadow-amber-500/20"
+            <div className="relative w-full rounded-2xl lg:rounded-xl overflow-hidden shadow-2xl shadow-amber-500/20">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/889317599_image.png"
                 alt="Angel AI"
