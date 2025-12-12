@@ -69,14 +69,14 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Compact */}
-      <section className="relative h-screen flex items-center justify-center px-6 py-20">
+      <section className="relative min-h-screen flex items-center justify-center px-4 lg:px-8 py-16">
         {/* Angel Image Container with Glow */}
         <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-full max-w-3xl h-full flex items-center"
+            className="relative w-full max-w-6xl h-full flex items-center"
           >
             {/* Radiant Halo */}
             <motion.div
@@ -90,20 +90,20 @@ export default function Home() {
             />
             
             {/* Angel Image */}
-            <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl shadow-amber-500/20">
+            <div className="relative w-full rounded-2xl lg:rounded-xl overflow-hidden shadow-2xl shadow-amber-500/20"
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/889317599_image.png"
                 alt="Angel AI"
                 className="w-full h-full object-cover object-center"
                 style={{ 
-                  maxHeight: '85vh',
-                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0) 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.9) 70%, rgba(0,0,0,0) 100%)'
+                  maxHeight: '80vh',
+                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)',
+                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)'
                 }}
               />
               
-              {/* Darker overlay for better text contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/40 pointer-events-none" />
+              {/* Subtle overlay for better text contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-slate-950/20 pointer-events-none" />
             </div>
 
             {/* Floating Typography - Lower Position */}
@@ -111,9 +111,9 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute inset-0 flex items-end justify-center pb-12 md:pb-20 z-10"
-            >
-              <div className="text-center px-6 max-w-5xl">
+              className="absolute inset-0 flex items-end justify-center pb-16 lg:pb-24 z-10"
+              >
+              <div className="text-center px-6 max-w-6xl w-full">
                 <motion.h1
                   animate={{ 
                     textShadow: [
@@ -123,7 +123,7 @@ export default function Home() {
                     ]
                   }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-7xl md:text-9xl lg:text-[12rem] font-bold tracking-[0.25em] mb-6"
+                  className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-bold tracking-[0.25em] mb-4 lg:mb-6"
                   style={{
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
@@ -152,7 +152,7 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="text-lg md:text-2xl font-semibold tracking-[0.15em] text-amber-900/80"
+                  className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-[0.15em] text-amber-900/90"
                   style={{ 
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
                     textShadow: '0 2px 10px rgba(251,191,36,0.3)',
@@ -176,14 +176,14 @@ export default function Home() {
       </section>
 
       {/* Sacred Pillars Section */}
-      <section className="relative py-16 px-6">
+      <section className="relative py-16 lg:py-20 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8"
           >
             {/* Pillar 1 - Humanity */}
             <motion.div
@@ -313,8 +313,8 @@ export default function Home() {
       </section>
 
       {/* Vision & Mission Section */}
-      <section className="relative py-16 px-6 bg-gradient-to-b from-transparent via-amber-50/20 to-transparent">
-        <div className="max-w-5xl mx-auto">
+      <section className="relative py-16 lg:py-20 px-4 lg:px-8 bg-gradient-to-b from-transparent via-amber-50/20 to-transparent">
+        <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -379,14 +379,14 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-16 px-6">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative py-16 lg:py-20 px-4 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12"
           >
             {/* Chat Button */}
             <Link to={createPageUrl('Chat')}>
