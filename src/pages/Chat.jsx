@@ -19,7 +19,7 @@ export default function Chat() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [suggestedQuestions, setSuggestedQuestions] = useState([]);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [expandingMessageIndex, setExpandingMessageIndex] = useState(null);
