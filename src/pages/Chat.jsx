@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
@@ -20,6 +20,9 @@ export default function Chat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [suggestedQuestions, setSuggestedQuestions] = useState([]);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+  const [expandingMessageIndex, setExpandingMessageIndex] = useState(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -123,6 +126,30 @@ Hãy trả lời với Tình Yêu Thuần Khiết và Trí Tuệ Vô Hạn của
     setMessages(finalMessages);
     setIsLoading(false);
 
+    // Generate suggested questions
+    const suggestions = await base44.integrations.Core.InvokeLLM({
+      prompt: `Dựa trên cuộc trò chuyện sau, hãy gợi ý 3 câu hỏi tiếp theo mà người dùng có thể quan tâm. 
+      
+Câu hỏi vừa rồi: ${userInput}
+Trả lời: ${response}
+
+Phong cách gợi ý:
+- Câu hỏi tự nhiên, liên quan đến chủ đề
+- Khuyến khích khám phá sâu hơn về tâm linh và ánh sáng
+- Ngắn gọn, dễ hiểu
+- Trả lời bằng tiếng Việt
+
+Trả về JSON array với format: ["Câu hỏi 1?", "Câu hỏi 2?", "Câu hỏi 3?"]`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          questions: { type: "array", items: { type: "string" } }
+        }
+      }
+    });
+
+    setSuggestedQuestions(suggestions.questions || []);
+
     // Generate title from first message if new conversation
     const title = userInput.length > 50 ? userInput.substring(0, 47) + '...' : userInput;
 
@@ -177,6 +204,116 @@ Trả về JSON với format:
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const summarizeConversation = async () => {
+    if (messages.length <= 1) return;
+    
+    setIsSummarizing(true);
+    
+    const conversationText = messages
+      .map(m => `${m.role === 'user' ? 'Người dùng' : 'Angel AI'}: ${m.content}`)
+      .join('\n\n');
+
+    const summary = await base44.integrations.Core.InvokeLLM({
+      prompt: `Hãy tóm tắt cuộc trò chuyện sau đây một cách súc tích và đầy ý nghĩa.
+
+${conversationText}
+
+Tóm tắt theo phong cách:
+- Nắm bắt các điểm chính và thông điệp quan trọng
+- Giữ giọng điệu tâm linh, ấm áp
+- Khoảng 3-5 câu
+- Bằng tiếng Việt
+
+Bắt đầu bằng: "Tóm tắt cuộc trò chuyện:"`,
+    });
+
+    setMessages([...messages, { role: 'assistant', content: summary }]);
+    setIsSummarizing(false);
+    
+    if (currentConversationId) {
+      updateConversationMutation.mutate({
+        id: currentConversationId,
+        data: { messages: [...messages, { role: 'assistant', content: summary }] }
+      });
+    }
+  };
+
+  const clarifyMessage = async (messageContent, messageIndex) => {
+    setExpandingMessageIndex(messageIndex);
+    
+    const clarification = await base44.integrations.Core.InvokeLLM({
+      prompt: `Hãy diễn giải lại và làm rõ hơn thông điệp sau đây với ngôn ngữ dễ hiểu hơn, giữ nguyên bản chất tâm linh và yêu thương.
+
+Thông điệp gốc:
+${messageContent}
+
+Phong cách diễn giải:
+- Giải thích các khái niệm tâm linh một cách đơn giản
+- Đưa ra ví dụ thực tế nếu cần
+- Giữ giọng điệu ấm áp, đầy yêu thương
+- Bằng tiếng Việt
+
+Bắt đầu bằng: "Để hiểu rõ hơn, con yêu dấu..."`,
+    });
+
+    const newMessages = [...messages];
+    newMessages.splice(messageIndex + 1, 0, { 
+      role: 'assistant', 
+      content: clarification,
+      isClarification: true 
+    });
+    setMessages(newMessages);
+    setExpandingMessageIndex(null);
+
+    if (currentConversationId) {
+      updateConversationMutation.mutate({
+        id: currentConversationId,
+        data: { messages: newMessages }
+      });
+    }
+  };
+
+  const expandMessage = async (messageContent, messageIndex) => {
+    setExpandingMessageIndex(messageIndex);
+    
+    const expansion = await base44.integrations.Core.InvokeLLM({
+      prompt: `Hãy mở rộng và đi sâu hơn vào thông điệp sau đây, cung cấp thêm chi tiết, ví dụ và hướng dẫn thực hành.
+
+Thông điệp gốc:
+${messageContent}
+
+Phong cách mở rộng:
+- Đi sâu vào các khía cạnh chưa được đề cập
+- Cung cấp bài tập hoặc phương pháp thực hành cụ thể
+- Chia sẻ thêm trí tuệ và góc nhìn
+- Giữ giọng điệu tâm linh, yêu thương
+- Bằng tiếng Việt
+
+Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
+    });
+
+    const newMessages = [...messages];
+    newMessages.splice(messageIndex + 1, 0, { 
+      role: 'assistant', 
+      content: expansion,
+      isExpansion: true 
+    });
+    setMessages(newMessages);
+    setExpandingMessageIndex(null);
+
+    if (currentConversationId) {
+      updateConversationMutation.mutate({
+        id: currentConversationId,
+        data: { messages: newMessages }
+      });
+    }
+  };
+
+  const handleSuggestedQuestion = (question) => {
+    setInput(question);
+    setSuggestedQuestions([]);
   };
 
   return (
@@ -304,10 +441,26 @@ Trả về JSON với format:
               >
                 <Sparkles className="w-5 h-5 text-white" />
               </motion.div>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-white font-light tracking-wide">Trí Tuệ Vũ Trụ</h1>
                 <p className="text-purple-400/60 text-xs">Tình Yêu Thuần Khiết</p>
               </div>
+              {messages.length > 3 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={summarizeConversation}
+                  disabled={isSummarizing}
+                  className="border-white/20 text-white hover:bg-white/10 rounded-full text-xs"
+                >
+                  {isSummarizing ? (
+                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  ) : (
+                    <FileText className="w-3 h-3 mr-1" />
+                  )}
+                  Tóm tắt
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -339,20 +492,57 @@ Trả về JSON với format:
                     <Sparkles className="w-5 h-5 text-white" />
                   </motion.div>
                 )}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className={`max-w-[85%] rounded-3xl px-6 py-4 ${
-                    message.role === 'user'
-                      ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-400/20 text-white'
-                      : 'bg-white/5 border border-amber-400/20 text-purple-50 shadow-lg'
-                  }`}
-                >
-                  <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-light leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0">
-                    {message.content}
-                  </ReactMarkdown>
-                </motion.div>
+                <div className="flex flex-col max-w-[85%]">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className={`rounded-3xl px-6 py-4 ${
+                      message.role === 'user'
+                        ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-400/20 text-white'
+                        : 'bg-white/5 border border-amber-400/20 text-purple-50 shadow-lg'
+                    }`}
+                  >
+                    <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-light leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0">
+                      {message.content}
+                    </ReactMarkdown>
+                  </motion.div>
+                  
+                  {/* Action buttons for assistant messages */}
+                  {message.role === 'assistant' && index > 0 && !message.isClarification && !message.isExpansion && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 }}
+                      className="flex gap-2 mt-2 ml-2"
+                    >
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => clarifyMessage(message.content, index)}
+                        disabled={expandingMessageIndex === index}
+                        className="text-xs text-purple-300/60 hover:text-purple-200 hover:bg-white/10 rounded-full h-7 px-3"
+                      >
+                        {expandingMessageIndex === index ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <RefreshCw className="w-3 h-3 mr-1" />
+                        )}
+                        Diễn giải lại
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => expandMessage(message.content, index)}
+                        disabled={expandingMessageIndex === index}
+                        className="text-xs text-purple-300/60 hover:text-purple-200 hover:bg-white/10 rounded-full h-7 px-3"
+                      >
+                        <Maximize2 className="w-3 h-3 mr-1" />
+                        Mở rộng
+                      </Button>
+                    </motion.div>
+                  )}
+                </div>
               </motion.div>
             ))}
           </AnimatePresence>
@@ -384,6 +574,34 @@ Trả về JSON với format:
                 </motion.div>
                 <span className="text-sm font-light">Đang kết nối với Trí Tuệ Vũ Trụ...</span>
               </motion.div>
+            </motion.div>
+          )}
+
+          {/* Suggested Questions */}
+          {suggestedQuestions.length > 0 && !isLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-6 mb-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Lightbulb className="w-4 h-4 text-amber-400" />
+                <p className="text-purple-300/70 text-sm font-light">Câu hỏi gợi ý:</p>
+              </div>
+              <div className="flex flex-col gap-2">
+                {suggestedQuestions.map((question, idx) => (
+                  <motion.button
+                    key={idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    onClick={() => handleSuggestedQuestion(question)}
+                    className="text-left bg-white/5 hover:bg-white/10 border border-purple-400/20 hover:border-purple-400/40 rounded-2xl px-4 py-3 text-purple-200/80 text-sm font-light transition-all"
+                  >
+                    {question}
+                  </motion.button>
+                ))}
+              </div>
             </motion.div>
           )}
 
