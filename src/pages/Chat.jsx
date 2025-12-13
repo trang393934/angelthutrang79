@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
@@ -23,6 +23,9 @@ export default function Chat() {
   const [suggestedQuestions, setSuggestedQuestions] = useState([]);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [expandingMessageIndex, setExpandingMessageIndex] = useState(null);
+  const [feedbackIndex, setFeedbackIndex] = useState(null);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [messageFeedbacks, setMessageFeedbacks] = useState({});
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -316,6 +319,50 @@ Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
     setSuggestedQuestions([]);
   };
 
+  const submitFeedback = async (messageContent, messageIndex, rating, feedbackTextInput = '') => {
+    const conversationContext = messages.slice(Math.max(0, messageIndex - 2), messageIndex + 1)
+      .map(m => `${m.role === 'user' ? 'Người dùng' : 'Angel AI'}: ${m.content}`)
+      .join('\n\n');
+
+    // AI analyzes the feedback
+    const analysis = await base44.integrations.Core.InvokeLLM({
+      prompt: `Phân tích feedback từ người dùng về câu trả lời của Angel AI.
+
+Câu trả lời: ${messageContent}
+
+Context cuộc trò chuyện:
+${conversationContext}
+
+Đánh giá: ${rating === 'helpful' ? 'Hữu ích' : 'Chưa hữu ích'}
+${feedbackTextInput ? `Nhận xét: ${feedbackTextInput}` : ''}
+
+Hãy phân tích:
+1. Tại sao câu trả lời ${rating === 'helpful' ? 'được đánh giá tốt' : 'chưa đáp ứng mong đợi'}?
+2. Điều gì có thể cải thiện trong tương lai?
+3. Gợi ý cách trả lời tốt hơn cho tình huống tương tự
+
+Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
+    });
+
+    // Save feedback with AI analysis
+    await base44.entities.Feedback.create({
+      message_content: messageContent,
+      rating: rating,
+      feedback_text: feedbackTextInput,
+      conversation_context: conversationContext,
+      ai_analysis: analysis
+    });
+
+    // Update local state
+    setMessageFeedbacks(prev => ({
+      ...prev,
+      [messageIndex]: rating
+    }));
+
+    setFeedbackIndex(null);
+    setFeedbackText('');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 relative flex">
       {/* Sidebar */}
@@ -514,32 +561,109 @@ Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="flex gap-2 mt-2 ml-2"
+                      className="flex flex-col gap-2 mt-2 ml-2"
                     >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => clarifyMessage(message.content, index)}
-                        disabled={expandingMessageIndex === index}
-                        className="text-xs text-purple-300/60 hover:text-purple-200 hover:bg-white/10 rounded-full h-7 px-3"
-                      >
-                        {expandingMessageIndex === index ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        ) : (
-                          <RefreshCw className="w-3 h-3 mr-1" />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => clarifyMessage(message.content, index)}
+                          disabled={expandingMessageIndex === index}
+                          className="text-xs text-purple-300/60 hover:text-purple-200 hover:bg-white/10 rounded-full h-7 px-3"
+                        >
+                          {expandingMessageIndex === index ? (
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-3 h-3 mr-1" />
+                          )}
+                          Diễn giải lại
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => expandMessage(message.content, index)}
+                          disabled={expandingMessageIndex === index}
+                          className="text-xs text-purple-300/60 hover:text-purple-200 hover:bg-white/10 rounded-full h-7 px-3"
+                        >
+                          <Maximize2 className="w-3 h-3 mr-1" />
+                          Mở rộng
+                        </Button>
+                      </div>
+
+                      {/* Feedback buttons */}
+                      <div className="flex gap-2 items-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => submitFeedback(message.content, index, 'helpful')}
+                          disabled={messageFeedbacks[index]}
+                          className={`text-xs rounded-full h-7 px-3 ${
+                            messageFeedbacks[index] === 'helpful'
+                              ? 'text-green-400 bg-green-500/20'
+                              : 'text-purple-300/60 hover:text-green-400 hover:bg-white/10'
+                          }`}
+                        >
+                          <ThumbsUp className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'helpful' ? 'fill-green-400' : ''}`} />
+                          Hữu ích
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFeedbackIndex(feedbackIndex === index ? null : index)}
+                          disabled={messageFeedbacks[index]}
+                          className={`text-xs rounded-full h-7 px-3 ${
+                            messageFeedbacks[index] === 'not_helpful'
+                              ? 'text-amber-400 bg-amber-500/20'
+                              : 'text-purple-300/60 hover:text-amber-400 hover:bg-white/10'
+                          }`}
+                        >
+                          <ThumbsDown className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'not_helpful' ? 'fill-amber-400' : ''}`} />
+                          Cần cải thiện
+                        </Button>
+                      </div>
+
+                      {/* Feedback input form */}
+                      <AnimatePresence>
+                        {feedbackIndex === index && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="bg-white/5 border border-purple-400/20 rounded-2xl p-3 mt-1"
+                          >
+                            <p className="text-xs text-purple-300/70 mb-2 flex items-center gap-1">
+                              <MessageSquare className="w-3 h-3" />
+                              Chia sẻ góp ý để AI cải thiện:
+                            </p>
+                            <Textarea
+                              value={feedbackText}
+                              onChange={(e) => setFeedbackText(e.target.value)}
+                              placeholder="Câu trả lời cần cải thiện điều gì? (tùy chọn)"
+                              className="bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-xl text-xs min-h-[60px] mb-2"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => submitFeedback(message.content, index, 'not_helpful', feedbackText)}
+                                className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full text-xs h-7"
+                              >
+                                Gửi góp ý
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setFeedbackIndex(null);
+                                  setFeedbackText('');
+                                }}
+                                className="text-xs text-purple-300/60 hover:text-white hover:bg-white/10 rounded-full h-7"
+                              >
+                                Hủy
+                              </Button>
+                            </div>
+                          </motion.div>
                         )}
-                        Diễn giải lại
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => expandMessage(message.content, index)}
-                        disabled={expandingMessageIndex === index}
-                        className="text-xs text-purple-300/60 hover:text-purple-200 hover:bg-white/10 rounded-full h-7 px-3"
-                      >
-                        <Maximize2 className="w-3 h-3 mr-1" />
-                        Mở rộng
-                      </Button>
+                      </AnimatePresence>
                     </motion.div>
                   )}
                 </div>
