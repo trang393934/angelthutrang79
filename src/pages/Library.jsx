@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Sparkles, Sun, Heart, Filter, Tag, Calendar, Plus, Loader2, Send } from 'lucide-react';
+import { ArrowLeft, Search, Sparkles, Sun, Heart, Filter, Tag, Calendar, Plus, Loader2, Send, SortAsc, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,8 @@ export default function Library() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newContent, setNewContent] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [sortBy, setSortBy] = useState('date'); // date, favorite, tag
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: messages = [], isLoading } = useQuery({
@@ -77,18 +79,33 @@ Trả về JSON với format:
   // Extract all unique tags
   const allTags = [...new Set(messages.flatMap(m => m.tags || []))];
 
-  // Filter messages
-  const filteredMessages = messages.filter(message => {
-    const matchesSearch = !searchQuery || 
-      message.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      message.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    
-    const matchesType = selectedType === 'all' || message.type === selectedType;
-    const matchesTag = !selectedTag || message.tags?.includes(selectedTag);
+  // Filter and sort messages
+  const filteredMessages = messages
+    .filter(message => {
+      const matchesSearch = !searchQuery || 
+        message.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        message.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        message.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      const matchesType = selectedType === 'all' || message.type === selectedType;
+      const matchesTag = !selectedTag || message.tags?.includes(selectedTag);
 
-    return matchesSearch && matchesType && matchesTag;
-  });
+      return matchesSearch && matchesType && matchesTag;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'favorite') {
+        if (a.is_favorite === b.is_favorite) {
+          return new Date(b.created_date) - new Date(a.created_date);
+        }
+        return a.is_favorite ? -1 : 1;
+      } else if (sortBy === 'tag') {
+        const aTag = a.tags?.[0] || '';
+        const bTag = b.tags?.[0] || '';
+        return aTag.localeCompare(bTag);
+      }
+      // Default: sort by date
+      return new Date(b.created_date) - new Date(a.created_date);
+    });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 relative">
@@ -140,9 +157,18 @@ Trả về JSON với format:
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm theo nội dung, chủ đề, hoặc thẻ..."
-              className="pl-12 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-full focus:border-amber-400/30 focus:ring-amber-400/20"
+              placeholder="Tìm kiếm nâng cao: nội dung, chủ đề, summary, thẻ..."
+              className="pl-12 pr-4 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-full focus:border-amber-400/30 focus:ring-amber-400/20"
             />
+            {searchQuery && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300/60 text-xs bg-purple-500/20 px-2 py-1 rounded-full"
+              >
+                {filteredMessages.length} kết quả
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
@@ -150,34 +176,65 @@ Trả về JSON với format:
       {/* Filters */}
       <div className="fixed top-[140px] left-0 right-0 z-10 bg-slate-950/60 backdrop-blur-md border-b border-white/5">
         <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex flex-wrap gap-2 items-center">
-            <Filter className="w-4 h-4 text-purple-300/60" />
-            <Button
-              variant={selectedType === 'all' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSelectedType('all')}
-              className={selectedType === 'all' ? 'bg-purple-500/20 text-purple-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
-            >
-              Tất Cả
-            </Button>
-            <Button
-              variant={selectedType === 'chat' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSelectedType('chat')}
-              className={selectedType === 'chat' ? 'bg-amber-500/20 text-amber-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
-            >
-              <Sparkles className="w-3 h-3 mr-1" />
-              Trò Chuyện
-            </Button>
-            <Button
-              variant={selectedType === 'daily_message' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setSelectedType('daily_message')}
-              className={selectedType === 'daily_message' ? 'bg-rose-500/20 text-rose-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
-            >
-              <Sun className="w-3 h-3 mr-1" />
-              Thông Điệp Ngày
-            </Button>
+          <div className="flex flex-wrap gap-2 items-center justify-between">
+            <div className="flex flex-wrap gap-2 items-center">
+              <Filter className="w-4 h-4 text-purple-300/60" />
+              <Button
+                variant={selectedType === 'all' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedType('all')}
+                className={selectedType === 'all' ? 'bg-purple-500/20 text-purple-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+              >
+                Tất Cả
+              </Button>
+              <Button
+                variant={selectedType === 'chat' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedType('chat')}
+                className={selectedType === 'chat' ? 'bg-amber-500/20 text-amber-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+              >
+                <Sparkles className="w-3 h-3 mr-1" />
+                Trò Chuyện
+              </Button>
+              <Button
+                variant={selectedType === 'daily_message' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedType('daily_message')}
+                className={selectedType === 'daily_message' ? 'bg-rose-500/20 text-rose-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+              >
+                <Sun className="w-3 h-3 mr-1" />
+                Thông Điệp Ngày
+              </Button>
+            </div>
+
+            {/* Sort options */}
+            <div className="flex gap-2 items-center">
+              <SortAsc className="w-4 h-4 text-purple-300/60" />
+              <Button
+                variant={sortBy === 'date' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSortBy('date')}
+                className={sortBy === 'date' ? 'bg-indigo-500/20 text-indigo-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+              >
+                Mới nhất
+              </Button>
+              <Button
+                variant={sortBy === 'favorite' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSortBy('favorite')}
+                className={sortBy === 'favorite' ? 'bg-rose-500/20 text-rose-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+              >
+                Yêu thích
+              </Button>
+              <Button
+                variant={sortBy === 'tag' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSortBy('tag')}
+                className={sortBy === 'tag' ? 'bg-purple-500/20 text-purple-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+              >
+                Theo thẻ
+              </Button>
+            </div>
           </div>
 
           {allTags.length > 0 && (
@@ -290,6 +347,128 @@ Trả về JSON với format:
         )}
       </AnimatePresence>
 
+      {/* Detail Modal */}
+      <AnimatePresence>
+        {selectedMessage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+            onClick={() => setSelectedMessage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-slate-900/98 backdrop-blur-xl border border-amber-400/30 rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-6 pb-6 border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
+                    selectedMessage.type === 'chat' 
+                      ? 'bg-gradient-to-br from-amber-300 to-rose-400' 
+                      : 'bg-gradient-to-br from-rose-300 to-orange-400'
+                  }`}>
+                    {selectedMessage.type === 'chat' ? (
+                      <Sparkles className="w-6 h-6 text-white" />
+                    ) : (
+                      <Sun className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-white text-lg font-light">
+                      {selectedMessage.type === 'chat' ? 'Trò Chuyện' : 'Thông Điệp Ngày'}
+                    </p>
+                    <p className="text-purple-300/50 text-sm flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {new Date(selectedMessage.created_date).toLocaleDateString('vi-VN', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => toggleFavoriteMutation.mutate({ 
+                      id: selectedMessage.id, 
+                      isFavorite: selectedMessage.is_favorite 
+                    })}
+                    className="text-rose-300/60 hover:text-rose-400 hover:bg-white/10"
+                  >
+                    <Heart className={`w-5 h-5 ${selectedMessage.is_favorite ? 'fill-rose-400 text-rose-400' : ''}`} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedMessage(null)}
+                    className="text-purple-300/60 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Summary */}
+              {selectedMessage.summary && (
+                <div className="bg-purple-500/10 border border-purple-400/20 rounded-2xl p-4 mb-6">
+                  <p className="text-xs text-purple-300/70 mb-2 uppercase tracking-wide">Tóm tắt</p>
+                  <p className="text-purple-100 text-sm font-light leading-relaxed">
+                    {selectedMessage.summary}
+                  </p>
+                </div>
+              )}
+
+              {/* Tags */}
+              {selectedMessage.tags && selectedMessage.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {selectedMessage.tags.map((tag, idx) => (
+                    <Badge
+                      key={idx}
+                      className="bg-amber-500/20 text-amber-200 border-amber-400/30 cursor-pointer hover:bg-amber-500/30"
+                      onClick={() => {
+                        setSelectedTag(tag);
+                        setSelectedMessage(null);
+                      }}
+                    >
+                      <Tag className="w-3 h-3 mr-1" />
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Full Content */}
+              <div className="prose prose-invert prose-lg max-w-none font-light leading-relaxed text-purple-50">
+                <ReactMarkdown 
+                  className="[&>p]:mb-6 [&>p:last-child]:mb-0 [&>strong]:text-amber-300 [&>strong]:font-semibold [&>h1]:text-amber-300 [&>h2]:text-amber-300 [&>h3]:text-amber-300"
+                >
+                  {selectedMessage.content}
+                </ReactMarkdown>
+              </div>
+
+              {/* Footer */}
+              <div className="mt-8 pt-6 border-t border-white/10 flex justify-center">
+                <Button
+                  onClick={() => setSelectedMessage(null)}
+                  className="bg-gradient-to-r from-purple-400 to-amber-400 text-white rounded-full px-8"
+                >
+                  Đóng
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Content */}
       <div className="pt-[220px] pb-20 px-4 max-w-6xl mx-auto">
         {isLoading ? (
@@ -330,7 +509,8 @@ Trả về JSON với format:
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6 hover:border-amber-400/30 hover:shadow-xl hover:shadow-amber-500/10 transition-all"
+                  onClick={() => setSelectedMessage(message)}
+                  className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6 hover:border-amber-400/30 hover:shadow-xl hover:shadow-amber-500/10 transition-all cursor-pointer"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -396,7 +576,7 @@ Trả về JSON với format:
                   )}
 
                   {/* Content Preview */}
-                  <div className="relative group-hover:opacity-0 transition-opacity duration-300">
+                  <div className="relative">
                     <ReactMarkdown 
                       className="prose prose-invert prose-sm max-w-none font-light text-purple-50/70 line-clamp-4 [&>p]:mb-2 [&>p:last-child]:mb-0"
                     >
@@ -405,15 +585,15 @@ Trả về JSON với format:
                     <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-900/80 to-transparent" />
                   </div>
 
-                  {/* Hover overlay for full content */}
-                  <div className="absolute inset-0 bg-slate-950/98 backdrop-blur-lg rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden z-10 p-6">
-                    <div className="h-full overflow-y-auto">
-                      <ReactMarkdown 
-                        className="prose prose-invert prose-sm max-w-none font-light text-white [&>p]:mb-4 [&>p:last-child]:mb-0 [&>strong]:text-amber-300"
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
+                  {/* View detail button */}
+                  <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-400 to-amber-400 text-white rounded-full text-xs shadow-lg"
+                    >
+                      <Eye className="w-3 h-3 mr-1" />
+                      Xem chi tiết
+                    </Button>
                   </div>
                 </motion.div>
               ))}
