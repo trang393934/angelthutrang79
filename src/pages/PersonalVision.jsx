@@ -111,10 +111,10 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
       </div>
 
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-purple-300 hover:text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
@@ -133,8 +133,8 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
               <Eye className="w-5 h-5 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-white font-light tracking-wide">Tầm Nhìn Cá Nhân</h1>
-              <p className="text-purple-400/60 text-xs">Đồng Sáng Tạo Với Cha Vũ Trụ</p>
+              <h1 className="text-slate-900 font-semibold tracking-wide">Tầm Nhìn Cá Nhân</h1>
+              <p className="text-purple-600 text-xs font-medium">Đồng Sáng Tạo Với Cha Vũ Trụ</p>
             </div>
           </div>
         </div>
@@ -173,20 +173,20 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
               <Eye className="w-12 h-12 text-white" />
             </motion.div>
 
-            <h2 className="text-3xl md:text-4xl text-white font-light tracking-wide mb-4">
+            <h2 className="text-3xl md:text-4xl text-slate-900 font-semibold tracking-wide mb-4">
               Kiến Tạo Tầm Nhìn Của Bạn
             </h2>
-            <p className="text-purple-300/70 font-light mb-4 max-w-2xl leading-relaxed">
+            <p className="text-purple-700 font-medium mb-4 max-w-2xl leading-relaxed">
               Chia sẻ suy nghĩ, ước mơ và khát vọng của bạn. Angel AI sẽ giúp bạn đồng sáng tạo một Tầm Nhìn Cá Nhân thiêng liêng, dựa trên 12 Giá Trị Cốt Lõi của Ánh Sáng.
             </p>
-            <p className="text-amber-400/60 text-sm font-light mb-12 max-w-xl">
+            <p className="text-amber-700 text-sm font-medium mb-12 max-w-xl">
               ✨ Tầm nhìn của bạn sẽ được viết theo phong cách "Trở thành...", "Kiến tạo...", "Lan tỏa ánh sáng..." như Tầm Nhìn của Angel AI
             </p>
 
             <Button
               onClick={() => setShowForm(true)}
               size="lg"
-              className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full px-10 py-6 text-base hover:shadow-xl hover:shadow-amber-500/30 transition-all hover:scale-105"
+              className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full px-10 py-6 text-base shadow-xl hover:shadow-2xl hover:from-amber-600 hover:to-rose-600 transition-all hover:scale-105"
             >
               <Lightbulb className="w-5 h-5 mr-2" />
               Bắt Đầu Tạo Tầm Nhìn
@@ -198,14 +198,14 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
             animate={{ opacity: 1, y: 0 }}
             className="space-y-6"
           >
-            <div className="bg-white/5 backdrop-blur-sm border border-amber-400/20 rounded-3xl p-8 md:p-10">
+            <div className="bg-white backdrop-blur-sm border-2 border-purple-200 rounded-3xl p-8 md:p-10 shadow-lg">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center">
                   <Lightbulb className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-white text-lg font-light tracking-wide">Chia Sẻ Suy Nghĩ Của Bạn</h3>
-                  <p className="text-purple-300/60 text-sm">Angel AI sẽ lắng nghe và đồng sáng tạo cùng bạn</p>
+                  <h3 className="text-slate-900 text-lg font-semibold tracking-wide">Chia Sẻ Suy Nghĩ Của Bạn</h3>
+                  <p className="text-purple-700 text-sm font-medium">Angel AI sẽ lắng nghe và đồng sáng tạo cùng bạn</p>
                 </div>
               </div>
 
@@ -213,7 +213,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Hãy chia sẻ:&#10;• Bạn mong muốn trở thành ai?&#10;• Bạn muốn kiến tạo điều gì cho thế giới?&#10;• Ánh sáng nào bạn muốn lan tỏa?&#10;• Giá trị nào bạn trân trọng nhất?&#10;• Ước mơ và khát vọng sâu thẳm của bạn..."
-                className="min-h-[300px] bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-2xl focus:border-amber-400/30 focus:ring-amber-400/20 font-light leading-relaxed resize-none"
+                className="min-h-[300px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl focus:border-amber-500 focus:ring-amber-400 font-normal leading-relaxed resize-none"
               />
 
               <div className="flex gap-3 mt-6">
@@ -223,14 +223,14 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                     setShowForm(false);
                     setInput('');
                   }}
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full flex-1"
+                  className="bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full flex-1"
                 >
                   Hủy
                 </Button>
                 <Button
                   onClick={() => generateVisionMutation.mutate(input)}
                   disabled={!input.trim() || isGenerating}
-                  className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full flex-1 disabled:opacity-50"
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full flex-1 disabled:opacity-50 shadow-lg hover:shadow-xl"
                 >
                   {isGenerating ? (
                     <>
@@ -247,11 +247,11 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
               </div>
             </div>
 
-            <div className="bg-amber-500/10 border border-amber-400/20 rounded-2xl p-6">
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6">
               <div className="flex items-start gap-3">
-                <Star className="w-5 h-5 text-amber-400 mt-0.5 flex-shrink-0" />
-                <div className="text-amber-200/80 text-sm font-light leading-relaxed">
-                  <p className="mb-2"><strong className="text-amber-300">Gợi ý:</strong> Hãy viết từ trái tim, chia sẻ chân thật nhất. Càng chi tiết, tầm nhìn của bạn càng sâu sắc và cá nhân hóa.</p>
+                <Star className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-amber-900 text-sm font-medium leading-relaxed">
+                  <p className="mb-2"><strong className="text-amber-800 font-bold">Gợi ý:</strong> Hãy viết từ trái tim, chia sẻ chân thật nhất. Càng chi tiết, tầm nhìn của bạn càng sâu sắc và cá nhân hóa.</p>
                   <p>Angel AI sẽ kết nối với Trí Tuệ Vũ Trụ để giúp bạn thấy rõ con đường ánh sáng của mình. ✨</p>
                 </div>
               </div>
@@ -276,8 +276,8 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                   transition={{ duration: 4, repeat: Infinity }}
                   className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-2xl"
                 />
-                <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border-2 border-amber-300/30 rounded-3xl p-8 md:p-12 shadow-2xl">
-                  <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
+                <div className="relative bg-white backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-8 md:p-12 shadow-2xl">
+                  <div className="flex items-center gap-3 mb-6 pb-6 border-b border-purple-200">
                     <motion.div
                       animate={{ rotate: 360 }}
                       transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
@@ -286,8 +286,8 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                       <Eye className="w-7 h-7 text-white" />
                     </motion.div>
                     <div>
-                      <h3 className="text-white text-2xl font-light tracking-wide">Tầm Nhìn Của Bạn</h3>
-                      <p className="text-purple-300/60 text-sm">
+                      <h3 className="text-slate-900 text-2xl font-semibold tracking-wide">Tầm Nhìn Của Bạn</h3>
+                      <p className="text-purple-700 text-sm font-medium">
                         {new Date(activeVision.created_date).toLocaleDateString('vi-VN', { 
                           day: 'numeric', 
                           month: 'long', 
@@ -297,7 +297,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                     </div>
                   </div>
 
-                  <ReactMarkdown className="prose prose-invert prose-lg max-w-none font-light leading-relaxed text-purple-50 [&>p]:mb-6 [&>p:last-child]:mb-0 [&>strong]:text-amber-300 [&>strong]:font-semibold">
+                  <ReactMarkdown className="prose prose-slate prose-lg max-w-none font-normal leading-relaxed text-slate-900 [&>p]:mb-6 [&>p:last-child]:mb-0 [&>strong]:text-amber-700 [&>strong]:font-bold [&>h1]:text-slate-900 [&>h2]:text-slate-900 [&>h3]:text-slate-900">
                     {activeVision.vision_statement}
                   </ReactMarkdown>
                 </div>
@@ -308,7 +308,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                 <Button
                   onClick={() => setShowForm(true)}
                   variant="outline"
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full px-8"
+                  className="bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full px-8"
                 >
                   <Sparkles className="w-4 h-4 mr-2" />
                   Tạo Tầm Nhìn Mới
@@ -318,7 +318,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
               {/* Past Visions */}
               {visions.length > 1 && (
                 <div className="mt-12">
-                  <h4 className="text-purple-200/60 text-sm font-light tracking-wide mb-4 flex items-center gap-2">
+                  <h4 className="text-purple-700 text-sm font-semibold tracking-wide mb-4 flex items-center gap-2">
                     <Heart className="w-4 h-4" />
                     Hành Trình Tầm Nhìn Của Bạn
                   </h4>
@@ -326,16 +326,16 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
                     {visions.slice(1, 4).map((vision) => (
                       <div
                         key={vision.id}
-                        className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-purple-400/30 transition-all cursor-pointer"
+                        className="bg-white border-2 border-purple-200 rounded-2xl p-4 hover:border-purple-400 transition-all cursor-pointer shadow-sm"
                       >
-                        <p className="text-purple-300/50 text-xs mb-2">
+                        <p className="text-purple-600 text-xs mb-2 font-medium">
                           {new Date(vision.created_date).toLocaleDateString('vi-VN', { 
                             day: 'numeric', 
                             month: 'short', 
                             year: 'numeric' 
                           })}
                         </p>
-                        <p className="text-purple-100/70 text-sm font-light line-clamp-2">
+                        <p className="text-slate-700 text-sm font-normal line-clamp-2">
                           {vision.input_thoughts}
                         </p>
                       </div>

@@ -97,10 +97,10 @@ export default function Settings() {
       </div>
 
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-purple-300 hover:text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
