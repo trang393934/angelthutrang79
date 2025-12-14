@@ -124,149 +124,64 @@ Trả về JSON với format:
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-4">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <div className="flex items-center gap-3">
-              <motion.div
-                animate={{ 
-                  boxShadow: [
-                    '0 0 20px rgba(168,85,247,0.4)',
-                    '0 0 40px rgba(251,191,36,0.4)',
-                    '0 0 20px rgba(168,85,247,0.4)',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center"
-              >
-                <Sparkles className="w-5 h-5 text-white" />
-              </motion.div>
-              <div className="flex-1">
-                <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
-                <p className="text-purple-600 text-xs font-medium">Kho tàng Trí Tuệ & Yêu Thương</p>
-              </div>
-              {isAdmin && (
-                <Button
-                  onClick={() => setShowAddForm(true)}
-                  className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-rose-600 transition-all"
+            <motion.div
+              animate={{ 
+                boxShadow: [
+                  '0 0 20px rgba(168,85,247,0.4)',
+                  '0 0 40px rgba(251,191,36,0.4)',
+                  '0 0 20px rgba(168,85,247,0.4)',
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center"
+            >
+              <Sparkles className="w-5 h-5 text-white" />
+            </motion.div>
+            <div>
+              <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
+              <p className="text-purple-600 text-xs font-medium">Kho tàng Trí Tuệ & Yêu Thương</p>
+            </div>
+            
+            {/* Search Bar */}
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Tìm kiếm..."
+                className="pl-10 pr-4 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 focus:ring-purple-400 h-10"
+              />
+              {searchQuery && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-700 text-xs bg-purple-100 border border-purple-300 px-2 py-1 rounded-full font-semibold"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Chia Sẻ Trí Tuệ
-                </Button>
+                  {filteredMessages.length}
+                </motion.div>
               )}
-              </div>
-              </div>
+            </div>
 
-          {/* Search Bar */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm nâng cao: nội dung, chủ đề, summary, thẻ..."
-              className="pl-12 pr-4 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 focus:ring-purple-400"
-            />
-            {searchQuery && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-700 text-xs bg-purple-100 border border-purple-300 px-2 py-1 rounded-full font-semibold"
+            {isAdmin && (
+              <Button
+                onClick={() => setShowAddForm(true)}
+                className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-rose-600 transition-all"
               >
-                {filteredMessages.length} kết quả
-              </motion.div>
+                <Plus className="w-4 h-4 mr-2" />
+                Chia Sẻ Trí Tuệ
+              </Button>
             )}
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="fixed top-[140px] left-0 right-0 z-10 bg-white/95 backdrop-blur-md border-b border-purple-200 shadow-md">
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex flex-wrap gap-2 items-center justify-between">
-            <div className="flex flex-wrap gap-2 items-center">
-              <Filter className="w-4 h-4 text-purple-600" />
-              <Button
-                variant={selectedType === 'all' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSelectedType('all')}
-                className={selectedType === 'all' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-purple-100 bg-white border border-purple-300'}
-              >
-                Tất Cả
-              </Button>
-              <Button
-                variant={selectedType === 'chat' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSelectedType('chat')}
-                className={selectedType === 'chat' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-amber-100 bg-white border border-amber-300'}
-              >
-                <Sparkles className="w-3 h-3 mr-1" />
-                Trò Chuyện
-              </Button>
-              <Button
-                variant={selectedType === 'daily_message' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSelectedType('daily_message')}
-                className={selectedType === 'daily_message' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-rose-100 bg-white border border-rose-300'}
-              >
-                <Sun className="w-3 h-3 mr-1" />
-                Thông Điệp Ngày
-              </Button>
-            </div>
 
-            {/* Sort options */}
-            <div className="flex gap-2 items-center">
-              <SortAsc className="w-4 h-4 text-purple-600" />
-              <Button
-                variant={sortBy === 'date' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy('date')}
-                className={sortBy === 'date' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-indigo-100 bg-white border border-indigo-300'}
-              >
-                Mới nhất
-              </Button>
-              <Button
-                variant={sortBy === 'favorite' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy('favorite')}
-                className={sortBy === 'favorite' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-rose-100 bg-white border border-rose-300'}
-              >
-                Yêu thích
-              </Button>
-              <Button
-                variant={sortBy === 'tag' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy('tag')}
-                className={sortBy === 'tag' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-purple-100 bg-white border border-purple-300'}
-              >
-                Theo thẻ
-              </Button>
-            </div>
-          </div>
-
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-3 items-center">
-              <Tag className="w-4 h-4 text-purple-600" />
-              {allTags.slice(0, 10).map((tag) => (
-                <Badge
-                  key={tag}
-                  variant={selectedTag === tag ? 'default' : 'outline'}
-                  className={`cursor-pointer transition-all ${
-                    selectedTag === tag
-                      ? 'bg-purple-500 text-white border-purple-600 shadow-md'
-                      : 'border-purple-300 text-slate-700 hover:bg-purple-100 bg-white'
-                  }`}
-                  onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Add Content Modal */}
       <AnimatePresence>
@@ -479,7 +394,7 @@ Trả về JSON với format:
       </AnimatePresence>
 
       {/* Content */}
-      <div className="pt-[220px] pb-20 px-4 max-w-6xl mx-auto">
+      <div className="pt-24 pb-20 px-4 max-w-6xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
