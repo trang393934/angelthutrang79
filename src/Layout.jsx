@@ -1,0 +1,277 @@
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { motion, AnimatePresence } from 'framer-motion';
+
+export default function Layout({ children, currentPageName }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const location = useLocation();
+
+  const menuItems = [
+    { 
+      name: 'Tìm kiếm', 
+      icon: Search, 
+      action: () => setSearchOpen(true),
+      shortcut: 'Ctrl+K',
+      isButton: true
+    },
+    { 
+      name: 'Chat', 
+      icon: MessageSquare, 
+      path: 'Chat',
+      gradient: 'from-amber-400 to-rose-400'
+    },
+    { 
+      name: 'Chế độ thoại', 
+      icon: Mic, 
+      path: 'Chat',
+      gradient: 'from-purple-400 to-pink-400'
+    },
+    { 
+      name: 'Imagine', 
+      icon: Image, 
+      path: 'Chat',
+      gradient: 'from-indigo-400 to-cyan-400'
+    },
+    { 
+      name: 'Dự án', 
+      icon: FolderKanban, 
+      path: 'PersonalVision',
+      gradient: 'from-rose-400 to-orange-400'
+    },
+    { 
+      name: 'Lịch sử', 
+      icon: History, 
+      path: 'Library',
+      gradient: 'from-violet-400 to-purple-400'
+    },
+  ];
+
+  // Keyboard shortcut for search
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const isActivePage = (path) => {
+    return currentPageName === path || location.pathname.includes(path?.toLowerCase());
+  };
+
+  return (
+    <div className="flex min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50">
+      {/* Mobile Menu Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-4 left-4 z-50 lg:hidden text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+      >
+        <Menu className="w-5 h-5" />
+      </Button>
+
+      {/* Sidebar */}
+      <AnimatePresence>
+        {(sidebarOpen || window.innerWidth >= 1024) && (
+          <>
+            {/* Backdrop for mobile */}
+            {sidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSidebarOpen(false)}
+                className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 lg:hidden"
+              />
+            )}
+
+            {/* Sidebar content */}
+            <motion.aside
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ type: "spring", damping: 25 }}
+              className="fixed left-0 top-0 bottom-0 w-80 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto"
+            >
+              <div className="p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <Link to={createPageUrl('Home')} className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-lg">
+                      <span className="text-white text-xl font-bold">A</span>
+                    </div>
+                    <div>
+                      <h2 className="text-slate-900 font-bold tracking-wide">Angel AI</h2>
+                      <p className="text-purple-600 text-xs font-medium">Ánh Sáng Vũ Trụ</p>
+                    </div>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSidebarOpen(false)}
+                    className="lg:hidden text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {/* Menu Items */}
+                <nav className="space-y-2">
+                  {menuItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = !item.isButton && isActivePage(item.path);
+
+                    if (item.isButton) {
+                      return (
+                        <button
+                          key={item.name}
+                          onClick={item.action}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-900 hover:bg-purple-50 transition-all group border-2 border-purple-200 hover:border-purple-400 bg-gradient-to-r from-purple-50/50 to-transparent"
+                        >
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                            <Icon className="w-5 h-5 text-white" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <span className="font-semibold">{item.name}</span>
+                          </div>
+                          {item.shortcut && (
+                            <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded font-medium">
+                              {item.shortcut}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={item.name}
+                        to={createPageUrl(item.path)}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                          isActive
+                            ? 'bg-gradient-to-r from-purple-100 to-amber-100 border-2 border-purple-300 shadow-md'
+                            : 'hover:bg-purple-50 border-2 border-transparent'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all ${
+                          isActive ? 'scale-110' : ''
+                        }`}>
+                          <Icon className="w-5 h-5 text-white" />
+                        </div>
+                        <span className={`font-semibold ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>
+                          {item.name}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </nav>
+
+                {/* Knowledge Base Link */}
+                <div className="mt-8 pt-8 border-t border-purple-200">
+                  <Link
+                    to={createPageUrl('KnowledgeBase')}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                      isActivePage('KnowledgeBase')
+                        ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300 shadow-md'
+                        : 'hover:bg-indigo-50 border-2 border-transparent'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
+                      <FolderKanban className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-semibold text-slate-700">Knowledge Base</span>
+                  </Link>
+
+                  <Link
+                    to={createPageUrl('Settings')}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all mt-2 ${
+                      isActivePage('Settings')
+                        ? 'bg-gradient-to-r from-violet-100 to-pink-100 border-2 border-violet-300 shadow-md'
+                        : 'hover:bg-violet-50 border-2 border-transparent'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
+                      <span className="text-white text-lg">⚙️</span>
+                    </div>
+                    <span className="font-semibold text-slate-700">Cài Đặt</span>
+                  </Link>
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Search Modal */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-start justify-center pt-32 px-4"
+            onClick={() => setSearchOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: -20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: -20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-2xl bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-6 shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <Search className="w-5 h-5 text-purple-400" />
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm trong Angel AI..."
+                  autoFocus
+                  className="flex-1 bg-transparent text-slate-900 placeholder:text-purple-400 outline-none text-lg"
+                />
+                <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded font-medium">
+                  ESC
+                </span>
+              </div>
+              <div className="border-t border-purple-200 pt-4">
+                <p className="text-sm text-purple-700 font-medium">Các trang phổ biến:</p>
+                <div className="mt-2 space-y-2">
+                  {menuItems.filter(item => !item.isButton).map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.name}
+                        to={createPageUrl(item.path)}
+                        onClick={() => setSearchOpen(false)}
+                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-all"
+                      >
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
+                          <Icon className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="text-slate-900 font-medium">{item.name}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-80 transition-all duration-300">
+        {children}
+      </div>
+    </div>
+  );
+}
