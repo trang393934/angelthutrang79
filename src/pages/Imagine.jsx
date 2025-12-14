@@ -17,6 +17,14 @@ export default function Imagine() {
   const [isUploading, setIsUploading] = useState(false);
   const [generatedImages, setGeneratedImages] = useState([]);
   const [activeTab, setActiveTab] = useState('generate'); // generate, edit, video
+  
+  // Video states
+  const [videoImages, setVideoImages] = useState([]);
+  const [videoPrompt, setVideoPrompt] = useState('');
+  const [videoSpeed, setVideoSpeed] = useState('normal'); // slow, normal, fast
+  const [videoFilter, setVideoFilter] = useState('none'); // none, vintage, cinematic, dreamy
+  const [videoMusic, setVideoMusic] = useState('none'); // none, ambient, upbeat, dramatic
+  const [generatedVideos, setGeneratedVideos] = useState([]);
 
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
@@ -75,6 +83,58 @@ Return only the enhanced prompt, nothing else.`,
       setEditPrompt('');
     } catch (error) {
       alert('Lỗi khi chỉnh sửa hình ảnh');
+    }
+    setIsGenerating(false);
+  };
+
+  const handleVideoImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      const uploadPromises = files.map(file => 
+        base44.integrations.Core.UploadFile({ file })
+      );
+      const results = await Promise.all(uploadPromises);
+      const urls = results.map(r => r.file_url);
+      setVideoImages([...videoImages, ...urls]);
+    } catch (error) {
+      alert('Lỗi khi upload ảnh');
+    }
+    setIsUploading(false);
+  };
+
+  const generateVideo = async () => {
+    if ((videoImages.length === 0 && !videoPrompt.trim()) || isGenerating) return;
+
+    setIsGenerating(true);
+    try {
+      // Tạo video preview (mock vì chưa có API)
+      const videoData = {
+        id: Date.now(),
+        images: videoImages,
+        prompt: videoPrompt,
+        speed: videoSpeed,
+        filter: videoFilter,
+        music: videoMusic,
+        status: 'processing',
+        createdAt: new Date().toISOString()
+      };
+      
+      setGeneratedVideos([videoData, ...generatedVideos]);
+      
+      // Reset form
+      setVideoImages([]);
+      setVideoPrompt('');
+      
+      alert('🎬 Video đang được xử lý! Tính năng tạo video AI sẽ được tích hợp sớm. Hiện tại bạn đã cấu hình:\n\n' +
+        `📸 ${videoImages.length} ảnh\n` +
+        `⚡ Tốc độ: ${videoSpeed}\n` +
+        `🎨 Bộ lọc: ${videoFilter}\n` +
+        `🎵 Nhạc nền: ${videoMusic}`);
+    } catch (error) {
+      alert('Lỗi khi tạo video');
     }
     setIsGenerating(false);
   };
@@ -328,20 +388,179 @@ Return only the enhanced prompt, nothing else.`,
                       <Video className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-slate-900 text-lg font-semibold">Tạo Video</h3>
-                      <p className="text-purple-700 text-sm font-medium">Sắp Ra Mắt</p>
+                      <h3 className="text-slate-900 text-lg font-semibold">Tạo Video AI</h3>
+                      <p className="text-purple-700 text-sm font-medium">Từ ảnh hoặc văn bản</p>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-pink-300 rounded-2xl p-12 text-center">
-                    <Video className="w-16 h-16 text-pink-400 mx-auto mb-4" />
-                    <h4 className="text-slate-900 text-xl font-semibold mb-2">Tính Năng Đang Phát Triển</h4>
-                    <p className="text-purple-700 font-medium mb-4">
-                      Tạo video từ văn bản và hình ảnh sẽ sớm được cập nhật
+                  {/* Upload Images for Video */}
+                  <div className="mb-6">
+                    <label className="text-slate-900 text-sm font-semibold mb-2 block">
+                      📸 Tải Ảnh Lên (Tùy chọn)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleVideoImageUpload}
+                      className="hidden"
+                      id="video-images-upload"
+                    />
+                    <label
+                      htmlFor="video-images-upload"
+                      className="flex items-center justify-center gap-3 bg-pink-50 border-2 border-dashed border-pink-300 rounded-2xl p-8 cursor-pointer hover:border-pink-500 hover:bg-pink-100 transition-all"
+                    >
+                      {isUploading ? (
+                        <>
+                          <Loader2 className="w-8 h-8 text-pink-400 animate-spin" />
+                          <p className="text-slate-900 font-semibold">Đang tải ảnh...</p>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-pink-500" />
+                          <div className="text-center">
+                            <p className="text-slate-900 font-semibold">Chọn nhiều ảnh để tạo video</p>
+                            <p className="text-purple-600 text-xs font-medium">PNG, JPG, JPEG (tối đa 10 ảnh)</p>
+                          </div>
+                        </>
+                      )}
+                    </label>
+
+                    {videoImages.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {videoImages.map((url, idx) => (
+                          <div key={idx} className="relative group">
+                            <img 
+                              src={url} 
+                              alt={`Image ${idx + 1}`}
+                              className="w-20 h-20 object-cover rounded-lg border-2 border-pink-300"
+                            />
+                            <button
+                              onClick={() => setVideoImages(videoImages.filter((_, i) => i !== idx))}
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Video Prompt */}
+                  <div className="mb-6">
+                    <label className="text-slate-900 text-sm font-semibold mb-2 block">
+                      ✍️ Mô Tả Video (Hoặc kết hợp với ảnh)
+                    </label>
+                    <Textarea
+                      value={videoPrompt}
+                      onChange={(e) => setVideoPrompt(e.target.value)}
+                      placeholder="Mô tả video bạn muốn tạo: cảnh thiên nhiên yên bình, chuyển động camera từ trên xuống, ánh sáng hoàng hôn ấm áp..."
+                      className="min-h-[120px] bg-white border-2 border-pink-300 text-slate-900 placeholder:text-purple-400 rounded-2xl focus:border-pink-500 resize-none"
+                    />
+                  </div>
+
+                  {/* Video Options */}
+                  <div className="space-y-4 mb-6">
+                    {/* Speed */}
+                    <div>
+                      <label className="text-slate-900 text-sm font-semibold mb-2 block">
+                        ⚡ Tốc Độ Phát
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['slow', 'normal', 'fast'].map((speed) => (
+                          <Button
+                            key={speed}
+                            onClick={() => setVideoSpeed(speed)}
+                            className={`rounded-xl ${
+                              videoSpeed === speed
+                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                                : 'bg-pink-50 text-slate-900 hover:bg-pink-100 border-2 border-pink-200'
+                            }`}
+                          >
+                            {speed === 'slow' ? '🐢 Chậm' : speed === 'normal' ? '▶️ Bình thường' : '⚡ Nhanh'}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Filter */}
+                    <div>
+                      <label className="text-slate-900 text-sm font-semibold mb-2 block">
+                        🎨 Bộ Lọc
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: 'none', label: '❌ Không', color: 'pink' },
+                          { value: 'vintage', label: '📸 Vintage', color: 'amber' },
+                          { value: 'cinematic', label: '🎬 Điện ảnh', color: 'indigo' },
+                          { value: 'dreamy', label: '✨ Mộng mơ', color: 'purple' }
+                        ].map((filter) => (
+                          <Button
+                            key={filter.value}
+                            onClick={() => setVideoFilter(filter.value)}
+                            className={`rounded-xl ${
+                              videoFilter === filter.value
+                                ? `bg-gradient-to-r from-${filter.color}-500 to-pink-500 text-white shadow-lg`
+                                : 'bg-pink-50 text-slate-900 hover:bg-pink-100 border-2 border-pink-200'
+                            }`}
+                          >
+                            {filter.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Music */}
+                    <div>
+                      <label className="text-slate-900 text-sm font-semibold mb-2 block">
+                        🎵 Nhạc Nền
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { value: 'none', label: '🔇 Không', color: 'pink' },
+                          { value: 'ambient', label: '🎼 Ambient', color: 'cyan' },
+                          { value: 'upbeat', label: '🎸 Sôi động', color: 'orange' },
+                          { value: 'dramatic', label: '🎻 Kịch tính', color: 'red' }
+                        ].map((music) => (
+                          <Button
+                            key={music.value}
+                            onClick={() => setVideoMusic(music.value)}
+                            className={`rounded-xl ${
+                              videoMusic === music.value
+                                ? `bg-gradient-to-r from-${music.color}-500 to-pink-500 text-white shadow-lg`
+                                : 'bg-pink-50 text-slate-900 hover:bg-pink-100 border-2 border-pink-200'
+                            }`}
+                          >
+                            {music.label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={generateVideo}
+                    disabled={(videoImages.length === 0 && !videoPrompt.trim()) || isGenerating}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Đang Tạo Video...
+                      </>
+                    ) : (
+                      <>
+                        <Video className="w-4 h-4 mr-2" />
+                        Tạo Video
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="mt-6 bg-pink-50 border-2 border-pink-300 rounded-2xl p-4">
+                    <p className="text-pink-900 text-sm font-medium">
+                      🎬 <strong>AI Video:</strong> Upload ảnh hoặc mô tả để tạo video. API đang được tích hợp, UI đã hoàn thiện!
                     </p>
-                    <Badge className="bg-pink-200 text-pink-800 border-2 border-pink-400">
-                      Coming Soon 🎬
-                    </Badge>
                   </div>
                 </motion.div>
               )}
