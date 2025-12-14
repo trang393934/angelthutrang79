@@ -20,7 +20,14 @@ export default function Library() {
   const [isAdding, setIsAdding] = useState(false);
   const [sortBy, setSortBy] = useState('date'); // date, favorite, tag
   const [selectedMessage, setSelectedMessage] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
+
+  React.useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+  }, []);
+
+  const isAdmin = currentUser?.role === 'admin';
 
   const { data: messages = [], isLoading } = useQuery({
     queryKey: ['light-messages'],
@@ -141,13 +148,15 @@ Trả về JSON với format:
                 <h1 className="text-white font-light tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
                 <p className="text-purple-400/60 text-xs">Kho tàng Trí Tuệ & Yêu Thương</p>
               </div>
-              <Button
-                onClick={() => setShowAddForm(true)}
-                className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full hover:shadow-lg hover:shadow-amber-500/30 transition-all"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Chia Sẻ Trí Tuệ
-              </Button>
+              {isAdmin && (
+                <Button
+                  onClick={() => setShowAddForm(true)}
+                  className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full hover:shadow-lg hover:shadow-amber-500/30 transition-all"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Chia Sẻ Trí Tuệ
+                </Button>
+              )}
               </div>
               </div>
 
