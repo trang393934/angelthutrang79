@@ -143,10 +143,10 @@ Trả về JSON với format:
       </div>
 
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-indigo-200 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-purple-300 hover:text-white hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
@@ -165,13 +165,13 @@ Trả về JSON với format:
               <BookOpen className="w-5 h-5 text-white" />
             </motion.div>
             <div className="flex-1">
-              <h1 className="text-white font-light tracking-wide">Knowledge Base</h1>
-              <p className="text-purple-400/60 text-xs">Kho Tri Thức Của AI</p>
+              <h1 className="text-slate-900 font-semibold tracking-wide">Knowledge Base</h1>
+              <p className="text-purple-600 text-xs font-medium">Kho Tri Thức Của AI</p>
             </div>
             {isAdmin && (
               <Button
                 onClick={() => setShowUploadForm(true)}
-                className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Tài Liệu
@@ -196,31 +196,31 @@ Trả về JSON với format:
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900/95 backdrop-blur-xl border border-indigo-400/30 rounded-3xl p-8 max-w-2xl w-full"
+              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-2xl w-full shadow-2xl"
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
                   <Upload className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-white text-xl font-light tracking-wide">Upload Tài Liệu Giáo Lý</h3>
-                  <p className="text-purple-300/60 text-sm">AI sẽ học và tham khảo khi trả lời</p>
+                  <h3 className="text-slate-900 text-xl font-semibold tracking-wide">Upload Tài Liệu Giáo Lý</h3>
+                  <p className="text-purple-700 text-sm font-medium">AI sẽ học và tham khảo khi trả lời</p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-purple-200 text-sm mb-2 block">Tiêu đề</label>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Tiêu đề</label>
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="8 Divine Mantras, Luật Trả Lời, Tầm Nhìn FUN..."
-                    className="bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-xl"
+                    className="bg-white border-2 border-indigo-300 text-slate-900 placeholder:text-purple-400 rounded-xl focus:border-indigo-500"
                   />
                 </div>
 
                 <div>
-                  <label className="text-purple-200 text-sm mb-2 block">Loại tài liệu</label>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Loại tài liệu</label>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(typeLabels).map(([key, label]) => (
                       <Button
@@ -228,7 +228,7 @@ Trả về JSON với format:
                         variant={type === key ? 'default' : 'outline'}
                         size="sm"
                         onClick={() => setType(key)}
-                        className={type === key ? typeColors[key] : 'border-white/20 text-white hover:bg-white/10'}
+                        className={type === key ? typeColors[key] : 'border-purple-300 text-slate-900 hover:bg-purple-50 bg-white'}
                       >
                         {label}
                       </Button>
@@ -237,7 +237,7 @@ Trả về JSON với format:
                 </div>
 
                 <div>
-                  <label className="text-purple-200 text-sm mb-2 block">File (PDF, TXT, DOC)</label>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">File (PDF, TXT, DOC)</label>
                   <div className="relative">
                     <input
                       type="file"
@@ -248,22 +248,22 @@ Trả về JSON với format:
                     />
                     <label
                       htmlFor="file-upload"
-                      className="flex items-center justify-center gap-3 bg-white/5 border-2 border-dashed border-white/20 rounded-xl p-8 cursor-pointer hover:border-indigo-400/40 hover:bg-white/10 transition-all"
+                      className="flex items-center justify-center gap-3 bg-indigo-50 border-2 border-dashed border-indigo-300 rounded-xl p-8 cursor-pointer hover:border-indigo-500 hover:bg-indigo-100 transition-all"
                     >
                       {uploadFile ? (
                         <>
                           <File className="w-8 h-8 text-indigo-400" />
                           <div className="text-left">
-                            <p className="text-white font-light">{uploadFile.name}</p>
-                            <p className="text-purple-300/60 text-xs">{(uploadFile.size / 1024).toFixed(2)} KB</p>
+                            <p className="text-slate-900 font-semibold">{uploadFile.name}</p>
+                            <p className="text-purple-600 text-xs font-medium">{(uploadFile.size / 1024).toFixed(2)} KB</p>
                           </div>
                         </>
                       ) : (
                         <>
-                          <Upload className="w-8 h-8 text-purple-300/40" />
+                          <Upload className="w-8 h-8 text-indigo-500" />
                           <div className="text-center">
-                            <p className="text-white font-light">Click để chọn file</p>
-                            <p className="text-purple-300/60 text-xs">PDF, TXT, DOC hoặc DOCX</p>
+                            <p className="text-slate-900 font-semibold">Click để chọn file</p>
+                            <p className="text-purple-600 text-xs font-medium">PDF, TXT, DOC hoặc DOCX</p>
                           </div>
                         </>
                       )}
@@ -281,14 +281,14 @@ Trả về JSON với format:
                     setTitle('');
                   }}
                   disabled={isUploading}
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full flex-1"
+                  className="bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full flex-1"
                 >
                   Hủy
                 </Button>
                 <Button
                   onClick={() => uploadMutation.mutate()}
                   disabled={!uploadFile || !title.trim() || isUploading}
-                  className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full flex-1 disabled:opacity-50"
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full flex-1 disabled:opacity-50 shadow-lg hover:shadow-xl"
                 >
                   {isUploading ? (
                     <>
@@ -323,15 +323,15 @@ Trả về JSON với format:
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900/98 backdrop-blur-xl border border-indigo-400/30 rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto"
+              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl"
             >
-              <div className="flex items-start justify-between mb-6 pb-6 border-b border-white/10">
+              <div className="flex items-start justify-between mb-6 pb-6 border-b border-indigo-200">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
                     <BookOpen className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-white text-xl font-light mb-2">{selectedDoc.title}</h3>
+                    <h3 className="text-slate-900 text-xl font-semibold mb-2">{selectedDoc.title}</h3>
                     <Badge className={typeColors[selectedDoc.type]}>
                       {typeLabels[selectedDoc.type]}
                     </Badge>
@@ -345,7 +345,7 @@ Trả về JSON với format:
                       navigator.clipboard.writeText(selectedDoc.content);
                       alert('Đã copy nội dung!');
                     }}
-                    className="text-green-300/60 hover:text-green-400 hover:bg-white/10"
+                    className="text-green-600 hover:text-green-800 hover:bg-green-100"
                     title="Copy nội dung"
                   >
                     <Copy className="w-5 h-5" />
@@ -362,7 +362,7 @@ Trả về JSON với format:
                       link.click();
                       document.body.removeChild(link);
                     }}
-                    className="text-blue-300/60 hover:text-blue-400 hover:bg-white/10"
+                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-100"
                     title="Tải về"
                   >
                     <Download className="w-5 h-5" />
@@ -371,7 +371,7 @@ Trả về JSON với format:
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedDoc(null)}
-                    className="text-purple-300/60 hover:text-white hover:bg-white/10"
+                    className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -379,8 +379,8 @@ Trả về JSON với format:
               </div>
 
               {selectedDoc.summary && (
-                <div className="bg-indigo-500/10 border border-indigo-400/20 rounded-2xl p-4 mb-6">
-                  <p className="text-indigo-200 text-sm font-light leading-relaxed">
+                <div className="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4 mb-6">
+                  <p className="text-slate-800 text-sm font-medium leading-relaxed">
                     {selectedDoc.summary}
                   </p>
                 </div>
@@ -389,14 +389,14 @@ Trả về JSON với format:
               {selectedDoc.tags && selectedDoc.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6">
                   {selectedDoc.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="outline" className="border-purple-400/30 text-purple-200">
+                    <Badge key={idx} variant="outline" className="border-purple-400 text-purple-700 bg-purple-50"
                       {tag}
                     </Badge>
                   ))}
                 </div>
               )}
 
-              <div className="prose prose-invert prose-sm max-w-none font-light leading-relaxed text-purple-50">
+              <div className="prose prose-slate prose-sm max-w-none font-normal leading-relaxed text-slate-900">
                 <ReactMarkdown className="whitespace-pre-wrap">
                   {selectedDoc.content}
                 </ReactMarkdown>
@@ -427,8 +427,8 @@ Trả về JSON với format:
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-400/20 to-purple-400/20 flex items-center justify-center mx-auto mb-6">
               <BookOpen className="w-10 h-10 text-indigo-300/40" />
             </div>
-            <h3 className="text-white text-xl font-light mb-2">Chưa Có Tài Liệu</h3>
-            <p className="text-purple-300/60 font-light mb-6">
+            <h3 className="text-slate-900 text-xl font-semibold mb-2">Chưa Có Tài Liệu</h3>
+            <p className="text-purple-700 font-medium mb-6">
               {isAdmin 
                 ? 'Upload tài liệu giáo lý để AI học và trả lời chính xác hơn'
                 : 'Admin chưa upload tài liệu giáo lý nào'}
@@ -436,7 +436,7 @@ Trả về JSON với format:
             {isAdmin && (
               <Button
                 onClick={() => setShowUploadForm(true)}
-                className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full"
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Upload Tài Liệu Đầu Tiên
@@ -453,7 +453,7 @@ Trả về JSON với format:
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
-                  className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6 hover:border-indigo-400/30 hover:shadow-xl hover:shadow-indigo-500/10 transition-all"
+                  className="group relative bg-white backdrop-blur-sm border-2 border-indigo-200 rounded-3xl p-6 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-200 transition-all"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 flex-1">
@@ -461,7 +461,7 @@ Trả về JSON với format:
                         <BookOpen className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-light truncate">{doc.title}</h3>
+                        <h3 className="text-slate-900 font-semibold truncate">{doc.title}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge className={`text-xs ${typeColors[doc.type]}`}>
                             {typeLabels[doc.type]}
@@ -490,7 +490,7 @@ Trả về JSON với format:
                             deleteMutation.mutate(doc.id);
                           }
                         }}
-                        className="text-red-300/40 hover:text-red-400 hover:bg-white/10"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-100"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -498,7 +498,7 @@ Trả về JSON với format:
                   </div>
 
                   {doc.summary && (
-                    <p className="text-purple-100/70 text-sm font-light leading-relaxed mb-4 line-clamp-3">
+                    <p className="text-slate-700 text-sm font-normal leading-relaxed mb-4 line-clamp-3">
                       {doc.summary}
                     </p>
                   )}
@@ -506,7 +506,7 @@ Trả về JSON với format:
                   {doc.tags && doc.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {doc.tags.slice(0, 3).map((tag, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs border-indigo-400/30 text-indigo-200/70">
+                        <Badge key={idx} variant="outline" className="text-xs border-indigo-400 text-indigo-700 bg-indigo-50"
                           {tag}
                         </Badge>
                       ))}
@@ -517,7 +517,7 @@ Trả về JSON với format:
                     <Button
                       onClick={() => setSelectedDoc(doc)}
                       size="sm"
-                      className="flex-1 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-white border border-indigo-400/30 rounded-full hover:from-indigo-400/30 hover:to-purple-400/30"
+                      className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 rounded-full hover:from-indigo-600 hover:to-purple-600 shadow-md hover:shadow-lg"
                     >
                       <Eye className="w-3 h-3 mr-2" />
                       Xem
@@ -534,7 +534,7 @@ Trả về JSON với format:
                         document.body.removeChild(link);
                       }}
                       size="sm"
-                      className="bg-gradient-to-r from-blue-400/20 to-cyan-400/20 text-white border border-blue-400/30 rounded-full hover:from-blue-400/30 hover:to-cyan-400/30"
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 rounded-full hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg"
                     >
                       <Download className="w-3 h-3" />
                     </Button>
