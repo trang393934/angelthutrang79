@@ -389,7 +389,7 @@ Trả về JSON với format:
               {selectedDoc.tags && selectedDoc.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6">
                   {selectedDoc.tags.map((tag, idx) => (
-                    <Badge key={idx} variant="outline" className="border-purple-400 text-purple-700 bg-purple-50"
+                    <Badge key={idx} variant="outline" className="border-purple-400 text-purple-700 bg-purple-50">
                       {tag}
                     </Badge>
                   ))}
@@ -506,7 +506,7 @@ Trả về JSON với format:
                   {doc.tags && doc.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {doc.tags.slice(0, 3).map((tag, idx) => (
-                        <Badge key={idx} variant="outline" className="text-xs border-indigo-400 text-indigo-700 bg-indigo-50"
+                        <Badge key={idx} variant="outline" className="text-xs border-indigo-400 text-indigo-700 bg-indigo-50">
                           {tag}
                         </Badge>
                       ))}
