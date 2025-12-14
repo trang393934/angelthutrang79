@@ -89,15 +89,12 @@ export default function Home() {
               style={{ transform: 'scale(1.2)' }}
             />
             
-            {/* Angel Image */}
-            <div className="relative w-full rounded-2xl lg:rounded-xl overflow-hidden shadow-2xl shadow-purple-500/30">
+            {/* Angel Image - Circular Avatar */}
+            <div className="relative w-full max-w-md lg:max-w-lg mx-auto aspect-square rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/30">
               <img 
                 src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
                 alt="Angel AI"
                 className="w-full h-full object-cover object-center"
-                style={{ 
-                  maxHeight: '80vh',
-                }}
               />
 
               {/* Subtle overlay for better text contrast */}
