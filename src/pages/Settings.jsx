@@ -119,8 +119,8 @@ export default function Settings() {
               <SettingsIcon className="w-5 h-5 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-white font-light tracking-wide">Cài Đặt AI</h1>
-              <p className="text-purple-400/60 text-xs">Cá nhân hóa trải nghiệm</p>
+              <h1 className="text-slate-900 text-xl font-semibold tracking-wide">Cài Đặt AI</h1>
+              <p className="text-purple-700 text-sm font-medium">Cá nhân hóa trải nghiệm</p>
             </div>
           </div>
           <Button
