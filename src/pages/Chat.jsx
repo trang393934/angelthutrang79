@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
@@ -26,6 +26,9 @@ export default function Chat() {
   const [feedbackIndex, setFeedbackIndex] = useState(null);
   const [feedbackText, setFeedbackText] = useState('');
   const [messageFeedbacks, setMessageFeedbacks] = useState({});
+  const [showAITools, setShowAITools] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState('');
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -392,6 +395,55 @@ Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
   const handleSuggestedQuestion = (question) => {
     setInput(question);
     setSuggestedQuestions([]);
+  };
+
+  const generateImage = async () => {
+    if (!imagePrompt.trim() || isGeneratingImage) return;
+    
+    setIsGeneratingImage(true);
+    const prompt = imagePrompt;
+    setImagePrompt('');
+    
+    const userMessage = { role: 'user', content: `🎨 Tạo hình ảnh: ${prompt}` };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    
+    try {
+      const result = await base44.integrations.Core.GenerateImage({ prompt });
+      
+      const imageMessage = { 
+        role: 'assistant', 
+        content: `✨ Đã tạo hình ảnh theo yêu cầu của con:\n\n![Generated Image](${result.url})\n\n**Mô tả:** ${prompt}`,
+        isImageGeneration: true,
+        imageUrl: result.url
+      };
+      
+      const finalMessages = [...newMessages, imageMessage];
+      setMessages(finalMessages);
+      
+      if (currentConversationId) {
+        updateConversationMutation.mutate({
+          id: currentConversationId,
+          data: { messages: finalMessages }
+        });
+      } else {
+        const title = prompt.length > 50 ? prompt.substring(0, 47) + '...' : prompt;
+        createConversationMutation.mutate({
+          title: `🎨 ${title}`,
+          messages: finalMessages,
+          is_favorite: false
+        });
+      }
+    } catch (error) {
+      const errorMessage = { 
+        role: 'assistant', 
+        content: '❌ Xin lỗi, đã có lỗi khi tạo hình ảnh. Vui lòng thử lại.'
+      };
+      setMessages([...newMessages, errorMessage]);
+    }
+    
+    setIsGeneratingImage(false);
+    setShowAITools(false);
   };
 
   const submitFeedback = async (messageContent, messageIndex, rating, feedbackTextInput = '') => {
@@ -807,10 +859,91 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
           <div ref={messagesEndRef} />
         </div>
 
+        {/* AI Tools Panel */}
+        <AnimatePresence>
+          {showAITools && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-28 right-0 left-0 lg:left-80 z-10"
+            >
+              <div className="max-w-4xl mx-auto px-4">
+                <div className="bg-slate-900/95 backdrop-blur-xl border border-purple-400/30 rounded-3xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-light flex items-center gap-2">
+                      <Wand2 className="w-5 h-5 text-purple-400" />
+                      AI Creation Tools
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowAITools(false)}
+                      className="text-purple-300/60 hover:text-white"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Image Generation */}
+                  <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-400/20 rounded-2xl p-4 mb-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <ImageIcon className="w-5 h-5 text-purple-400" />
+                      <span className="text-white font-light">Tạo Hình Ảnh</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={imagePrompt}
+                        onChange={(e) => setImagePrompt(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && generateImage()}
+                        placeholder="Mô tả hình ảnh bạn muốn tạo..."
+                        className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-purple-300/40 rounded-xl px-4 py-2 focus:border-purple-400/30 focus:ring-purple-400/20 outline-none"
+                        disabled={isGeneratingImage}
+                      />
+                      <Button
+                        onClick={generateImage}
+                        disabled={!imagePrompt.trim() || isGeneratingImage}
+                        className="bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-xl"
+                      >
+                        {isGeneratingImage ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Wand2 className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Video Generation - Coming Soon */}
+                  <div className="bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-400/20 rounded-2xl p-4 opacity-60">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Video className="w-5 h-5 text-indigo-400" />
+                      <span className="text-white font-light">Tạo Video</span>
+                      <Badge className="bg-indigo-500/20 text-indigo-200 text-xs">Sắp Ra Mắt</Badge>
+                    </div>
+                    <p className="text-purple-300/60 text-xs">
+                      Tính năng tạo video từ text và hình ảnh sẽ sớm được cập nhật
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Input */}
         <div className="fixed bottom-0 right-0 left-0 lg:left-80 bg-slate-950/90 backdrop-blur-xl border-t border-white/5">
           <div className="max-w-4xl mx-auto p-4">
             <div className="flex items-end gap-3">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowAITools(!showAITools)}
+                className="text-purple-300 hover:text-white hover:bg-white/10"
+              >
+                <Wand2 className="w-5 h-5" />
+              </Button>
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -828,7 +961,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               </Button>
             </div>
             <p className="text-center text-purple-400/40 text-xs mt-3 font-light">
-              Nhấn Enter để gửi • Shift + Enter để xuống dòng
+              <Wand2 className="w-3 h-3 inline mr-1" />
+              AI Tools • Enter để gửi • Shift + Enter để xuống dòng
             </p>
           </div>
         </div>
