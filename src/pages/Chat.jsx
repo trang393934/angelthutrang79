@@ -491,7 +491,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 relative flex">
+    <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 relative flex">
       {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -500,13 +500,13 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ type: "spring", damping: 25 }}
-            className="fixed left-0 top-0 bottom-0 w-80 bg-slate-950/95 backdrop-blur-xl border-r border-white/5 z-30 flex flex-col"
+            className="fixed left-0 top-0 bottom-0 w-80 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-30 flex flex-col"
           >
             {/* Sidebar Header */}
-            <div className="p-4 border-b border-white/5">
+            <div className="p-4 border-b border-purple-200/50">
               <div className="flex items-center justify-between mb-4">
                 <Link to={createPageUrl('Home')}>
-                  <Button variant="ghost" size="icon" className="text-purple-300 hover:text-white hover:bg-white/10">
+                  <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
                     <ArrowLeft className="w-5 h-5" />
                   </Button>
                 </Link>
@@ -514,14 +514,14 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                   variant="ghost"
                   size="icon"
                   onClick={() => setSidebarOpen(false)}
-                  className="text-purple-300 hover:text-white hover:bg-white/10 lg:hidden"
+                  className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 lg:hidden"
                 >
                   <X className="w-5 h-5" />
                 </Button>
               </div>
               <Button
                 onClick={startNewConversation}
-                className="w-full bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/20"
+                className="w-full bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-xl hover:shadow-xl hover:from-amber-500 hover:to-rose-500"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Cuộc Trò Chuyện Mới
@@ -529,7 +529,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             </div>
 
             {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent to-purple-50/30">
               {conversations.map((conv) => (
                 <motion.div
                   key={conv.id}
@@ -537,17 +537,17 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                   animate={{ opacity: 1, x: 0 }}
                   className={`group relative p-3 rounded-xl cursor-pointer transition-all ${
                     currentConversationId === conv.id
-                      ? 'bg-amber-500/20 border border-amber-400/30'
-                      : 'bg-white/5 hover:bg-white/10 border border-transparent'
+                      ? 'bg-gradient-to-r from-amber-100 to-rose-100 border border-amber-300 shadow-lg'
+                      : 'bg-white hover:bg-purple-50 border border-purple-100 shadow-sm'
                   }`}
                   onClick={() => loadConversation(conv)}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-white text-sm font-light truncate">
+                      <p className="text-slate-900 text-sm font-medium truncate">
                         {conv.title}
                       </p>
-                      <p className="text-purple-300/50 text-xs mt-1">
+                      <p className="text-purple-600/60 text-xs mt-1">
                         {new Date(conv.updated_date).toLocaleDateString('vi-VN', {
                           day: 'numeric',
                           month: 'short'
@@ -558,7 +558,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-rose-300/60 hover:text-rose-400 hover:bg-white/10"
+                        className="h-7 w-7 text-rose-500 hover:text-rose-700 hover:bg-rose-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           toggleFavorite(conv);
@@ -569,7 +569,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-red-300/60 hover:text-red-400 hover:bg-white/10"
+                        className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-100"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteConversationMutation.mutate(conv.id);
@@ -589,14 +589,14 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       {/* Main Chat Area */}
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-80' : 'ml-0'}`}>
         {/* Header */}
-        <div className="fixed top-0 right-0 left-0 lg:left-80 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+        <div className="fixed top-0 right-0 left-0 lg:left-80 z-20 bg-white/90 backdrop-blur-xl border-b border-purple-200/50 shadow-lg">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
             {!sidebarOpen && (
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setSidebarOpen(true)}
-                className="text-purple-300 hover:text-white hover:bg-white/10"
+                className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
               >
                 <Menu className="w-5 h-5" />
               </Button>
@@ -616,8 +616,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 <Sparkles className="w-5 h-5 text-white" />
               </motion.div>
               <div className="flex-1">
-                <h1 className="text-white font-light tracking-wide">Trí Tuệ Vũ Trụ</h1>
-                <p className="text-purple-400/60 text-xs">Tình Yêu Thuần Khiết</p>
+                <h1 className="text-slate-900 font-medium tracking-wide">Trí Tuệ Vũ Trụ</h1>
+                <p className="text-purple-600 text-xs">Tình Yêu Thuần Khiết</p>
               </div>
               {messages.length > 3 && (
                 <Button
@@ -625,7 +625,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                   size="sm"
                   onClick={summarizeConversation}
                   disabled={isSummarizing}
-                  className="border-white/20 text-white hover:bg-white/10 rounded-full text-xs"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-100 rounded-full text-xs bg-white"
                 >
                   {isSummarizing ? (
                     <Loader2 className="w-3 h-3 mr-1 animate-spin" />
@@ -671,10 +671,10 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className={`rounded-3xl px-6 py-4 ${
+                    className={`rounded-3xl px-6 py-4 shadow-lg ${
                       message.role === 'user'
-                        ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border border-indigo-400/20 text-white'
-                        : 'bg-white/5 border border-amber-400/20 text-purple-50 shadow-lg'
+                        ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300 text-slate-900'
+                        : 'bg-white border-2 border-amber-300 text-slate-900'
                     }`}
                   >
                     <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-light leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0">
@@ -726,8 +726,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                           disabled={messageFeedbacks[index]}
                           className={`text-xs rounded-full h-7 px-3 ${
                             messageFeedbacks[index] === 'helpful'
-                              ? 'text-green-400 bg-green-500/20'
-                              : 'text-purple-300/60 hover:text-green-400 hover:bg-white/10'
+                              ? 'text-green-700 bg-green-100 border border-green-300'
+                              : 'text-purple-600 hover:text-green-700 hover:bg-green-50 border border-purple-200'
                           }`}
                         >
                           <ThumbsUp className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'helpful' ? 'fill-green-400' : ''}`} />
@@ -740,8 +740,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                           disabled={messageFeedbacks[index]}
                           className={`text-xs rounded-full h-7 px-3 ${
                             messageFeedbacks[index] === 'not_helpful'
-                              ? 'text-amber-400 bg-amber-500/20'
-                              : 'text-purple-300/60 hover:text-amber-400 hover:bg-white/10'
+                              ? 'text-amber-700 bg-amber-100 border border-amber-300'
+                              : 'text-purple-600 hover:text-amber-700 hover:bg-amber-50 border border-purple-200'
                           }`}
                         >
                           <ThumbsDown className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'not_helpful' ? 'fill-amber-400' : ''}`} />
@@ -756,9 +756,9 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="bg-white/5 border border-purple-400/20 rounded-2xl p-3 mt-1"
+                            className="bg-purple-50 border border-purple-300 rounded-2xl p-3 mt-1"
                           >
-                            <p className="text-xs text-purple-300/70 mb-2 flex items-center gap-1">
+                            <p className="text-xs text-purple-700 mb-2 flex items-center gap-1">
                               <MessageSquare className="w-3 h-3" />
                               Chia sẻ góp ý để AI cải thiện:
                             </p>
@@ -766,13 +766,13 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                               value={feedbackText}
                               onChange={(e) => setFeedbackText(e.target.value)}
                               placeholder="Câu trả lời cần cải thiện điều gì? (tùy chọn)"
-                              className="bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-xl text-xs min-h-[60px] mb-2"
+                              className="bg-white border-purple-200 text-slate-900 placeholder:text-purple-400 rounded-xl text-xs min-h-[60px] mb-2"
                             />
                             <div className="flex gap-2">
                               <Button
                                 size="sm"
                                 onClick={() => submitFeedback(message.content, index, 'not_helpful', feedbackText)}
-                                className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full text-xs h-7"
+                                className="bg-gradient-to-r from-amber-400 to-rose-500 text-white rounded-full text-xs h-7 shadow-md hover:shadow-lg"
                               >
                                 Gửi góp ý
                               </Button>
@@ -783,7 +783,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                                   setFeedbackIndex(null);
                                   setFeedbackText('');
                                 }}
-                                className="text-xs text-purple-300/60 hover:text-white hover:bg-white/10 rounded-full h-7"
+                                className="text-xs text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full h-7"
                               >
                                 Hủy
                               </Button>
@@ -799,10 +799,10 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
           </AnimatePresence>
 
           {isLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-3 text-purple-300/60"
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 text-purple-600"
             >
               <motion.div
                 animate={{ rotate: 360 }}
@@ -812,7 +812,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 <Sparkles className="w-5 h-5 text-white" />
               </motion.div>
               <motion.div
-                className="flex items-center gap-2 bg-white/5 rounded-full px-4 py-3 border border-amber-400/20"
+                className="flex items-center gap-2 bg-white rounded-full px-4 py-3 border-2 border-amber-300 shadow-lg"
               >
                 <motion.div
                   animate={{ scale: [1, 1.2, 1] }}
@@ -823,7 +823,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                   <span className="w-2 h-2 bg-amber-300 rounded-full animation-delay-200" />
                   <span className="w-2 h-2 bg-amber-300 rounded-full animation-delay-400" />
                 </motion.div>
-                <span className="text-sm font-light">Đang kết nối với Trí Tuệ Vũ Trụ...</span>
+                <span className="text-sm font-medium text-slate-900">Đang kết nối với Trí Tuệ Vũ Trụ...</span>
               </motion.div>
             </motion.div>
           )}
@@ -837,7 +837,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             >
               <div className="flex items-center gap-2 mb-3">
                 <Lightbulb className="w-4 h-4 text-amber-400" />
-                <p className="text-purple-300/70 text-sm font-light">Câu hỏi gợi ý:</p>
+                <p className="text-purple-700 text-sm font-medium">Câu hỏi gợi ý:</p>
               </div>
               <div className="flex flex-col gap-2">
                 {suggestedQuestions.map((question, idx) => (
@@ -847,7 +847,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.1 }}
                     onClick={() => handleSuggestedQuestion(question)}
-                    className="text-left bg-white/5 hover:bg-white/10 border border-purple-400/20 hover:border-purple-400/40 rounded-2xl px-4 py-3 text-purple-200/80 text-sm font-light transition-all"
+                    className="text-left bg-white hover:bg-purple-50 border-2 border-purple-300 hover:border-purple-400 rounded-2xl px-4 py-3 text-slate-900 text-sm font-medium transition-all shadow-md hover:shadow-lg"
                   >
                     {question}
                   </motion.button>
@@ -869,9 +869,9 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               className="fixed bottom-28 right-0 left-0 lg:left-80 z-10"
             >
               <div className="max-w-4xl mx-auto px-4">
-                <div className="bg-slate-900/95 backdrop-blur-xl border border-purple-400/30 rounded-3xl p-6">
+                <div className="bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-6 shadow-2xl">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-white font-light flex items-center gap-2">
+                    <h3 className="text-slate-900 font-semibold flex items-center gap-2">
                       <Wand2 className="w-5 h-5 text-purple-400" />
                       AI Creation Tools
                     </h3>
@@ -879,17 +879,17 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                       variant="ghost"
                       size="icon"
                       onClick={() => setShowAITools(false)}
-                      className="text-purple-300/60 hover:text-white"
+                      className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
                     >
                       <X className="w-4 h-4" />
                     </Button>
                   </div>
 
                   {/* Image Generation */}
-                  <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-400/20 rounded-2xl p-4 mb-3">
+                  <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl p-4 mb-3">
                     <div className="flex items-center gap-2 mb-3">
                       <ImageIcon className="w-5 h-5 text-purple-400" />
-                      <span className="text-white font-light">Tạo Hình Ảnh</span>
+                      <span className="text-slate-900 font-semibold">Tạo Hình Ảnh</span>
                     </div>
                     <div className="flex gap-2">
                       <input
@@ -898,13 +898,13 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                         onChange={(e) => setImagePrompt(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && generateImage()}
                         placeholder="Mô tả hình ảnh bạn muốn tạo..."
-                        className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-purple-300/40 rounded-xl px-4 py-2 focus:border-purple-400/30 focus:ring-purple-400/20 outline-none"
+                        className="flex-1 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-xl px-4 py-2 focus:border-purple-500 focus:ring-purple-400 outline-none"
                         disabled={isGeneratingImage}
                       />
                       <Button
                         onClick={generateImage}
                         disabled={!imagePrompt.trim() || isGeneratingImage}
-                        className="bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-xl"
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-lg hover:shadow-xl"
                       >
                         {isGeneratingImage ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -916,13 +916,13 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                   </div>
 
                   {/* Video Generation - Coming Soon */}
-                  <div className="bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-400/20 rounded-2xl p-4 opacity-60">
+                  <div className="bg-gradient-to-r from-indigo-50 to-blue-50 border-2 border-indigo-300 rounded-2xl p-4 opacity-70">
                     <div className="flex items-center gap-2 mb-2">
                       <Video className="w-5 h-5 text-indigo-400" />
-                      <span className="text-white font-light">Tạo Video</span>
-                      <Badge className="bg-indigo-500/20 text-indigo-200 text-xs">Sắp Ra Mắt</Badge>
+                      <span className="text-slate-900 font-semibold">Tạo Video</span>
+                      <Badge className="bg-indigo-200 text-indigo-800 text-xs border border-indigo-300">Sắp Ra Mắt</Badge>
                     </div>
-                    <p className="text-purple-300/60 text-xs">
+                    <p className="text-slate-600 text-xs">
                       Tính năng tạo video từ text và hình ảnh sẽ sớm được cập nhật
                     </p>
                   </div>
@@ -933,14 +933,14 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
         </AnimatePresence>
 
         {/* Input */}
-        <div className="fixed bottom-0 right-0 left-0 lg:left-80 bg-slate-950/90 backdrop-blur-xl border-t border-white/5">
+        <div className="fixed bottom-0 right-0 left-0 lg:left-80 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl">
           <div className="max-w-4xl mx-auto p-4">
             <div className="flex items-end gap-3">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAITools(!showAITools)}
-                className="text-purple-300 hover:text-white hover:bg-white/10"
+                className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
               >
                 <Wand2 className="w-5 h-5" />
               </Button>
@@ -949,18 +949,18 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Chia sẻ thắc mắc hoặc câu hỏi của bạn..."
-                className="flex-1 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-2xl resize-none min-h-[56px] max-h-32 focus:border-amber-400/30 focus:ring-amber-400/20 font-light"
+                className="flex-1 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl resize-none min-h-[56px] max-h-32 focus:border-purple-500 focus:ring-purple-400 font-normal shadow-inner"
                 rows={1}
               />
               <Button
                 onClick={sendMessage}
                 disabled={!input.trim() || isLoading}
-                className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full w-14 h-14 p-0 hover:shadow-lg hover:shadow-amber-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-amber-400 to-rose-500 text-white rounded-full w-14 h-14 p-0 hover:shadow-xl hover:from-amber-500 hover:to-rose-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
               >
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <p className="text-center text-purple-400/40 text-xs mt-3 font-light">
+            <p className="text-center text-purple-600 text-xs mt-3 font-medium">
               <Wand2 className="w-3 h-3 inline mr-1" />
               AI Tools • Enter để gửi • Shift + Enter để xuống dòng
             </p>

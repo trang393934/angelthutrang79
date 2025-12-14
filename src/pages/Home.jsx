@@ -21,7 +21,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-amber-50/30 to-sky-50/40 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
       {/* Sacred Geometry Background Pattern */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">

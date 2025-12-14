@@ -91,7 +91,7 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-indigo-950 to-purple-950 relative">
+    <div className="min-h-screen bg-gradient-to-b from-white via-violet-50 to-purple-50 relative">
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-20 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-300/50 via-purple-400/30 to-transparent blur-3xl" />
       </div>
