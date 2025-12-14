@@ -518,6 +518,42 @@ export default function Home() {
                 </div>
               </motion.div>
             </Link>
+            </motion.div>
+
+            <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.3 }}
+            className="grid grid-cols-1 gap-6 lg:gap-8 mt-6"
+            >
+            {/* Settings Button */}
+            <Link to={createPageUrl('Settings')}>
+              <motion.div
+                whileHover={{ scale: 1.02, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-400/20 to-purple-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div className="relative bg-white/5 backdrop-blur-sm border border-violet-300/30 rounded-3xl p-8 text-center h-full flex flex-col items-center justify-center hover:border-violet-400/50 transition-all">
+                  <motion.div
+                    animate={{ 
+                      rotate: [0, 90, 0],
+                    }}
+                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-400 to-purple-400 flex items-center justify-center mb-4 shadow-lg"
+                  >
+                    <Sparkles className="w-7 h-7 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-light text-violet-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Cài Đặt AI
+                  </h3>
+                  <p className="text-violet-800/70 font-light text-sm">
+                    Cá nhân hóa trải nghiệm của bạn
+                  </p>
+                </div>
+              </motion.div>
+            </Link>
           </motion.div>
 
           <motion.p

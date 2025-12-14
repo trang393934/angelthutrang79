@@ -4,6 +4,7 @@ import DailyMessage from './pages/DailyMessage';
 import Library from './pages/Library';
 import PersonalVision from './pages/PersonalVision';
 import KnowledgeBase from './pages/KnowledgeBase';
+import Settings from './pages/Settings';
 
 
 export const PAGES = {
@@ -13,6 +14,7 @@ export const PAGES = {
     "Library": Library,
     "PersonalVision": PersonalVision,
     "KnowledgeBase": KnowledgeBase,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
