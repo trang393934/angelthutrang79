@@ -5,6 +5,7 @@ import Library from './pages/Library';
 import PersonalVision from './pages/PersonalVision';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
+import Imagine from './pages/Imagine';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "PersonalVision": PersonalVision,
     "KnowledgeBase": KnowledgeBase,
     "Settings": Settings,
+    "Imagine": Imagine,
 }
 
 export const pagesConfig = {

@@ -33,7 +33,7 @@ export default function Layout({ children, currentPageName }) {
     { 
       name: 'Imagine', 
       icon: Image, 
-      path: 'Chat',
+      path: 'Imagine',
       gradient: 'from-indigo-400 to-cyan-400'
     },
     { 
