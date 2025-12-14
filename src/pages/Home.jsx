@@ -506,7 +506,15 @@ export default function Home() {
                   >
                     <Eye className="w-7 h-7 text-white" />
                   </motion.div>
-                  <h3 className="text-xl font-light text-indigo-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                  <h3 
+                    className="text-xl font-light tracking-wide mb-2 text-center"
+                    style={{
+                      fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
+                      background: 'linear-gradient(135deg, #6366f1 0%, #3b82f6 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
                     Knowledge Base
                   </h3>
                   <p className="text-indigo-800/70 font-light text-sm">
@@ -542,7 +550,15 @@ export default function Home() {
                   >
                     <Sparkles className="w-7 h-7 text-white" />
                   </motion.div>
-                  <h3 className="text-xl font-light text-violet-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                  <h3 
+                    className="text-xl font-light tracking-wide mb-2 text-center"
+                    style={{
+                      fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
                     Cài Đặt AI
                   </h3>
                   <p className="text-violet-800/70 font-light text-sm">
