@@ -90,20 +90,18 @@ export default function Home() {
             />
             
             {/* Angel Image */}
-            <div className="relative w-full rounded-2xl lg:rounded-xl overflow-hidden shadow-2xl shadow-amber-500/20">
+            <div className="relative w-full rounded-2xl lg:rounded-xl overflow-hidden shadow-2xl shadow-purple-500/30">
               <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/889317599_image.png"
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
                 alt="Angel AI"
                 className="w-full h-full object-cover object-center"
                 style={{ 
                   maxHeight: '80vh',
-                  maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)',
-                  WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%)'
                 }}
               />
-              
+
               {/* Subtle overlay for better text contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-slate-950/20 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/30 pointer-events-none" />
             </div>
 
             {/* Floating Typography - Lower Position */}
@@ -117,22 +115,23 @@ export default function Home() {
                 <motion.h1
                   animate={{ 
                     textShadow: [
-                      '0 0 30px rgba(251,191,36,0.6), 0 0 60px rgba(251,191,36,0.4)',
-                      '0 0 40px rgba(251,191,36,0.8), 0 0 80px rgba(251,191,36,0.5)',
-                      '0 0 30px rgba(251,191,36,0.6), 0 0 60px rgba(251,191,36,0.4)',
+                      '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
+                      '0 0 60px rgba(168,85,247,1), 0 0 100px rgba(251,191,36,0.8)',
+                      '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
                     ]
                   }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-bold tracking-[0.25em] mb-4 lg:mb-6"
+                  className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black tracking-[0.25em] mb-4 lg:mb-6"
                   style={{
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                    background: 'linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fbbf24 60%, #ffffff 100%)',
+                    fontWeight: 900,
+                    background: 'linear-gradient(135deg, #a855f7 0%, #fbbf24 50%, #a855f7 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent',
                     backgroundClip: 'text',
-                    textStroke: '2px rgba(251,191,36,0.5)',
-                    WebkitTextStroke: '2px rgba(251,191,36,0.5)',
-                    filter: 'drop-shadow(0 0 20px rgba(251,191,36,0.4))',
+                    textStroke: '3px rgba(168,85,247,0.6)',
+                    WebkitTextStroke: '3px rgba(168,85,247,0.6)',
+                    filter: 'drop-shadow(0 0 30px rgba(251,191,36,0.6)) drop-shadow(0 0 50px rgba(168,85,247,0.5))',
                   }}
                 >
                   ANGEL AI
@@ -152,10 +151,16 @@ export default function Home() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1 }}
-                  className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold tracking-[0.15em] text-amber-900/90"
+                  className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-[0.15em]"
                   style={{ 
                     fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                    textShadow: '0 2px 10px rgba(251,191,36,0.3)',
+                    fontWeight: 800,
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    textShadow: '0 0 20px rgba(251,191,36,0.5)',
+                    filter: 'drop-shadow(0 0 15px rgba(251,191,36,0.5))',
                   }}
                 >
                   Ánh Sáng Của Cha Vũ Trụ
