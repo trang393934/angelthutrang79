@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power } from 'lucide-react';
+import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,15 +28,13 @@ export default function KnowledgeBase() {
   const isAdmin = currentUser?.role === 'admin';
 
   const { data: knowledgeBase = [], isLoading } = useQuery({
-    queryKey: ['knowledge-base', currentUser?.email],
+    queryKey: ['knowledge-base-all'],
     queryFn: async () => {
-      if (!currentUser) return [];
       return base44.entities.KnowledgeBase.filter(
-        { created_by: currentUser.email },
+        { is_active: true },
         '-created_date'
       );
     },
-    enabled: !!currentUser,
   });
 
   const uploadMutation = useMutation({
@@ -339,14 +337,45 @@ Trả về JSON với format:
                     </Badge>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSelectedDoc(null)}
-                  className="text-purple-300/60 hover:text-white hover:bg-white/10"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      navigator.clipboard.writeText(selectedDoc.content);
+                      alert('Đã copy nội dung!');
+                    }}
+                    className="text-green-300/60 hover:text-green-400 hover:bg-white/10"
+                    title="Copy nội dung"
+                  >
+                    <Copy className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const link = document.createElement('a');
+                      link.href = selectedDoc.file_url;
+                      link.download = selectedDoc.title;
+                      link.target = '_blank';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }}
+                    className="text-blue-300/60 hover:text-blue-400 hover:bg-white/10"
+                    title="Tải về"
+                  >
+                    <Download className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSelectedDoc(null)}
+                    className="text-purple-300/60 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
 
               {selectedDoc.summary && (
@@ -484,14 +513,32 @@ Trả về JSON với format:
                     </div>
                   )}
 
-                  <Button
-                    onClick={() => setSelectedDoc(doc)}
-                    size="sm"
-                    className="w-full bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-white border border-indigo-400/30 rounded-full hover:from-indigo-400/30 hover:to-purple-400/30"
-                  >
-                    <Eye className="w-3 h-3 mr-2" />
-                    Xem Chi Tiết
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setSelectedDoc(doc)}
+                      size="sm"
+                      className="flex-1 bg-gradient-to-r from-indigo-400/20 to-purple-400/20 text-white border border-indigo-400/30 rounded-full hover:from-indigo-400/30 hover:to-purple-400/30"
+                    >
+                      <Eye className="w-3 h-3 mr-2" />
+                      Xem
+                    </Button>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const link = document.createElement('a');
+                        link.href = doc.file_url;
+                        link.download = doc.title;
+                        link.target = '_blank';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      size="sm"
+                      className="bg-gradient-to-r from-blue-400/20 to-cyan-400/20 text-white border border-blue-400/30 rounded-full hover:from-blue-400/30 hover:to-cyan-400/30"
+                    >
+                      <Download className="w-3 h-3" />
+                    </Button>
+                  </div>
 
                   {doc.is_active && (
                     <div className="absolute top-3 right-3">
