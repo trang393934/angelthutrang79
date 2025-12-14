@@ -677,7 +677,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                         : 'bg-white border-2 border-amber-300 text-slate-900'
                     }`}
                   >
-                    <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-light leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0">
+                    <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-semibold leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0 text-slate-900">
                       {message.content}
                     </ReactMarkdown>
                   </motion.div>
