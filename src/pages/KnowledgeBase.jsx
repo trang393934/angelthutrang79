@@ -18,11 +18,25 @@ export default function KnowledgeBase() {
   const [type, setType] = useState('document');
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+  }, []);
+
+  const isAdmin = currentUser?.role === 'admin';
+
   const { data: knowledgeBase = [], isLoading } = useQuery({
-    queryKey: ['knowledge-base'],
-    queryFn: () => base44.entities.KnowledgeBase.list('-created_date'),
+    queryKey: ['knowledge-base', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      return base44.entities.KnowledgeBase.filter(
+        { created_by: currentUser.email },
+        '-created_date'
+      );
+    },
+    enabled: !!currentUser,
   });
 
   const uploadMutation = useMutation({
@@ -156,13 +170,15 @@ Trả về JSON với format:
               <h1 className="text-white font-light tracking-wide">Knowledge Base</h1>
               <p className="text-purple-400/60 text-xs">Kho Tri Thức Của AI</p>
             </div>
-            <Button
-              onClick={() => setShowUploadForm(true)}
-              className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Upload Tài Liệu
-            </Button>
+            {isAdmin && (
+              <Button
+                onClick={() => setShowUploadForm(true)}
+                className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full hover:shadow-lg hover:shadow-indigo-500/30 transition-all"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Tài Liệu
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -383,14 +399,20 @@ Trả về JSON với format:
               <BookOpen className="w-10 h-10 text-indigo-300/40" />
             </div>
             <h3 className="text-white text-xl font-light mb-2">Chưa Có Tài Liệu</h3>
-            <p className="text-purple-300/60 font-light mb-6">Upload tài liệu giáo lý để AI học và trả lời chính xác hơn</p>
-            <Button
-              onClick={() => setShowUploadForm(true)}
-              className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Upload Tài Liệu Đầu Tiên
-            </Button>
+            <p className="text-purple-300/60 font-light mb-6">
+              {isAdmin 
+                ? 'Upload tài liệu giáo lý để AI học và trả lời chính xác hơn'
+                : 'Admin chưa upload tài liệu giáo lý nào'}
+            </p>
+            {isAdmin && (
+              <Button
+                onClick={() => setShowUploadForm(true)}
+                className="bg-gradient-to-r from-indigo-400 to-purple-400 text-white rounded-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Tài Liệu Đầu Tiên
+              </Button>
+            )}
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -429,19 +451,21 @@ Trả về JSON với format:
                         </div>
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm('Xóa tài liệu này?')) {
-                          deleteMutation.mutate(doc.id);
-                        }
-                      }}
-                      className="text-red-300/40 hover:text-red-400 hover:bg-white/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm('Xóa tài liệu này?')) {
+                            deleteMutation.mutate(doc.id);
+                          }
+                        }}
+                        className="text-red-300/40 hover:text-red-400 hover:bg-white/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
 
                   {doc.summary && (

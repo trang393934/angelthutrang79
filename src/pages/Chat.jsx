@@ -34,9 +34,20 @@ export default function Chat() {
     queryFn: () => base44.entities.Conversation.list('-updated_date'),
   });
 
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+  }, []);
+
   const { data: knowledgeBase = [] } = useQuery({
-    queryKey: ['knowledge-base-active'],
-    queryFn: () => base44.entities.KnowledgeBase.filter({ is_active: true }, '-created_date'),
+    queryKey: ['knowledge-base-active', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      const allActive = await base44.entities.KnowledgeBase.filter({ is_active: true }, '-created_date');
+      return allActive.filter(kb => kb.created_by === currentUser.email);
+    },
+    enabled: !!currentUser,
   });
 
   const createConversationMutation = useMutation({
