@@ -461,7 +461,7 @@ Trả về JSON với format:
                         <BookOpen className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-slate-900 font-semibold truncate">{doc.title}</h3>
+                        <h3 className="text-slate-900 font-semibold line-clamp-2 leading-snug">{doc.title}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge className={`text-xs ${typeColors[doc.type]}`}>
                             {typeLabels[doc.type]}
