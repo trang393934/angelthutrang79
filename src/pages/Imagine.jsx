@@ -21,6 +21,7 @@ export default function Imagine() {
   // Video states
   const [videoImages, setVideoImages] = useState([]);
   const [videoPrompt, setVideoPrompt] = useState('');
+  const [videoDuration, setVideoDuration] = useState(6); // 3, 6, 9 seconds
   const [videoSpeed, setVideoSpeed] = useState('normal'); // slow, normal, fast
   const [videoFilter, setVideoFilter] = useState('none'); // none, vintage, cinematic, dreamy
   const [videoMusic, setVideoMusic] = useState('none'); // none, ambient, upbeat, dramatic
@@ -115,6 +116,7 @@ Return only the enhanced prompt, nothing else.`,
         id: Date.now(),
         images: videoImages,
         prompt: videoPrompt,
+        duration: videoDuration,
         speed: videoSpeed,
         filter: videoFilter,
         music: videoMusic,
@@ -130,6 +132,7 @@ Return only the enhanced prompt, nothing else.`,
       
       alert('🎬 Video đang được xử lý! Tính năng tạo video AI sẽ được tích hợp sớm. Hiện tại bạn đã cấu hình:\n\n' +
         `📸 ${videoImages.length} ảnh\n` +
+        `⏱️ Thời lượng: ${videoDuration} giây\n` +
         `⚡ Tốc độ: ${videoSpeed}\n` +
         `🎨 Bộ lọc: ${videoFilter}\n` +
         `🎵 Nhạc nền: ${videoMusic}`);
@@ -462,6 +465,28 @@ Return only the enhanced prompt, nothing else.`,
 
                   {/* Video Options */}
                   <div className="space-y-4 mb-6">
+                    {/* Duration */}
+                    <div>
+                      <label className="text-slate-900 text-sm font-semibold mb-2 block">
+                        ⏱️ Thời Lượng Video
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[3, 6, 9].map((duration) => (
+                          <Button
+                            key={duration}
+                            onClick={() => setVideoDuration(duration)}
+                            className={`rounded-xl ${
+                              videoDuration === duration
+                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
+                                : 'bg-pink-50 text-slate-900 hover:bg-pink-100 border-2 border-pink-200'
+                            }`}
+                          >
+                            {duration}s
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
                     {/* Speed */}
                     <div>
                       <label className="text-slate-900 text-sm font-semibold mb-2 block">
