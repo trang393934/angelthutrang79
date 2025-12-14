@@ -949,7 +949,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="Chia sẻ thắc mắc hoặc câu hỏi của bạn..."
-                className="flex-1 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl resize-none min-h-[56px] max-h-32 focus:border-purple-500 focus:ring-purple-400 font-normal shadow-inner"
+                className="flex-1 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-500 rounded-2xl resize-none min-h-[56px] max-h-32 focus:border-purple-500 focus:ring-purple-400 font-medium shadow-inner"
                 rows={1}
               />
               <Button
@@ -960,7 +960,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <p className="text-center text-purple-600 text-xs mt-3 font-medium">
+            <p className="text-center text-purple-700 text-xs mt-3 font-semibold">
               <Wand2 className="w-3 h-3 inline mr-1" />
               AI Tools • Enter để gửi • Shift + Enter để xuống dòng
             </p>
