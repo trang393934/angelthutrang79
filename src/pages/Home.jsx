@@ -116,7 +116,7 @@ export default function Home() {
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.25em] mb-6"
                 style={{
-                  fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
+                  fontFamily: "'Cinzel', 'Playfair Display', serif",
                   fontWeight: 900,
                   background: 'linear-gradient(135deg, #a855f7 0%, #fbbf24 50%, #a855f7 100%)',
                   WebkitBackgroundClip: 'text',
@@ -581,9 +581,10 @@ export default function Home() {
         </p>
       </motion.div>
 
-      {/* Add Inter font */}
+      {/* Add Fonts */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
       `}</style>
     </div>
   );
