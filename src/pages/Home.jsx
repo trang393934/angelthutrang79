@@ -96,73 +96,68 @@ export default function Home() {
                 alt="Angel AI"
                 className="w-full h-full object-cover object-center"
               />
-
-              {/* Subtle overlay for better text contrast */}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-slate-950/30 pointer-events-none" />
             </div>
 
-            {/* Floating Typography - Lower Position */}
+            {/* Typography Below Avatar */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="absolute inset-0 flex items-end justify-center pb-16 lg:pb-24 z-10"
+              className="text-center px-6 max-w-6xl w-full mt-12"
+            >
+              <motion.h1
+                animate={{ 
+                  textShadow: [
+                    '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
+                    '0 0 60px rgba(168,85,247,1), 0 0 100px rgba(251,191,36,0.8)',
+                    '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.25em] mb-6"
+                style={{
+                  fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
+                  fontWeight: 900,
+                  background: 'linear-gradient(135deg, #a855f7 0%, #fbbf24 50%, #a855f7 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textStroke: '3px rgba(168,85,247,0.6)',
+                  WebkitTextStroke: '3px rgba(168,85,247,0.6)',
+                  filter: 'drop-shadow(0 0 30px rgba(251,191,36,0.6)) drop-shadow(0 0 50px rgba(168,85,247,0.5))',
+                }}
               >
-              <div className="text-center px-6 max-w-6xl w-full">
-                <motion.h1
-                  animate={{ 
-                    textShadow: [
-                      '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
-                      '0 0 60px rgba(168,85,247,1), 0 0 100px rgba(251,191,36,0.8)',
-                      '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
-                    ]
-                  }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                  className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[10rem] font-black tracking-[0.25em] mb-4 lg:mb-6"
-                  style={{
-                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                    fontWeight: 900,
-                    background: 'linear-gradient(135deg, #a855f7 0%, #fbbf24 50%, #a855f7 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    textStroke: '3px rgba(168,85,247,0.6)',
-                    WebkitTextStroke: '3px rgba(168,85,247,0.6)',
-                    filter: 'drop-shadow(0 0 30px rgba(251,191,36,0.6)) drop-shadow(0 0 50px rgba(168,85,247,0.5))',
-                  }}
-                >
-                  ANGEL AI
-                </motion.h1>
+                ANGEL AI
+              </motion.h1>
 
-                <motion.div
-                  animate={{ width: ['60%', '80%', '60%'] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  className="h-[3px] mx-auto mb-6"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.9), transparent)',
-                    boxShadow: '0 0 10px rgba(251,191,36,0.5)',
-                  }}
-                />
+              <motion.div
+                animate={{ width: ['60%', '80%', '60%'] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="h-[3px] mx-auto mb-6"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.9), transparent)',
+                  boxShadow: '0 0 10px rgba(251,191,36,0.5)',
+                }}
+              />
 
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                  className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-[0.15em]"
-                  style={{ 
-                    fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                    fontWeight: 800,
-                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    backgroundClip: 'text',
-                    textShadow: '0 0 20px rgba(251,191,36,0.5)',
-                    filter: 'drop-shadow(0 0 15px rgba(251,191,36,0.5))',
-                  }}
-                >
-                  Ánh Sáng Của Cha Vũ Trụ
-                </motion.p>
-              </div>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-[0.15em]"
+                style={{ 
+                  fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
+                  fontWeight: 800,
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                  textShadow: '0 0 20px rgba(251,191,36,0.5)',
+                  filter: 'drop-shadow(0 0 15px rgba(251,191,36,0.5))',
+                }}
+              >
+                Ánh Sáng Của Cha Vũ Trụ
+              </motion.p>
             </motion.div>
           </motion.div>
         </div>
