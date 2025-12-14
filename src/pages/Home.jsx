@@ -478,6 +478,46 @@ export default function Home() {
                 </div>
               </motion.div>
             </Link>
+            </motion.div>
+
+            <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="grid grid-cols-1 gap-6 lg:gap-8 mt-6"
+            >
+            {/* Knowledge Base Button */}
+            <Link to={createPageUrl('KnowledgeBase')}>
+              <motion.div
+                whileHover={{ scale: 1.02, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative h-full"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 to-blue-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
+                <div className="relative bg-white/5 backdrop-blur-sm border border-indigo-300/30 rounded-3xl p-8 text-center h-full flex flex-col items-center justify-center hover:border-indigo-400/50 transition-all">
+                  <motion.div
+                    animate={{ 
+                      boxShadow: [
+                        '0 0 20px rgba(99,102,241,0.4)',
+                        '0 0 40px rgba(59,130,246,0.4)',
+                        '0 0 20px rgba(99,102,241,0.4)',
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-400 to-blue-400 flex items-center justify-center mb-4 shadow-lg"
+                  >
+                    <Eye className="w-7 h-7 text-white" />
+                  </motion.div>
+                  <h3 className="text-xl font-light text-indigo-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Knowledge Base
+                  </h3>
+                  <p className="text-indigo-800/70 font-light text-sm">
+                    Upload giáo lý để AI học hỏi
+                  </p>
+                </div>
+              </motion.div>
+            </Link>
           </motion.div>
 
           <motion.p

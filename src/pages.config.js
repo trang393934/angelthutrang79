@@ -3,6 +3,7 @@ import Chat from './pages/Chat';
 import DailyMessage from './pages/DailyMessage';
 import Library from './pages/Library';
 import PersonalVision from './pages/PersonalVision';
+import KnowledgeBase from './pages/KnowledgeBase';
 
 
 export const PAGES = {
@@ -11,6 +12,7 @@ export const PAGES = {
     "DailyMessage": DailyMessage,
     "Library": Library,
     "PersonalVision": PersonalVision,
+    "KnowledgeBase": KnowledgeBase,
 }
 
 export const pagesConfig = {
