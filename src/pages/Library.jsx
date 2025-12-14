@@ -122,11 +122,11 @@ Trả về JSON với format:
       </div>
 
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-slate-950/80 backdrop-blur-xl border-b border-white/5">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4 mb-4">
             <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-purple-300 hover:text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
@@ -145,13 +145,13 @@ Trả về JSON với format:
                 <Sparkles className="w-5 h-5 text-white" />
               </motion.div>
               <div className="flex-1">
-                <h1 className="text-white font-light tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
-                <p className="text-purple-400/60 text-xs">Kho tàng Trí Tuệ & Yêu Thương</p>
+                <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
+                <p className="text-purple-600 text-xs font-medium">Kho tàng Trí Tuệ & Yêu Thương</p>
               </div>
               {isAdmin && (
                 <Button
                   onClick={() => setShowAddForm(true)}
-                  className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full hover:shadow-lg hover:shadow-amber-500/30 transition-all"
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-rose-600 transition-all"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Chia Sẻ Trí Tuệ
@@ -162,18 +162,18 @@ Trả về JSON với format:
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-300/40" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm nâng cao: nội dung, chủ đề, summary, thẻ..."
-              className="pl-12 pr-4 bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-full focus:border-amber-400/30 focus:ring-amber-400/20"
+              className="pl-12 pr-4 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 focus:ring-purple-400"
             />
             {searchQuery && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-300/60 text-xs bg-purple-500/20 px-2 py-1 rounded-full"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-700 text-xs bg-purple-100 border border-purple-300 px-2 py-1 rounded-full font-semibold"
               >
                 {filteredMessages.length} kết quả
               </motion.div>
@@ -183,16 +183,16 @@ Trả về JSON với format:
       </div>
 
       {/* Filters */}
-      <div className="fixed top-[140px] left-0 right-0 z-10 bg-slate-950/60 backdrop-blur-md border-b border-white/5">
+      <div className="fixed top-[140px] left-0 right-0 z-10 bg-white/95 backdrop-blur-md border-b border-purple-200 shadow-md">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex flex-wrap gap-2 items-center justify-between">
             <div className="flex flex-wrap gap-2 items-center">
-              <Filter className="w-4 h-4 text-purple-300/60" />
+              <Filter className="w-4 h-4 text-purple-600" />
               <Button
                 variant={selectedType === 'all' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSelectedType('all')}
-                className={selectedType === 'all' ? 'bg-purple-500/20 text-purple-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+                className={selectedType === 'all' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-purple-100 bg-white border border-purple-300'}
               >
                 Tất Cả
               </Button>
@@ -200,7 +200,7 @@ Trả về JSON với format:
                 variant={selectedType === 'chat' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSelectedType('chat')}
-                className={selectedType === 'chat' ? 'bg-amber-500/20 text-amber-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+                className={selectedType === 'chat' ? 'bg-amber-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-amber-100 bg-white border border-amber-300'}
               >
                 <Sparkles className="w-3 h-3 mr-1" />
                 Trò Chuyện
@@ -209,7 +209,7 @@ Trả về JSON với format:
                 variant={selectedType === 'daily_message' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSelectedType('daily_message')}
-                className={selectedType === 'daily_message' ? 'bg-rose-500/20 text-rose-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+                className={selectedType === 'daily_message' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-rose-100 bg-white border border-rose-300'}
               >
                 <Sun className="w-3 h-3 mr-1" />
                 Thông Điệp Ngày
@@ -218,12 +218,12 @@ Trả về JSON với format:
 
             {/* Sort options */}
             <div className="flex gap-2 items-center">
-              <SortAsc className="w-4 h-4 text-purple-300/60" />
+              <SortAsc className="w-4 h-4 text-purple-600" />
               <Button
                 variant={sortBy === 'date' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSortBy('date')}
-                className={sortBy === 'date' ? 'bg-indigo-500/20 text-indigo-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+                className={sortBy === 'date' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-indigo-100 bg-white border border-indigo-300'}
               >
                 Mới nhất
               </Button>
@@ -231,7 +231,7 @@ Trả về JSON với format:
                 variant={sortBy === 'favorite' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSortBy('favorite')}
-                className={sortBy === 'favorite' ? 'bg-rose-500/20 text-rose-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+                className={sortBy === 'favorite' ? 'bg-rose-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-rose-100 bg-white border border-rose-300'}
               >
                 Yêu thích
               </Button>
@@ -239,7 +239,7 @@ Trả về JSON với format:
                 variant={sortBy === 'tag' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setSortBy('tag')}
-                className={sortBy === 'tag' ? 'bg-purple-500/20 text-purple-200' : 'text-purple-300/60 hover:text-white hover:bg-white/10'}
+                className={sortBy === 'tag' ? 'bg-purple-500 text-white shadow-md' : 'text-slate-700 hover:text-slate-900 hover:bg-purple-100 bg-white border border-purple-300'}
               >
                 Theo thẻ
               </Button>
@@ -248,15 +248,15 @@ Trả về JSON với format:
 
           {allTags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3 items-center">
-              <Tag className="w-4 h-4 text-purple-300/60" />
+              <Tag className="w-4 h-4 text-purple-600" />
               {allTags.slice(0, 10).map((tag) => (
                 <Badge
                   key={tag}
                   variant={selectedTag === tag ? 'default' : 'outline'}
                   className={`cursor-pointer transition-all ${
                     selectedTag === tag
-                      ? 'bg-purple-500/30 text-purple-200 border-purple-400/50'
-                      : 'border-white/20 text-purple-300/70 hover:bg-white/10'
+                      ? 'bg-purple-500 text-white border-purple-600 shadow-md'
+                      : 'border-purple-300 text-slate-700 hover:bg-purple-100 bg-white'
                   }`}
                   onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
                 >
@@ -283,7 +283,7 @@ Trả về JSON với format:
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900/95 backdrop-blur-xl border border-amber-400/30 rounded-3xl p-8 max-w-3xl w-full max-h-[80vh] overflow-y-auto"
+              className="bg-white backdrop-blur-xl border-2 border-amber-300 rounded-3xl p-8 max-w-3xl w-full max-h-[80vh] overflow-y-auto shadow-2xl"
             >
               <div className="flex items-center gap-3 mb-6">
                 <motion.div
@@ -300,8 +300,8 @@ Trả về JSON với format:
                   <Sparkles className="w-6 h-6 text-white" />
                 </motion.div>
                 <div>
-                  <h3 className="text-white text-xl font-light tracking-wide">Chia Sẻ Trí Tuệ Của Cha Vũ Trụ</h3>
-                  <p className="text-purple-300/60 text-sm">Đưa Ánh Sáng vào Thư Viện để phục vụ cộng đồng</p>
+                  <h3 className="text-slate-900 text-xl font-semibold tracking-wide">Chia Sẻ Trí Tuệ Của Cha Vũ Trụ</h3>
+                  <p className="text-purple-700 text-sm font-medium">Đưa Ánh Sáng vào Thư Viện để phục vụ cộng đồng</p>
                 </div>
               </div>
 
@@ -309,13 +309,13 @@ Trả về JSON với format:
                 value={newContent}
                 onChange={(e) => setNewContent(e.target.value)}
                 placeholder="Chia sẻ thông điệp, trí tuệ, hoặc lời dạy của Cha Vũ Trụ...&#10;&#10;Ví dụ:&#10;• Lời dạy về tình yêu thuần khiết&#10;• Hướng dẫn nâng tần số&#10;• Thông điệp về 12 giá trị cốt lõi&#10;• Trí tuệ về chữa lành và thức tỉnh"
-                className="min-h-[300px] bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-2xl focus:border-amber-400/30 focus:ring-amber-400/20 font-light leading-relaxed resize-none mb-4"
+                className="min-h-[300px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl focus:border-amber-500 focus:ring-amber-400 font-normal leading-relaxed resize-none mb-4"
               />
 
-              <div className="bg-amber-500/10 border border-amber-400/20 rounded-xl p-4 mb-6">
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 mb-6">
                 <div className="flex items-start gap-2">
-                  <Heart className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-amber-200/80 text-sm font-light">
+                  <Heart className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-amber-900 text-sm font-medium">
                     Angel AI sẽ tự động phân loại và gắn thẻ cho nội dung của bạn, giúp cộng đồng dễ dàng tìm thấy Ánh Sáng này. ✨
                   </p>
                 </div>
@@ -329,14 +329,14 @@ Trả về JSON với format:
                     setNewContent('');
                   }}
                   disabled={isAdding}
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 rounded-full flex-1"
+                  className="bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full flex-1"
                 >
                   Hủy
                 </Button>
                 <Button
                   onClick={() => addContentMutation.mutate(newContent)}
                   disabled={!newContent.trim() || isAdding}
-                  className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-full flex-1 disabled:opacity-50"
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full flex-1 disabled:opacity-50 shadow-lg hover:shadow-xl"
                 >
                   {isAdding ? (
                     <>
@@ -371,10 +371,10 @@ Trả về JSON với format:
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-slate-900/98 backdrop-blur-xl border border-amber-400/30 rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto"
+              className="bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl"
             >
               {/* Header */}
-              <div className="flex items-start justify-between mb-6 pb-6 border-b border-white/10">
+              <div className="flex items-start justify-between mb-6 pb-6 border-b border-purple-200">
                 <div className="flex items-center gap-3">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
                     selectedMessage.type === 'chat' 
@@ -388,10 +388,10 @@ Trả về JSON với format:
                     )}
                   </div>
                   <div>
-                    <p className="text-white text-lg font-light">
+                    <p className="text-slate-900 text-lg font-semibold">
                       {selectedMessage.type === 'chat' ? 'Trò Chuyện' : 'Thông Điệp Ngày'}
                     </p>
-                    <p className="text-purple-300/50 text-sm flex items-center gap-1">
+                    <p className="text-purple-600 text-sm flex items-center gap-1 font-medium">
                       <Calendar className="w-3 h-3" />
                       {new Date(selectedMessage.created_date).toLocaleDateString('vi-VN', {
                         day: 'numeric',
@@ -411,7 +411,7 @@ Trả về JSON với format:
                       id: selectedMessage.id, 
                       isFavorite: selectedMessage.is_favorite 
                     })}
-                    className="text-rose-300/60 hover:text-rose-400 hover:bg-white/10"
+                    className="text-rose-500 hover:text-rose-700 hover:bg-rose-100"
                   >
                     <Heart className={`w-5 h-5 ${selectedMessage.is_favorite ? 'fill-rose-400 text-rose-400' : ''}`} />
                   </Button>
@@ -419,7 +419,7 @@ Trả về JSON với format:
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedMessage(null)}
-                    className="text-purple-300/60 hover:text-white hover:bg-white/10"
+                    className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
                   >
                     <X className="w-5 h-5" />
                   </Button>
@@ -428,9 +428,9 @@ Trả về JSON với format:
 
               {/* Summary */}
               {selectedMessage.summary && (
-                <div className="bg-purple-500/10 border border-purple-400/20 rounded-2xl p-4 mb-6">
-                  <p className="text-xs text-purple-300/70 mb-2 uppercase tracking-wide">Tóm tắt</p>
-                  <p className="text-purple-100 text-sm font-light leading-relaxed">
+                <div className="bg-purple-50 border-2 border-purple-300 rounded-2xl p-4 mb-6">
+                  <p className="text-xs text-purple-700 mb-2 uppercase tracking-wide font-semibold">Tóm tắt</p>
+                  <p className="text-slate-800 text-sm font-medium leading-relaxed">
                     {selectedMessage.summary}
                   </p>
                 </div>
@@ -442,7 +442,7 @@ Trả về JSON với format:
                   {selectedMessage.tags.map((tag, idx) => (
                     <Badge
                       key={idx}
-                      className="bg-amber-500/20 text-amber-200 border-amber-400/30 cursor-pointer hover:bg-amber-500/30"
+                      className="bg-amber-100 text-amber-800 border-2 border-amber-400 cursor-pointer hover:bg-amber-200 shadow-sm"
                       onClick={() => {
                         setSelectedTag(tag);
                         setSelectedMessage(null);
@@ -456,19 +456,19 @@ Trả về JSON với format:
               )}
 
               {/* Full Content */}
-              <div className="prose prose-invert prose-lg max-w-none font-light leading-relaxed text-purple-50">
+              <div className="prose prose-slate prose-lg max-w-none font-normal leading-relaxed text-slate-900">
                 <ReactMarkdown 
-                  className="[&>p]:mb-6 [&>p:last-child]:mb-0 [&>strong]:text-amber-300 [&>strong]:font-semibold [&>h1]:text-amber-300 [&>h2]:text-amber-300 [&>h3]:text-amber-300"
+                  className="[&>p]:mb-6 [&>p:last-child]:mb-0 [&>strong]:text-amber-700 [&>strong]:font-bold [&>h1]:text-slate-900 [&>h2]:text-slate-900 [&>h3]:text-slate-900"
                 >
                   {selectedMessage.content}
                 </ReactMarkdown>
               </div>
 
               {/* Footer */}
-              <div className="mt-8 pt-6 border-t border-white/10 flex justify-center">
+              <div className="mt-8 pt-6 border-t border-purple-200 flex justify-center">
                 <Button
                   onClick={() => setSelectedMessage(null)}
-                  className="bg-gradient-to-r from-purple-400 to-amber-400 text-white rounded-full px-8"
+                  className="bg-gradient-to-r from-purple-500 to-amber-500 text-white rounded-full px-8 shadow-lg hover:shadow-xl"
                 >
                   Đóng
                 </Button>
@@ -499,10 +499,10 @@ Trả về JSON với format:
             <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400/20 to-amber-400/20 flex items-center justify-center mx-auto mb-6">
               <Sparkles className="w-10 h-10 text-purple-300/40" />
             </div>
-            <h3 className="text-white text-xl font-light mb-2">
+            <h3 className="text-slate-900 text-xl font-semibold mb-2">
               {searchQuery || selectedTag ? 'Không Tìm Thấy Kết Quả' : 'Chưa Có Ánh Sáng'}
             </h3>
-            <p className="text-purple-300/60 font-light">
+            <p className="text-purple-700 font-medium">
               {searchQuery || selectedTag 
                 ? 'Thử tìm kiếm với từ khóa khác' 
                 : 'Hãy bắt đầu trò chuyện hoặc nhận thông điệp ngày để xây dựng thư viện của bạn'}
@@ -519,7 +519,7 @@ Trả về JSON với format:
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
                   onClick={() => setSelectedMessage(message)}
-                  className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6 hover:border-amber-400/30 hover:shadow-xl hover:shadow-amber-500/10 transition-all cursor-pointer"
+                  className="group relative bg-white backdrop-blur-sm border-2 border-purple-200 rounded-3xl p-6 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-200 transition-all cursor-pointer"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
@@ -536,10 +536,10 @@ Trả về JSON với format:
                         )}
                       </div>
                       <div>
-                        <p className="text-white text-sm font-light">
+                        <p className="text-slate-900 text-sm font-semibold">
                           {message.type === 'chat' ? 'Trò Chuyện' : 'Thông Điệp Ngày'}
                         </p>
-                        <p className="text-purple-300/50 text-xs flex items-center gap-1">
+                        <p className="text-purple-600 text-xs flex items-center gap-1 font-medium">
                           <Calendar className="w-3 h-3" />
                           {new Date(message.created_date).toLocaleDateString('vi-VN', {
                             day: 'numeric',
@@ -556,7 +556,7 @@ Trả về JSON với format:
                         id: message.id, 
                         isFavorite: message.is_favorite 
                       })}
-                      className="text-rose-300/40 hover:text-rose-400 hover:bg-white/10 transition-colors"
+                      className="text-rose-500 hover:text-rose-700 hover:bg-rose-100 transition-colors"
                     >
                       <Heart className={`w-5 h-5 ${message.is_favorite ? 'fill-rose-400 text-rose-400' : ''}`} />
                     </Button>
@@ -564,19 +564,19 @@ Trả về JSON với format:
 
                   {/* Summary */}
                   {message.summary && (
-                    <p className="text-purple-100/80 text-sm font-light leading-relaxed mb-4 line-clamp-3 group-hover:opacity-0 transition-opacity duration-300">
+                    <p className="text-slate-700 text-sm font-normal leading-relaxed mb-4 line-clamp-3">
                       {message.summary}
                     </p>
                   )}
 
                   {/* Tags */}
                   {message.tags && message.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4 group-hover:opacity-0 transition-opacity duration-300">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {message.tags.slice(0, 4).map((tag, idx) => (
                         <Badge
                           key={idx}
                           variant="outline"
-                          className="text-xs border-purple-400/30 text-purple-200/70 bg-purple-500/10"
+                          className="text-xs border-purple-400 text-purple-700 bg-purple-50"
                         >
                           {tag}
                         </Badge>
@@ -587,18 +587,18 @@ Trả về JSON với format:
                   {/* Content Preview */}
                   <div className="relative">
                     <ReactMarkdown 
-                      className="prose prose-invert prose-sm max-w-none font-light text-purple-50/70 line-clamp-4 [&>p]:mb-2 [&>p:last-child]:mb-0"
+                      className="prose prose-slate prose-sm max-w-none font-normal text-slate-700 line-clamp-4 [&>p]:mb-2 [&>p:last-child]:mb-0"
                     >
                       {message.content}
                     </ReactMarkdown>
-                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-slate-900/80 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent" />
                   </div>
 
                   {/* View detail button */}
                   <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
                       size="sm"
-                      className="bg-gradient-to-r from-purple-400 to-amber-400 text-white rounded-full text-xs shadow-lg"
+                      className="bg-gradient-to-r from-purple-500 to-amber-500 text-white rounded-full text-xs shadow-lg hover:shadow-xl"
                     >
                       <Eye className="w-3 h-3 mr-1" />
                       Xem chi tiết
