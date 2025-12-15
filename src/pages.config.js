@@ -8,6 +8,7 @@ import Settings from './pages/Settings';
 import Imagine from './pages/Imagine';
 import AITools from './pages/AITools';
 import BuildAndBounty from './pages/BuildAndBounty';
+import RewardsManagement from './pages/RewardsManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Imagine": Imagine,
     "AITools": AITools,
     "BuildAndBounty": BuildAndBounty,
+    "RewardsManagement": RewardsManagement,
 }
 
 export const pagesConfig = {

@@ -66,6 +66,12 @@ export default function Layout({ children, currentPageName }) {
       path: 'BuildAndBounty',
       gradient: 'from-amber-400 to-orange-400'
     },
+    { 
+      name: 'Camlycoin', 
+      icon: Globe, 
+      path: 'RewardsManagement',
+      gradient: 'from-yellow-400 to-amber-400'
+    },
   ];
 
   // Keyboard shortcut for search
