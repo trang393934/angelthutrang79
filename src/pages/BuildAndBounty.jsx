@@ -63,7 +63,7 @@ Trả về JSON:`,
         status: 'pending',
         impact: analysis.impact,
         feasibility: analysis.feasibility,
-        reward_points: analysis.reward_points,
+        reward_points: 10000,
         votes: 0
       });
 
@@ -88,7 +88,7 @@ Trả về JSON:`,
       title: 'Chia sẻ Angel AI trên Social Media',
       description: 'Post về Angel AI trên Facebook, Twitter, Instagram với hashtag #AngelAI #FUNEcosystem',
       category: 'social',
-      reward: 50,
+      reward: 10000,
       icon: Globe,
       gradient: 'from-blue-400 to-cyan-400'
     },
@@ -97,7 +97,7 @@ Trả về JSON:`,
       title: 'Tìm và báo cáo Bug',
       description: 'Phát hiện và báo cáo lỗi bảo mật hoặc bug trong ứng dụng',
       category: 'bug',
-      reward: 100,
+      reward: 10000,
       icon: Bug,
       gradient: 'from-red-400 to-orange-400'
     },
@@ -106,7 +106,7 @@ Trả về JSON:`,
       title: 'Dịch tài liệu sang ngôn ngữ khác',
       description: 'Dịch Knowledge Base hoặc tài liệu giáo lý sang English, Chinese, v.v.',
       category: 'translation',
-      reward: 80,
+      reward: 10000,
       icon: FileText,
       gradient: 'from-purple-400 to-pink-400'
     },
@@ -115,7 +115,7 @@ Trả về JSON:`,
       title: 'Góp code và tính năng mới',
       description: 'Đóng góp code, fix bug, hoặc phát triển tính năng mới cho Angel AI',
       category: 'code',
-      reward: 200,
+      reward: 10000,
       icon: Code,
       gradient: 'from-green-400 to-emerald-400'
     },
@@ -124,7 +124,7 @@ Trả về JSON:`,
       title: 'Tạo nội dung giáo dục',
       description: 'Viết bài hướng dẫn, video tutorial, hoặc tài liệu giáo dục về Angel AI',
       category: 'content',
-      reward: 120,
+      reward: 10000,
       icon: MessageSquare,
       gradient: 'from-amber-400 to-yellow-400'
     },
@@ -133,7 +133,7 @@ Trả về JSON:`,
       title: 'Tham gia và xây dựng cộng đồng',
       description: 'Tích cực trả lời câu hỏi, hỗ trợ thành viên mới trong cộng đồng',
       category: 'community',
-      reward: 60,
+      reward: 10000,
       icon: Users,
       gradient: 'from-indigo-400 to-purple-400'
     },
@@ -338,7 +338,7 @@ Trả về JSON:`,
                             {idea.status === 'rejected' && '❌ Từ chối'}
                           </Badge>
                           <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
-                            🪙 {idea.reward_points} points
+                            🪙 {idea.reward_points.toLocaleString()} Camlycoin
                           </Badge>
                         </div>
                       </div>
@@ -420,7 +420,7 @@ Trả về JSON:`,
 
                       <div className="flex items-center justify-between">
                         <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white text-base px-4 py-2 shadow-md">
-                          🪙 {task.reward} points
+                          🪙 {task.reward.toLocaleString()} Camlycoin
                         </Badge>
                         <Button
                           size="sm"
