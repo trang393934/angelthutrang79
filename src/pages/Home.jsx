@@ -110,7 +110,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-[0.1em] leading-tight px-2"
+              className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-[0.08em] leading-tight whitespace-nowrap"
               style={{ 
                 fontFamily: "'Bungee', 'Impact', sans-serif",
                 fontWeight: 900,
