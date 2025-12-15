@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 export default function AngelMascot() {
   return (
     <motion.div
-      className="fixed bottom-8 right-8 z-50 cursor-pointer"
+      className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50 cursor-pointer"
       initial={{ scale: 0, rotate: -180 }}
       animate={{ 
         scale: 1, 
@@ -25,6 +25,11 @@ export default function AngelMascot() {
         rotate: [0, -10, 10, -10, 0],
         transition: { duration: 0.5 }
       }}
+      whileTap={{ 
+        scale: 0.95,
+        rotate: [0, -15, 15, -15, 0],
+        transition: { duration: 0.6 }
+      }}
     >
       <motion.div
         animate={{
@@ -35,7 +40,7 @@ export default function AngelMascot() {
           repeat: Infinity,
           ease: "easeInOut"
         }}
-        className="relative w-24 h-24 drop-shadow-2xl"
+        className="relative w-16 h-16 lg:w-24 lg:h-24 drop-shadow-2xl"
       >
         {/* Glow effect */}
         <motion.div
@@ -119,7 +124,7 @@ export default function AngelMascot() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         whileHover={{ opacity: 1, y: 0 }}
-        className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-rose-400 text-white px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap shadow-lg"
+        className="absolute -top-10 lg:-top-12 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 to-rose-400 text-white px-2 py-1 lg:px-3 rounded-full text-xs font-semibold whitespace-nowrap shadow-lg"
       >
         Angel AI 💛
       </motion.div>

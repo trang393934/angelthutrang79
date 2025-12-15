@@ -69,7 +69,7 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Mobile Optimized */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 py-6">
+      <section className="relative min-h-screen flex items-center justify-center px-4 pt-2 pb-6">
         <div className="flex flex-col items-center justify-center max-w-lg mx-auto">
           {/* Angel Image - Circular Avatar */}
           <motion.div
