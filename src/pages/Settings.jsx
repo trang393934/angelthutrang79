@@ -91,42 +91,34 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-violet-50 to-purple-50 relative">
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-20 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-300/50 via-purple-400/30 to-transparent blur-3xl" />
-      </div>
-
+    <div className="min-h-screen bg-white relative">
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-gradient-to-r from-violet-500 to-purple-600 shadow-xl">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
+            <Button variant="ghost" size="icon" className="text-white hover:text-white hover:bg-white/20">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
           <div className="flex items-center gap-3 flex-1">
             <motion.div
               animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(139,92,246,0.4)',
-                  '0 0 40px rgba(139,92,246,0.6)',
-                  '0 0 20px rgba(139,92,246,0.4)',
-                ]
+                rotate: [0, 360]
               }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-purple-400 flex items-center justify-center"
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
             >
               <SettingsIcon className="w-5 h-5 text-white" />
             </motion.div>
             <div>
-              <h1 className="text-slate-900 text-xl font-semibold tracking-wide">Cài Đặt AI</h1>
-              <p className="text-purple-700 text-sm font-medium">Cá nhân hóa trải nghiệm</p>
+              <h1 className="text-white text-xl font-bold tracking-wide">Cài Đặt AI</h1>
+              <p className="text-white/90 text-sm font-semibold">Cá nhân hóa trải nghiệm</p>
             </div>
           </div>
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={isSaving}
-            className="bg-gradient-to-r from-violet-400 to-purple-400 text-white rounded-full hover:shadow-lg hover:shadow-violet-500/30"
+            className="bg-white text-violet-600 rounded-full hover:bg-white/90 font-bold shadow-lg"
           >
             {isSaving ? (
               <>
@@ -161,10 +153,10 @@ export default function Settings() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6"
+              className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-3xl p-6 shadow-lg"
             >
-              <h3 className="text-white text-lg font-light mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-violet-400" />
+              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-violet-600" />
                 Phong Cách Trả Lời
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -176,12 +168,12 @@ export default function Settings() {
                     onClick={() => setPreferences({ ...preferences, response_style: option.value })}
                     className={`p-4 rounded-2xl cursor-pointer transition-all ${
                       preferences.response_style === option.value
-                        ? 'bg-violet-500/20 border-2 border-violet-400/50'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                        ? 'bg-violet-600 border-2 border-violet-700 shadow-lg'
+                        : 'bg-white border-2 border-violet-200 hover:border-violet-400'
                     }`}
                   >
-                    <p className="text-white font-light mb-1">{option.label}</p>
-                    <p className="text-purple-300/60 text-xs">{option.desc}</p>
+                    <p className={`font-bold mb-1 ${preferences.response_style === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                    <p className={`text-xs ${preferences.response_style === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
                   </motion.div>
                 ))}
               </div>
@@ -192,10 +184,10 @@ export default function Settings() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6"
+              className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-3xl p-6 shadow-lg"
             >
-              <h3 className="text-white text-lg font-light mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-600" />
                 Giọng Điệu
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -207,12 +199,12 @@ export default function Settings() {
                     onClick={() => setPreferences({ ...preferences, tone: option.value })}
                     className={`p-4 rounded-2xl cursor-pointer transition-all ${
                       preferences.tone === option.value
-                        ? 'bg-purple-500/20 border-2 border-purple-400/50'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                        ? 'bg-purple-600 border-2 border-purple-700 shadow-lg'
+                        : 'bg-white border-2 border-purple-200 hover:border-purple-400'
                     }`}
                   >
-                    <p className="text-white font-light mb-1">{option.label}</p>
-                    <p className="text-purple-300/60 text-xs">{option.desc}</p>
+                    <p className={`font-bold mb-1 ${preferences.tone === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                    <p className={`text-xs ${preferences.tone === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
                   </motion.div>
                 ))}
               </div>
@@ -223,10 +215,10 @@ export default function Settings() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6"
+              className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-6 shadow-lg"
             >
-              <h3 className="text-white text-lg font-light mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-amber-400" />
+              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-amber-600" />
                 Chủ Đề Quan Tâm
               </h3>
               <div className="flex gap-2 mb-4">
@@ -236,11 +228,11 @@ export default function Settings() {
                   onChange={(e) => setNewTopic(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addTopic()}
                   placeholder="Thêm chủ đề (ví dụ: Thiền, Chữa lành, Tài chính...)"
-                  className="flex-1 bg-white/5 border border-white/10 text-white placeholder:text-purple-300/40 rounded-xl px-4 py-2 focus:border-amber-400/30 focus:ring-amber-400/20 outline-none"
+                  className="flex-1 bg-white border-2 border-amber-300 text-slate-900 placeholder:text-slate-400 rounded-xl px-4 py-2 focus:border-amber-500 focus:ring-amber-500 outline-none font-medium"
                 />
                 <Button
                   onClick={addTopic}
-                  className="bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-xl"
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold hover:from-amber-600 hover:to-orange-600"
                 >
                   Thêm
                 </Button>
@@ -249,14 +241,14 @@ export default function Settings() {
                 {preferences.topics_of_interest.map((topic, idx) => (
                   <Badge
                     key={idx}
-                    className="bg-amber-500/20 text-amber-200 border-amber-400/30 cursor-pointer hover:bg-amber-500/30"
+                    className="bg-amber-200 text-amber-900 border-2 border-amber-400 cursor-pointer hover:bg-amber-300 font-bold"
                     onClick={() => removeTopic(idx)}
                   >
                     {topic} ×
                   </Badge>
                 ))}
                 {preferences.topics_of_interest.length === 0 && (
-                  <p className="text-purple-300/50 text-sm">Chưa có chủ đề nào</p>
+                  <p className="text-slate-500 text-sm font-medium">Chưa có chủ đề nào</p>
                 )}
               </div>
             </motion.div>
@@ -266,17 +258,17 @@ export default function Settings() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-6"
+              className="bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-200 rounded-3xl p-6 shadow-lg"
             >
-              <h3 className="text-white text-lg font-light mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-rose-400" />
+              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-rose-600" />
                 Ghi Chú Cá Nhân
               </h3>
               <Textarea
                 value={preferences.personal_notes}
                 onChange={(e) => setPreferences({ ...preferences, personal_notes: e.target.value })}
                 placeholder="Chia sẻ về bản thân để AI hiểu bạn hơn...&#10;&#10;Ví dụ:&#10;• Tôi đang trên hành trình chữa lành nội tâm&#10;• Tôi quan tâm đến phát triển bản thân và tâm linh&#10;• Tôi muốn học cách kết nối với năng lượng vũ trụ"
-                className="min-h-[150px] bg-white/5 border-white/10 text-white placeholder:text-purple-300/40 rounded-2xl focus:border-rose-400/30 focus:ring-rose-400/20 font-light leading-relaxed resize-none"
+                className="min-h-[150px] bg-white border-2 border-rose-300 text-slate-900 placeholder:text-slate-400 rounded-2xl focus:border-rose-500 focus:ring-rose-500 font-medium leading-relaxed resize-none"
               />
             </motion.div>
           </div>
