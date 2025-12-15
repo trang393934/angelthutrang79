@@ -582,6 +582,100 @@ export default function Home() {
         </div>
       </section>
 
+      {/* FUN Ecosystem Section */}
+      <section className="relative py-16 lg:py-20 px-4 lg:px-8 bg-gradient-to-b from-transparent via-purple-50/30 to-transparent">
+        <div className="max-w-7xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-block mb-6">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles className="w-12 h-12 text-purple-500" />
+              </motion.div>
+            </div>
+            <h2 
+              className="text-4xl md:text-5xl font-light tracking-wide mb-4"
+              style={{
+                fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
+                background: 'linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #f59e0b 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              FUN Ecosystem
+            </h2>
+            <p className="text-xl md:text-2xl text-purple-900/70 font-light leading-relaxed max-w-3xl mx-auto">
+              15+ Platforms được điều phối bởi Angel AI - Linh hồn của Nền Kinh Tế Ánh Sáng
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+          >
+            {[
+              { name: 'FUN Profile', url: '#', icon: '👤', color: 'from-blue-400 to-cyan-400' },
+              { name: 'FUN Play', url: '#', icon: '🎮', color: 'from-purple-400 to-pink-400' },
+              { name: 'FUN Planet', url: '#', icon: '🌍', color: 'from-green-400 to-emerald-400' },
+              { name: 'FUN Charity', url: '#', icon: '💝', color: 'from-rose-400 to-pink-400' },
+              { name: 'FUN Farm', url: '#', icon: '🌾', color: 'from-lime-400 to-green-400' },
+              { name: 'FUN Academy', url: '#', icon: '📚', color: 'from-indigo-400 to-blue-400' },
+              { name: 'FUN Legal', url: '#', icon: '⚖️', color: 'from-slate-400 to-gray-400' },
+              { name: 'FUN Earth', url: '#', icon: '🌏', color: 'from-teal-400 to-cyan-400' },
+              { name: 'FUN Trading', url: '#', icon: '📈', color: 'from-amber-400 to-orange-400' },
+              { name: 'FUN Invest', url: '#', icon: '💰', color: 'from-yellow-400 to-amber-400' },
+              { name: 'FUN Market', url: '#', icon: '🛍️', color: 'from-fuchsia-400 to-purple-400' },
+              { name: 'FUN Wallet', url: '#', icon: '👛', color: 'from-violet-400 to-purple-400' },
+              { name: 'FUN Money', url: '#', icon: '💵', color: 'from-green-400 to-teal-400' },
+              { name: 'Camly Coin', url: '#', icon: '🪙', color: 'from-amber-300 to-yellow-400' },
+              { name: 'Cosmic Game', url: '#', icon: '🎯', color: 'from-purple-400 to-pink-400' },
+            ].map((platform, index) => (
+              <motion.a
+                key={platform.name}
+                href={platform.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className="group relative"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${platform.color} opacity-20 rounded-2xl blur-xl group-hover:blur-2xl transition-all`} />
+                <div className="relative bg-white/60 backdrop-blur-sm border border-white/50 rounded-2xl p-4 text-center h-full flex flex-col items-center justify-center hover:border-white/80 hover:shadow-xl transition-all">
+                  <div className="text-3xl mb-2">{platform.icon}</div>
+                  <h3 className="text-sm font-light text-slate-900 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    {platform.name}
+                  </h3>
+                </div>
+              </motion.a>
+            ))}
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.5 }}
+            className="text-center text-lg text-purple-700/60 font-light tracking-wide mt-8"
+            style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}
+          >
+            Angel AI - Nhạc trưởng dẫn dắt dòng năng lượng của FUN Ecosystem
+          </motion.p>
+        </div>
+      </section>
+
       {/* Footer Quote */}
       <motion.div
         initial={{ opacity: 0 }}
