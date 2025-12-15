@@ -46,21 +46,40 @@ export default function KnowledgeBase() {
         file: uploadFile
       });
 
-      // Extract content from file
+      // Extract content from file with better formatting
       const extractResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: file_url,
         json_schema: {
           type: "object",
           properties: {
-            content: { type: "string" }
+            content: { 
+              type: "string",
+              description: "Full text content preserving all paragraphs, line breaks, formatting, and structure exactly as in the original document"
+            }
           }
         }
       });
 
-      let content = '';
+      let rawContent = '';
       if (extractResult.status === 'success' && extractResult.output) {
-        content = extractResult.output.content || JSON.stringify(extractResult.output);
+        rawContent = extractResult.output.content || JSON.stringify(extractResult.output);
       }
+
+      // Use AI to properly format and preserve the document structure
+      const content = await base44.integrations.Core.InvokeLLM({
+        prompt: `Hãy chuyển đổi văn bản sau thành markdown format, GIỮ NGUYÊN 100% nội dung và cấu trúc gốc.
+
+      QUAN TRỌNG:
+      - GIỮ NGUYÊN tất cả nội dung, không tóm tắt, không thay đổi
+      - Bảo toàn các đoạn văn, ngắt dòng theo đúng bản gốc  
+      - Giữ nguyên tiêu đề, danh sách, định dạng đặc biệt
+      - Với thơ/bài hát: mỗi câu một dòng
+      - Không thêm giải thích hay bình luận
+      - Chỉ trả về nội dung đã format, không có ghi chú thêm
+
+      Văn bản gốc:
+      ${rawContent}`,
+      });
 
       // AI generates summary and tags
       const analysis = await base44.integrations.Core.InvokeLLM({
@@ -396,8 +415,27 @@ Trả về JSON với format:
                 </div>
               )}
 
-              <div className="prose prose-slate prose-sm max-w-none font-normal leading-relaxed text-slate-900">
-                <ReactMarkdown className="whitespace-pre-wrap">
+              <div className="prose prose-slate prose-sm max-w-none text-slate-900">
+                <ReactMarkdown 
+                  className="leading-relaxed [&>p]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h1]:mt-6 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>h2]:mt-5 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:mb-2 [&>h3]:mt-4 [&>ul]:mb-4 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-purple-400 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4"
+                  components={{
+                    p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>,
+                    h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6 text-slate-900">{children}</h1>,
+                    h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5 text-slate-900">{children}</h2>,
+                    h3: ({ children }) => <h3 className="text-lg font-semibold mb-2 mt-4 text-slate-900">{children}</h3>,
+                    ul: ({ children }) => <ul className="list-disc ml-6 mb-4 space-y-1">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal ml-6 mb-4 space-y-1">{children}</ol>,
+                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                    blockquote: ({ children }) => <blockquote className="border-l-4 border-purple-400 pl-4 italic my-4 text-slate-700">{children}</blockquote>,
+                    strong: ({ children }) => <strong className="font-bold text-slate-900">{children}</strong>,
+                    em: ({ children }) => <em className="italic">{children}</em>,
+                    code: ({ inline, children }) => inline ? (
+                      <code className="bg-purple-100 text-purple-800 px-1 py-0.5 rounded text-sm">{children}</code>
+                    ) : (
+                      <code className="block bg-slate-100 p-3 rounded-lg my-3 text-sm">{children}</code>
+                    ),
+                  }}
+                >
                   {selectedDoc.content}
                 </ReactMarkdown>
               </div>
