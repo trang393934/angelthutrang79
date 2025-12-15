@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Code, Gift, Send, Sparkles, Trophy, Users, MessageSquare, Bug, Globe, FileText, Loader2, CheckCircle2, Star } from 'lucide-react';
+import { ArrowLeft, Code, Gift, Send, Sparkles, Trophy, Users, MessageSquare, Bug, Globe, FileText, Loader2, CheckCircle2, Star, Wallet, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,23 @@ export default function BuildAndBounty() {
   const [ideaDescription, setIdeaDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [walletAddress, setWalletAddress] = useState('');
+  const [isConnectingWallet, setIsConnectingWallet] = useState(false);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [proofLink, setProofLink] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+    
+    // Check if wallet is already connected
+    const savedWallet = localStorage.getItem('walletAddress');
+    if (savedWallet) {
+      setWalletAddress(savedWallet);
+    }
   }, []);
 
   const { data: ideas = [] } = useQuery({
@@ -80,6 +93,55 @@ Trả về JSON:`,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
     },
+  });
+
+  const connectWallet = async (network) => {
+    setIsConnectingWallet(true);
+    
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const address = accounts[0];
+        setWalletAddress(address);
+        localStorage.setItem('walletAddress', address);
+        setShowWalletModal(false);
+      } catch (error) {
+        alert('Không thể kết nối ví. Vui lòng thử lại.');
+      }
+    } else {
+      alert('Vui lòng cài đặt MetaMask hoặc ví Web3 để tiếp tục!');
+    }
+    
+    setIsConnectingWallet(false);
+  };
+
+  const disconnectWallet = () => {
+    setWalletAddress('');
+    localStorage.removeItem('walletAddress');
+  };
+
+  const submitTaskMutation = useMutation({
+    mutationFn: async () => {
+      if (!walletAddress) {
+        alert('Vui lòng kết nối ví trước!');
+        return;
+      }
+
+      await base44.entities.BountySubmission.create({
+        task_id: selectedTask.id,
+        task_title: selectedTask.title,
+        proof_link: proofLink,
+        description: taskDescription,
+        wallet_address: walletAddress,
+        status: 'pending',
+        reward_amount: selectedTask.reward
+      });
+
+      setShowTaskModal(false);
+      setProofLink('');
+      setTaskDescription('');
+      alert('🎉 Đã gửi thành công! Team sẽ xem xét và phê duyệt trong 3-5 ngày.');
+    }
   });
 
   const bountyTasks = [
@@ -189,8 +251,190 @@ Trả về JSON:`,
               <p className="text-purple-600 text-xs font-medium truncate">Đóng Góp & Nhận Thưởng</p>
             </div>
           </div>
+          {walletAddress ? (
+            <Button
+              onClick={disconnectWallet}
+              variant="outline"
+              size="sm"
+              className="border-green-300 text-green-700 hover:bg-green-50 rounded-full flex-shrink-0 text-xs px-3"
+            >
+              <Wallet className="w-3 h-3 mr-1" />
+              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => setShowWalletModal(true)}
+              variant="outline"
+              size="sm"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full flex-shrink-0 text-xs px-3"
+            >
+              <Wallet className="w-3 h-3 mr-1" />
+              Kết nối ví
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Wallet Connection Modal */}
+      <AnimatePresence>
+        {showWalletModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowWalletModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-8 max-w-md w-full shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                    <Wallet className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-slate-900 text-xl font-semibold">Kết Nối Ví</h3>
+                    <p className="text-purple-700 text-sm">Chọn mạng blockchain</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowWalletModal(false)}
+                  className="text-purple-600 hover:bg-purple-100"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {['Ethereum', 'Binance Smart Chain', 'Polygon', 'Arbitrum', 'Optimism', 'Base'].map((network) => (
+                  <Button
+                    key={network}
+                    onClick={() => connectWallet(network)}
+                    disabled={isConnectingWallet}
+                    className="w-full bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-2 border-purple-200 hover:border-purple-400 text-slate-900 rounded-2xl py-6 font-semibold shadow-md hover:shadow-lg transition-all"
+                  >
+                    {isConnectingWallet ? (
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    ) : (
+                      <Wallet className="w-5 h-5 mr-2" />
+                    )}
+                    {network}
+                  </Button>
+                ))}
+              </div>
+
+              <p className="text-center text-xs text-purple-600 mt-4">
+                Hỗ trợ MetaMask, WalletConnect, và các ví Web3 khác
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Task Submission Modal */}
+      <AnimatePresence>
+        {showTaskModal && selectedTask && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowTaskModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${selectedTask.gradient} flex items-center justify-center`}>
+                    {React.createElement(selectedTask.icon, { className: "w-6 h-6 text-white" })}
+                  </div>
+                  <div>
+                    <h3 className="text-slate-900 text-xl font-semibold">{selectedTask.title}</h3>
+                    <Badge className="bg-gradient-to-r from-amber-400 to-orange-400 text-white mt-1">
+                      🪙 {selectedTask.reward.toLocaleString()} Camlycoin
+                    </Badge>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowTaskModal(false)}
+                  className="text-purple-600 hover:bg-purple-100"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-slate-900 text-sm font-semibold mb-2 block">Link bằng chứng *</label>
+                  <Input
+                    value={proofLink}
+                    onChange={(e) => setProofLink(e.target.value)}
+                    placeholder="https://twitter.com/... hoặc https://github.com/..."
+                    className="bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-xl"
+                  />
+                  <p className="text-xs text-purple-600 mt-1">Post social media, repo GitHub, hoặc link file</p>
+                </div>
+
+                <div>
+                  <label className="text-slate-900 text-sm font-semibold mb-2 block">Mô tả cách hoàn thành</label>
+                  <Textarea
+                    value={taskDescription}
+                    onChange={(e) => setTaskDescription(e.target.value)}
+                    placeholder="Mô tả chi tiết về cách bạn hoàn thành nhiệm vụ..."
+                    className="min-h-[100px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl resize-none"
+                  />
+                </div>
+
+                {walletAddress && (
+                  <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-4">
+                    <p className="text-green-700 text-sm font-semibold mb-1">Ví đã kết nối:</p>
+                    <p className="text-green-900 font-mono text-sm">{walletAddress}</p>
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => {
+                    if (!walletAddress) {
+                      setShowTaskModal(false);
+                      setShowWalletModal(true);
+                      return;
+                    }
+                    submitTaskMutation.mutate();
+                  }}
+                  disabled={!proofLink.trim()}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6"
+                >
+                  {walletAddress ? (
+                    <>
+                      <Send className="w-5 h-5 mr-2" />
+                      Gửi Bằng Chứng
+                    </>
+                  ) : (
+                    <>
+                      <Wallet className="w-5 h-5 mr-2" />
+                      Kết Nối Ví Để Tiếp Tục
+                    </>
+                  )}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
@@ -424,6 +668,10 @@ Trả về JSON:`,
                         </Badge>
                         <Button
                           size="sm"
+                          onClick={() => {
+                            setSelectedTask(task);
+                            setShowTaskModal(true);
+                          }}
                           className={`bg-gradient-to-r ${task.gradient} text-white rounded-full shadow-md hover:shadow-lg`}
                         >
                           Bắt Đầu
