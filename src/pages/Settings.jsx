@@ -94,41 +94,41 @@ export default function Settings() {
     <div className="min-h-screen bg-white relative">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-gradient-to-r from-violet-500 to-purple-600 shadow-xl">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-2">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-white hover:text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" className="text-white hover:text-white hover:bg-white/20 flex-shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
             <motion.div
               animate={{ 
                 rotate: [0, 360]
               }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"
+              className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0"
             >
               <SettingsIcon className="w-5 h-5 text-white" />
             </motion.div>
-            <div>
-              <h1 className="text-white text-xl font-bold tracking-wide">Cài Đặt AI</h1>
-              <p className="text-white/90 text-sm font-semibold">Cá nhân hóa trải nghiệm</p>
+            <div className="min-w-0">
+              <h1 className="text-white text-lg lg:text-xl font-bold tracking-wide truncate">Cài Đặt AI</h1>
+              <p className="text-white/90 text-xs lg:text-sm font-semibold truncate">Cá nhân hóa trải nghiệm</p>
             </div>
           </div>
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={isSaving}
-            className="bg-white text-violet-600 rounded-full hover:bg-white/90 font-bold shadow-lg"
+            className="bg-white text-violet-600 rounded-full hover:bg-white/90 font-bold shadow-lg flex-shrink-0 text-xs lg:text-sm px-3 lg:px-4 h-9 lg:h-10"
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Đang Lưu...
+                <Loader2 className="w-4 h-4 lg:mr-2 animate-spin" />
+                <span className="hidden lg:inline">Đang Lưu...</span>
               </>
             ) : (
               <>
-                <Save className="w-4 h-4 mr-2" />
-                Lưu Cài Đặt
+                <Save className="w-4 h-4 lg:mr-2" />
+                <span className="hidden lg:inline">Lưu Cài Đặt</span>
               </>
             )}
           </Button>
@@ -136,7 +136,7 @@ export default function Settings() {
       </div>
 
       {/* Content */}
-      <div className="pt-24 pb-20 px-4 max-w-4xl mx-auto">
+      <div className="pt-20 pb-28 px-4 max-w-4xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
