@@ -17,7 +17,10 @@ export default function BuildAndBounty() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [walletAddress, setWalletAddress] = useState('');
+  const [walletBalances, setWalletBalances] = useState({});
+  const [selectedNetwork, setSelectedNetwork] = useState('');
   const [isConnectingWallet, setIsConnectingWallet] = useState(false);
+  const [isLoadingBalances, setIsLoadingBalances] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [showTaskModal, setShowTaskModal] = useState(false);
@@ -30,10 +33,43 @@ export default function BuildAndBounty() {
     
     // Check if wallet is already connected
     const savedWallet = localStorage.getItem('walletAddress');
-    if (savedWallet) {
+    const savedNetwork = localStorage.getItem('selectedNetwork');
+    if (savedWallet && savedNetwork) {
       setWalletAddress(savedWallet);
+      setSelectedNetwork(savedNetwork);
+      loadWalletBalances(savedWallet, savedNetwork);
     }
+
+    // Listen for account changes
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', handleAccountsChanged);
+      window.ethereum.on('chainChanged', handleChainChanged);
+    }
+
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
   }, []);
+
+  const handleAccountsChanged = (accounts) => {
+    if (accounts.length === 0) {
+      disconnectWallet();
+    } else if (accounts[0] !== walletAddress) {
+      const newAddress = accounts[0];
+      setWalletAddress(newAddress);
+      localStorage.setItem('walletAddress', newAddress);
+      if (selectedNetwork) {
+        loadWalletBalances(newAddress, selectedNetwork);
+      }
+    }
+  };
+
+  const handleChainChanged = () => {
+    window.location.reload();
+  };
 
   const { data: ideas = [] } = useQuery({
     queryKey: ['build-ideas'],
@@ -95,29 +131,119 @@ Trả về JSON:`,
     },
   });
 
+  const networkConfigs = {
+    'Ethereum': { chainId: '0x1', name: 'Ethereum Mainnet', symbol: 'ETH' },
+    'Binance Smart Chain': { chainId: '0x38', name: 'BSC Mainnet', symbol: 'BNB' },
+    'Polygon': { chainId: '0x89', name: 'Polygon Mainnet', symbol: 'MATIC' },
+    'Arbitrum': { chainId: '0xa4b1', name: 'Arbitrum One', symbol: 'ETH' },
+    'Optimism': { chainId: '0xa', name: 'Optimism', symbol: 'ETH' },
+    'Base': { chainId: '0x2105', name: 'Base', symbol: 'ETH' }
+  };
+
   const connectWallet = async (network) => {
     setIsConnectingWallet(true);
     
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const address = accounts[0];
-        setWalletAddress(address);
-        localStorage.setItem('walletAddress', address);
-        setShowWalletModal(false);
-      } catch (error) {
-        alert('Không thể kết nối ví. Vui lòng thử lại.');
-      }
-    } else {
+    if (typeof window.ethereum === 'undefined') {
       alert('Vui lòng cài đặt MetaMask hoặc ví Web3 để tiếp tục!');
+      setIsConnectingWallet(false);
+      return;
+    }
+
+    try {
+      // Request account access
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      if (accounts.length === 0) {
+        alert('Không tìm thấy tài khoản. Vui lòng mở khóa ví của bạn.');
+        setIsConnectingWallet(false);
+        return;
+      }
+
+      const address = accounts[0];
+      const config = networkConfigs[network];
+
+      // Switch to correct network
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: config.chainId }],
+        });
+      } catch (switchError) {
+        // Chain not added, try adding it
+        if (switchError.code === 4902) {
+          try {
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{
+                chainId: config.chainId,
+                chainName: config.name,
+              }],
+            });
+          } catch (addError) {
+            alert('Không thể thêm mạng. Vui lòng thử lại.');
+            setIsConnectingWallet(false);
+            return;
+          }
+        } else {
+          alert('Không thể chuyển đổi mạng. Vui lòng thử lại.');
+          setIsConnectingWallet(false);
+          return;
+        }
+      }
+
+      // Save to state and localStorage
+      setWalletAddress(address);
+      setSelectedNetwork(network);
+      localStorage.setItem('walletAddress', address);
+      localStorage.setItem('selectedNetwork', network);
+      
+      // Load balances
+      await loadWalletBalances(address, network);
+      
+      setShowWalletModal(false);
+    } catch (error) {
+      console.error('Connection error:', error);
+      alert('Không thể kết nối ví. Vui lòng thử lại.');
     }
     
     setIsConnectingWallet(false);
   };
 
+  const loadWalletBalances = async (address, network) => {
+    if (!window.ethereum || !address) return;
+    
+    setIsLoadingBalances(true);
+    const config = networkConfigs[network];
+    
+    try {
+      // Get native token balance (ETH, BNB, MATIC, etc.)
+      const balance = await window.ethereum.request({
+        method: 'eth_getBalance',
+        params: [address, 'latest'],
+      });
+      
+      // Convert from Wei to Ether
+      const balanceInEther = parseInt(balance, 16) / Math.pow(10, 18);
+      
+      setWalletBalances({
+        native: {
+          symbol: config.symbol,
+          balance: balanceInEther.toFixed(4)
+        }
+      });
+    } catch (error) {
+      console.error('Error loading balances:', error);
+    }
+    
+    setIsLoadingBalances(false);
+  };
+
   const disconnectWallet = () => {
     setWalletAddress('');
+    setWalletBalances({});
+    setSelectedNetwork('');
     localStorage.removeItem('walletAddress');
+    localStorage.removeItem('selectedNetwork');
   };
 
   const submitTaskMutation = useMutation({
@@ -252,15 +378,29 @@ Trả về JSON:`,
             </div>
           </div>
           {walletAddress ? (
-            <Button
-              onClick={disconnectWallet}
-              variant="outline"
-              size="sm"
-              className="border-green-300 text-green-700 hover:bg-green-50 rounded-full flex-shrink-0 text-xs px-3"
-            >
-              <Wallet className="w-3 h-3 mr-1" />
-              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="bg-green-50 border border-green-300 rounded-full px-3 py-1 flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <div className="text-xs">
+                  <p className="text-green-900 font-mono font-semibold">
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  </p>
+                  {walletBalances.native && (
+                    <p className="text-green-700 font-bold">
+                      {walletBalances.native.balance} {walletBalances.native.symbol}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Button
+                onClick={disconnectWallet}
+                variant="ghost"
+                size="icon"
+                className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
           ) : (
             <Button
               onClick={() => setShowWalletModal(true)}
@@ -313,21 +453,31 @@ Trả về JSON:`,
               </div>
 
               <div className="space-y-3">
-                {['Ethereum', 'Binance Smart Chain', 'Polygon', 'Arbitrum', 'Optimism', 'Base'].map((network) => (
-                  <Button
-                    key={network}
-                    onClick={() => connectWallet(network)}
-                    disabled={isConnectingWallet}
-                    className="w-full bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-2 border-purple-200 hover:border-purple-400 text-slate-900 rounded-2xl py-6 font-semibold shadow-md hover:shadow-lg transition-all"
-                  >
-                    {isConnectingWallet ? (
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    ) : (
-                      <Wallet className="w-5 h-5 mr-2" />
-                    )}
-                    {network}
-                  </Button>
-                ))}
+                {Object.keys(networkConfigs).map((network) => {
+                  const config = networkConfigs[network];
+                  return (
+                    <Button
+                      key={network}
+                      onClick={() => connectWallet(network)}
+                      disabled={isConnectingWallet}
+                      className="w-full bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-2 border-purple-200 hover:border-purple-400 text-slate-900 rounded-2xl py-6 font-semibold shadow-md hover:shadow-lg transition-all group"
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          {isConnectingWallet ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <Wallet className="w-5 h-5" />
+                          )}
+                          <span>{network}</span>
+                        </div>
+                        <Badge variant="outline" className="bg-white border-purple-300 text-purple-700">
+                          {config.symbol}
+                        </Badge>
+                      </div>
+                    </Button>
+                  );
+                })}
               </div>
 
               <p className="text-center text-xs text-purple-600 mt-4">
@@ -401,8 +551,25 @@ Trả về JSON:`,
 
                 {walletAddress && (
                   <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-4">
-                    <p className="text-green-700 text-sm font-semibold mb-1">Ví đã kết nối:</p>
-                    <p className="text-green-900 font-mono text-sm">{walletAddress}</p>
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="text-green-700 text-sm font-semibold mb-1">Ví đã kết nối:</p>
+                        <p className="text-green-900 font-mono text-sm">{walletAddress}</p>
+                      </div>
+                      {isLoadingBalances && (
+                        <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
+                      )}
+                    </div>
+                    {walletBalances.native && (
+                      <div className="flex items-center gap-2 mt-2 pt-2 border-t border-green-200">
+                        <Badge className="bg-green-200 text-green-900 border border-green-400">
+                          {selectedNetwork}
+                        </Badge>
+                        <p className="text-green-900 font-bold">
+                          {walletBalances.native.balance} {walletBalances.native.symbol}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
