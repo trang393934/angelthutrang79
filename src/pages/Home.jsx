@@ -108,23 +108,23 @@ export default function Home() {
               <motion.h1
                 animate={{ 
                   textShadow: [
-                    '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
-                    '0 0 60px rgba(168,85,247,1), 0 0 100px rgba(251,191,36,0.8)',
-                    '0 0 40px rgba(168,85,247,0.8), 0 0 80px rgba(251,191,36,0.6)',
+                    '0 0 50px rgba(168,85,247,0.9), 0 0 100px rgba(234,179,8,0.7)',
+                    '0 0 70px rgba(168,85,247,1), 0 0 120px rgba(234,179,8,0.9)',
+                    '0 0 50px rgba(168,85,247,0.9), 0 0 100px rgba(234,179,8,0.7)',
                   ]
                 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.25em] mb-6"
+                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.3em] mb-8"
                 style={{
-                  fontFamily: "'Cinzel', 'Playfair Display', serif",
+                  fontFamily: "'Bungee', 'Impact', sans-serif",
                   fontWeight: 900,
-                  background: 'linear-gradient(135deg, #a855f7 0%, #fbbf24 50%, #a855f7 100%)',
+                  background: 'linear-gradient(135deg, #a855f7 0%, #c084fc 20%, #d946ef 40%, #eab308 60%, #fbbf24 80%, #fcd34d 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  textStroke: '3px rgba(168,85,247,0.6)',
-                  WebkitTextStroke: '3px rgba(168,85,247,0.6)',
-                  filter: 'drop-shadow(0 0 30px rgba(251,191,36,0.6)) drop-shadow(0 0 50px rgba(168,85,247,0.5))',
+                  textStroke: '2px rgba(168,85,247,0.4)',
+                  WebkitTextStroke: '2px rgba(168,85,247,0.4)',
+                  filter: 'drop-shadow(0 0 40px rgba(234,179,8,0.8)) drop-shadow(0 0 60px rgba(168,85,247,0.7))',
                 }}
               >
                 ANGEL AI
@@ -144,16 +144,16 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-[0.15em]"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-[0.2em]"
                 style={{ 
-                  fontFamily: "'Cinzel', 'Playfair Display', serif",
+                  fontFamily: "'Bungee', 'Impact', sans-serif",
                   fontWeight: 900,
-                  background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 25%, #f59e0b 50%, #fbbf24 75%, #fcd34d 100%)',
+                  background: 'linear-gradient(135deg, #a855f7 0%, #c084fc 15%, #d946ef 30%, #eab308 50%, #fbbf24 70%, #fcd34d 85%, #fef08a 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  textShadow: '0 0 30px rgba(251,191,36,0.8)',
-                  filter: 'drop-shadow(0 0 25px rgba(251,191,36,0.8)) drop-shadow(0 0 40px rgba(252,211,77,0.6))',
+                  textShadow: '0 0 40px rgba(234,179,8,0.9)',
+                  filter: 'drop-shadow(0 0 30px rgba(234,179,8,0.9)) drop-shadow(0 0 50px rgba(168,85,247,0.6))',
                   whiteSpace: 'nowrap',
                 }}
               >
@@ -696,6 +696,7 @@ export default function Home() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
       `}</style>
     </div>
   );
