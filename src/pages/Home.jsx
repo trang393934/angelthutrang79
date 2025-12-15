@@ -70,96 +70,56 @@ export default function Home() {
 
       {/* Hero Section - Compact */}
       <section className="relative min-h-screen flex items-center justify-center px-4 lg:px-8 py-16">
-        {/* Angel Image Container with Glow */}
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+        <div className="flex flex-col items-center justify-center">
+          {/* Angel Image - Circular Avatar */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-full max-w-6xl h-full flex items-center"
+            className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-12"
           >
-            {/* Radiant Halo */}
-            <motion.div
-              animate={{ 
-                scale: [1, 1.05, 1],
-                opacity: [0.3, 0.5, 0.3],
-              }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-0 rounded-full bg-gradient-radial from-amber-300/40 via-yellow-200/20 to-transparent blur-3xl"
-              style={{ transform: 'scale(1.2)' }}
+            <img 
+              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
+              alt="Angel AI"
+              className="w-full h-full object-cover object-center"
             />
-            
-            {/* Angel Image - Circular Avatar */}
-            <div className="relative w-full max-w-md lg:max-w-lg mx-auto aspect-square rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/30">
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
-                alt="Angel AI"
-                className="w-full h-full object-cover object-center"
-              />
-            </div>
+          </motion.div>
 
-            {/* Typography Below Avatar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1.5, delay: 0.5 }}
-              className="text-center px-6 max-w-6xl w-full mt-12"
+          {/* Typography Below Avatar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.5, delay: 0.5 }}
+            className="text-center px-6"
+          >
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.3em] mb-6"
+              style={{
+                fontFamily: "'Bungee', 'Impact', sans-serif",
+                fontWeight: 900,
+                color: '#a855f7',
+              }}
             >
-              <motion.h1
-                animate={{ 
-                  textShadow: [
-                    '0 0 50px rgba(168,85,247,0.9), 0 0 100px rgba(234,179,8,0.7)',
-                    '0 0 70px rgba(168,85,247,1), 0 0 120px rgba(234,179,8,0.9)',
-                    '0 0 50px rgba(168,85,247,0.9), 0 0 100px rgba(234,179,8,0.7)',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.3em] mb-8"
-                style={{
-                  fontFamily: "'Bungee', 'Impact', sans-serif",
-                  fontWeight: 900,
-                  background: 'linear-gradient(135deg, #a855f7 0%, #c084fc 20%, #d946ef 40%, #eab308 60%, #fbbf24 80%, #fcd34d 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textStroke: '2px rgba(168,85,247,0.4)',
-                  WebkitTextStroke: '2px rgba(168,85,247,0.4)',
-                  filter: 'drop-shadow(0 0 40px rgba(234,179,8,0.8)) drop-shadow(0 0 60px rgba(168,85,247,0.7))',
-                }}
-              >
-                ANGEL AI
-              </motion.h1>
+              ANGEL AI
+            </motion.h1>
 
-              <motion.div
-                animate={{ width: ['60%', '80%', '60%'] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="h-[3px] mx-auto mb-6"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(251,191,36,0.9), transparent)',
-                  boxShadow: '0 0 10px rgba(251,191,36,0.5)',
-                }}
-              />
-
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-[0.2em]"
-                style={{ 
-                  fontFamily: "'Bungee', 'Impact', sans-serif",
-                  fontWeight: 900,
-                  background: 'linear-gradient(135deg, #a855f7 0%, #c084fc 15%, #d946ef 30%, #eab308 50%, #fbbf24 70%, #fcd34d 85%, #fef08a 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                  textShadow: '0 0 40px rgba(234,179,8,0.9)',
-                  filter: 'drop-shadow(0 0 30px rgba(234,179,8,0.9)) drop-shadow(0 0 50px rgba(168,85,247,0.6))',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Ánh Sáng Của Cha Vũ Trụ
-              </motion.p>
-            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-[0.2em]"
+              style={{ 
+                fontFamily: "'Bungee', 'Impact', sans-serif",
+                fontWeight: 900,
+                color: '#a855f7',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Ánh Sáng Của Cha Vũ Trụ
+            </motion.p>
           </motion.div>
         </div>
 
