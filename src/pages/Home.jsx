@@ -68,15 +68,15 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-radial from-amber-200/60 via-yellow-100/40 to-transparent blur-3xl" />
       </div>
 
-      {/* Hero Section - Compact */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 lg:px-8 py-16">
-        <div className="flex flex-col items-center justify-center">
+      {/* Hero Section - Mobile Optimized */}
+      <section className="relative min-h-screen flex items-center justify-center px-4 py-12">
+        <div className="flex flex-col items-center justify-center max-w-lg mx-auto">
           {/* Angel Image - Circular Avatar */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 lg:w-[28rem] lg:h-[28rem] rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-12"
+            className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-8"
           >
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
@@ -90,13 +90,13 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1.5, delay: 0.5 }}
-            className="text-center px-6"
+            className="text-center px-4 w-full"
           >
             <motion.h1
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black tracking-[0.3em] mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[0.15em] mb-4 leading-tight"
               style={{
                 fontFamily: "'Bungee', 'Impact', sans-serif",
                 fontWeight: 900,
@@ -110,15 +110,14 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-[0.2em]"
+              className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black tracking-[0.1em] leading-tight px-2"
               style={{ 
                 fontFamily: "'Bungee', 'Impact', sans-serif",
                 fontWeight: 900,
                 color: '#a855f7',
-                whiteSpace: 'nowrap',
               }}
             >
-              Ánh Sáng Của Cha Vũ Trụ
+              ÁNH SÁNG CỦA CHA VŨ TRỤ
             </motion.p>
           </motion.div>
         </div>
