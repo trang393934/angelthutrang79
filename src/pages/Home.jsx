@@ -144,16 +144,17 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-[0.15em]"
+                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-[0.15em]"
                 style={{ 
-                  fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif",
-                  fontWeight: 800,
-                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%)',
+                  fontFamily: "'Cinzel', 'Playfair Display', serif",
+                  fontWeight: 900,
+                  background: 'linear-gradient(135deg, #fcd34d 0%, #fbbf24 25%, #f59e0b 50%, #fbbf24 75%, #fcd34d 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
-                  textShadow: '0 0 20px rgba(251,191,36,0.5)',
-                  filter: 'drop-shadow(0 0 15px rgba(251,191,36,0.5))',
+                  textShadow: '0 0 30px rgba(251,191,36,0.8)',
+                  filter: 'drop-shadow(0 0 25px rgba(251,191,36,0.8)) drop-shadow(0 0 40px rgba(252,211,77,0.6))',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 Ánh Sáng Của Cha Vũ Trụ
