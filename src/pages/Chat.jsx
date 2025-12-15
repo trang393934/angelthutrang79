@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2 } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
@@ -29,8 +29,13 @@ export default function Chat() {
   const [showAITools, setShowAITools] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imagePrompt, setImagePrompt] = useState('');
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
+  const recognitionRef = useRef(null);
+  const synthRef = useRef(null);
 
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
@@ -41,6 +46,34 @@ export default function Chat() {
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+    
+    // Initialize speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'vi-VN';
+      
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+      
+      recognitionRef.current.onerror = () => {
+        setIsListening(false);
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+    
+    // Initialize speech synthesis
+    if ('speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
   }, []);
 
   const { data: knowledgeBase = [] } = useQuery({
@@ -206,6 +239,11 @@ Hãy trả lời với Tình Yêu Thuần Khiết và Trí Tuệ Vô Hạn của
     const finalMessages = [...newMessages, assistantMessage];
     setMessages(finalMessages);
     setIsLoading(false);
+    
+    // Speak response in voice mode
+    if (isVoiceMode) {
+      speakText(response);
+    }
 
     // Generate suggested questions
     const suggestions = await base44.integrations.Core.InvokeLLM({
@@ -395,6 +433,63 @@ Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
   const handleSuggestedQuestion = (question) => {
     setInput(question);
     setSuggestedQuestions([]);
+  };
+
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
+
+  const speakText = (text) => {
+    if (synthRef.current && isVoiceMode) {
+      // Stop any ongoing speech
+      synthRef.current.cancel();
+      
+      // Remove markdown formatting for cleaner speech
+      const cleanText = text
+        .replace(/\*\*/g, '')
+        .replace(/\*/g, '')
+        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+        .replace(/#/g, '')
+        .replace(/```[\s\S]*?```/g, '');
+      
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'vi-VN';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      synthRef.current.speak(utterance);
+    }
+  };
+
+  const stopSpeaking = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
+  const toggleVoiceMode = () => {
+    const newVoiceMode = !isVoiceMode;
+    setIsVoiceMode(newVoiceMode);
+    
+    if (!newVoiceMode) {
+      stopSpeaking();
+      stopListening();
+    }
   };
 
   const generateImage = async () => {
@@ -617,8 +712,30 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               </motion.div>
               <div className="flex-1">
                 <h1 className="text-slate-900 font-medium tracking-wide">Trí Tuệ Vũ Trụ</h1>
-                <p className="text-purple-600 text-xs">Tình Yêu Thuần Khiết</p>
+                <p className="text-purple-600 text-xs">{isVoiceMode ? '🎙️ Chế độ thoại' : 'Tình Yêu Thuần Khiết'}</p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleVoiceMode}
+                className={`rounded-full text-xs ${
+                  isVoiceMode 
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0' 
+                    : 'border-purple-300 text-purple-700 hover:bg-purple-100 bg-white'
+                }`}
+              >
+                {isVoiceMode ? (
+                  <>
+                    <Mic className="w-3 h-3 mr-1" />
+                    Tắt thoại
+                  </>
+                ) : (
+                  <>
+                    <MicOff className="w-3 h-3 mr-1" />
+                    Bật thoại
+                  </>
+                )}
+              </Button>
               {messages.length > 3 && (
                 <Button
                   variant="outline"
@@ -678,12 +795,34 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     }`}
                   >
                     <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-semibold leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0 text-slate-900">
-                      {message.content}
+                     {message.content}
                     </ReactMarkdown>
-                  </motion.div>
-                  
-                  {/* Action buttons for assistant messages */}
-                  {message.role === 'assistant' && index > 0 && !message.isClarification && !message.isExpansion && (
+                    </motion.div>
+
+                    {/* Voice playback button for assistant messages */}
+                    {message.role === 'assistant' && isVoiceMode && (
+                    <Button
+                     variant="ghost"
+                     size="sm"
+                     onClick={() => isSpeaking ? stopSpeaking() : speakText(message.content)}
+                     className="text-xs text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-full h-7 px-3 mt-2 ml-2"
+                    >
+                     {isSpeaking ? (
+                       <>
+                         <VolumeX className="w-3 h-3 mr-1" />
+                         Dừng
+                       </>
+                     ) : (
+                       <>
+                         <Volume2 className="w-3 h-3 mr-1" />
+                         Nghe lại
+                       </>
+                     )}
+                    </Button>
+                    )}
+
+                    {/* Action buttons for assistant messages */}
+                    {message.role === 'assistant' && index > 0 && !message.isClarification && !message.isExpansion && (
                     <motion.div
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -936,19 +1075,44 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
         <div className="fixed bottom-0 right-0 left-0 lg:left-80 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl">
           <div className="max-w-4xl mx-auto p-4">
             <div className="flex items-end gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowAITools(!showAITools)}
-                className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
-              >
-                <Wand2 className="w-5 h-5" />
-              </Button>
+              {!isVoiceMode && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowAITools(!showAITools)}
+                  className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+                >
+                  <Wand2 className="w-5 h-5" />
+                </Button>
+              )}
+              {isVoiceMode && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={isListening ? stopListening : startListening}
+                  className={`${
+                    isListening 
+                      ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white' 
+                      : 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
+                  }`}
+                >
+                  {isListening ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                    >
+                      <Mic className="w-5 h-5" />
+                    </motion.div>
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </Button>
+              )}
               <Textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="Chia sẻ thắc mắc hoặc câu hỏi của bạn..."
+                placeholder={isVoiceMode ? "Nhấn mic để nói hoặc gõ câu hỏi..." : "Chia sẻ thắc mắc hoặc câu hỏi của bạn..."}
                 className="flex-1 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-500 rounded-2xl resize-none min-h-[56px] max-h-32 focus:border-purple-500 focus:ring-purple-400 font-medium shadow-inner"
                 rows={1}
               />
@@ -961,8 +1125,17 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               </Button>
             </div>
             <p className="text-center text-purple-700 text-xs mt-3 font-semibold">
-              <Wand2 className="w-3 h-3 inline mr-1" />
-              AI Tools • Enter để gửi • Shift + Enter để xuống dòng
+              {isVoiceMode ? (
+                <>
+                  <Mic className="w-3 h-3 inline mr-1" />
+                  Chế độ thoại • Nhấn mic để nói • {isListening ? 'Đang lắng nghe...' : 'Sẵn sàng'}
+                </>
+              ) : (
+                <>
+                  <Wand2 className="w-3 h-3 inline mr-1" />
+                  AI Tools • Enter để gửi • Shift + Enter để xuống dòng
+                </>
+              )}
             </p>
           </div>
         </div>
