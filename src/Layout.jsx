@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
+import AngelMascot from '@/components/AngelMascot';
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -362,6 +363,9 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
       <div className="flex-1 lg:ml-80 transition-all duration-300">
         {children}
       </div>
-    </div>
-  );
-}
+
+      {/* Angel Mascot */}
+      <AngelMascot />
+      </div>
+      );
+      }
