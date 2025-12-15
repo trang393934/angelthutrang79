@@ -623,11 +623,11 @@ export default function Home() {
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
           >
             {[
-              { name: 'FUN Profile', url: '#', icon: '👤', color: 'from-blue-400 to-cyan-400' },
-              { name: 'FUN Play', url: '#', icon: '🎮', color: 'from-purple-400 to-pink-400' },
-              { name: 'FUN Planet', url: '#', icon: '🌍', color: 'from-green-400 to-emerald-400' },
+              { name: 'FUN Profile', url: 'https://funprofile.lovable.app/', icon: '👤', color: 'from-blue-400 to-cyan-400' },
+              { name: 'FUN Play', url: 'https://play.fun.rich/', icon: '🎮', color: 'from-purple-400 to-pink-400' },
+              { name: 'FUN Planet', url: 'https://Planet.fun.rich', icon: '🌍', color: 'from-green-400 to-emerald-400' },
               { name: 'FUN Charity', url: '#', icon: '💝', color: 'from-rose-400 to-pink-400' },
-              { name: 'FUN Farm', url: '#', icon: '🌾', color: 'from-lime-400 to-green-400' },
+              { name: 'FUN Farm', url: 'https://funfarm.life', icon: '🌾', color: 'from-lime-400 to-green-400' },
               { name: 'FUN Academy', url: '#', icon: '📚', color: 'from-indigo-400 to-blue-400' },
               { name: 'FUN Legal', url: '#', icon: '⚖️', color: 'from-slate-400 to-gray-400' },
               { name: 'FUN Earth', url: '#', icon: '🌏', color: 'from-teal-400 to-cyan-400' },
