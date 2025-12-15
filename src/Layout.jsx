@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { base44 } from '@/api/base44Client';
+import ReactMarkdown from 'react-markdown';
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
   const location = useLocation();
 
   const menuItems = [
@@ -57,10 +62,45 @@ export default function Layout({ children, currentPageName }) {
         e.preventDefault();
         setSearchOpen(true);
       }
+      if (e.key === 'Escape') {
+        setSearchOpen(false);
+        setSearchQuery('');
+        setSearchResults(null);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handleSearch = async () => {
+    if (!searchQuery.trim() || isSearching) return;
+    
+    setIsSearching(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Tìm kiếm thông tin về: "${searchQuery}"
+        
+Hãy cung cấp:
+1. Tóm tắt ngắn gọn về chủ đề
+2. Các thông tin quan trọng và cập nhật nhất
+3. Nguồn thông tin đáng tin cậy
+
+Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
+        add_context_from_internet: true
+      });
+      
+      setSearchResults(result);
+    } catch (error) {
+      setSearchResults('Xin lỗi, đã có lỗi khi tìm kiếm. Vui lòng thử lại.');
+    }
+    setIsSearching(false);
+  };
+
+  const handleSearchKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   const isActivePage = (path) => {
     return currentPageName === path || location.pathname.includes(path?.toLowerCase());
@@ -220,49 +260,99 @@ export default function Layout({ children, currentPageName }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-start justify-center pt-32 px-4"
-            onClick={() => setSearchOpen(false)}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-4 overflow-y-auto"
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchQuery('');
+              setSearchResults(null);
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: -20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-2xl bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-6 shadow-2xl"
+              className="w-full max-w-3xl bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-6 shadow-2xl mb-20"
             >
               <div className="flex items-center gap-3 mb-4">
-                <Search className="w-5 h-5 text-purple-400" />
+                <Globe className="w-5 h-5 text-purple-400" />
                 <input
                   type="text"
-                  placeholder="Tìm kiếm trong Angel AI..."
+                  placeholder="Tìm kiếm thông tin trên toàn cầu..."
                   autoFocus
-                  className="flex-1 bg-transparent text-slate-900 placeholder:text-purple-400 outline-none text-lg"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleSearchKeyPress}
+                  disabled={isSearching}
+                  className="flex-1 bg-transparent text-slate-900 placeholder:text-purple-400 outline-none text-lg font-medium"
                 />
-                <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded font-medium">
-                  ESC
-                </span>
+                {isSearching ? (
+                  <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
+                ) : (
+                  <Button
+                    onClick={handleSearch}
+                    disabled={!searchQuery.trim()}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-4 py-2 text-sm font-bold hover:shadow-lg disabled:opacity-50"
+                  >
+                    <Search className="w-4 h-4 mr-1" />
+                    Tìm
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => {
+                    setSearchOpen(false);
+                    setSearchQuery('');
+                    setSearchResults(null);
+                  }}
+                  className="text-purple-600 hover:bg-purple-100 rounded-full"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <div className="border-t border-purple-200 pt-4">
-                <p className="text-sm text-purple-700 font-medium">Các trang phổ biến:</p>
-                <div className="mt-2 space-y-2">
-                  {menuItems.filter(item => !item.isButton).map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.name}
-                        to={createPageUrl(item.path)}
-                        onClick={() => setSearchOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-all"
-                      >
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
-                          <Icon className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-slate-900 font-medium">{item.name}</span>
-                      </Link>
-                    );
-                  })}
+
+              {searchResults ? (
+                <div className="border-t border-purple-200 pt-4 max-h-[60vh] overflow-y-auto">
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Globe className="w-5 h-5 text-purple-600" />
+                      <h3 className="text-slate-900 font-bold text-lg">Kết Quả Tìm Kiếm</h3>
+                    </div>
+                    <div className="prose prose-slate max-w-none text-slate-900">
+                      <ReactMarkdown className="leading-relaxed [&>p]:mb-3 [&>ul]:mb-3 [&>ol]:mb-3 [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:font-semibold [&>h3]:mb-2">
+                        {searchResults}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ) : !isSearching && (
+                <div className="border-t border-purple-200 pt-4">
+                  <p className="text-sm text-purple-700 font-medium mb-3">Các trang phổ biến:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {menuItems.filter(item => !item.isButton).map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.name}
+                          to={createPageUrl(item.path)}
+                          onClick={() => {
+                            setSearchOpen(false);
+                            setSearchQuery('');
+                            setSearchResults(null);
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-all border border-purple-200"
+                        >
+                          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
+                            <Icon className="w-4 h-4 text-white" />
+                          </div>
+                          <span className="text-slate-900 font-medium text-sm">{item.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
