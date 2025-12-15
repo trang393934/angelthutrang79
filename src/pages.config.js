@@ -6,6 +6,7 @@ import PersonalVision from './pages/PersonalVision';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
 import Imagine from './pages/Imagine';
+import AITools from './pages/AITools';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "KnowledgeBase": KnowledgeBase,
     "Settings": Settings,
     "Imagine": Imagine,
+    "AITools": AITools,
 }
 
 export const pagesConfig = {
