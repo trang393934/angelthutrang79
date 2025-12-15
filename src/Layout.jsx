@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -59,6 +59,12 @@ export default function Layout({ children, currentPageName }) {
       icon: Sparkles, 
       path: 'AITools',
       gradient: 'from-indigo-400 to-purple-400'
+    },
+    { 
+      name: 'Build & Bounty', 
+      icon: Gift, 
+      path: 'BuildAndBounty',
+      gradient: 'from-amber-400 to-orange-400'
     },
   ];
 

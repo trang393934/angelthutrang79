@@ -7,6 +7,7 @@ import KnowledgeBase from './pages/KnowledgeBase';
 import Settings from './pages/Settings';
 import Imagine from './pages/Imagine';
 import AITools from './pages/AITools';
+import BuildAndBounty from './pages/BuildAndBounty';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "Settings": Settings,
     "Imagine": Imagine,
     "AITools": AITools,
+    "BuildAndBounty": BuildAndBounty,
 }
 
 export const pagesConfig = {
