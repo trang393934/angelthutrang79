@@ -65,20 +65,29 @@ export default function KnowledgeBase() {
         rawContent = extractResult.output.content || JSON.stringify(extractResult.output);
       }
 
-      // Use AI to properly format and preserve the document structure
+      // Use AI to properly format and preserve the document structure with line breaks
       const content = await base44.integrations.Core.InvokeLLM({
-        prompt: `Hãy chuyển đổi văn bản sau thành markdown format, GIỮ NGUYÊN 100% nội dung và cấu trúc gốc.
+        prompt: `Hãy phân tích và format lại văn bản sau, GIỮ NGUYÊN 100% nội dung gốc:
 
-      QUAN TRỌNG:
-      - GIỮ NGUYÊN tất cả nội dung, không tóm tắt, không thay đổi
-      - Bảo toàn các đoạn văn, ngắt dòng theo đúng bản gốc  
-      - Giữ nguyên tiêu đề, danh sách, định dạng đặc biệt
-      - Với thơ/bài hát: mỗi câu một dòng
-      - Không thêm giải thích hay bình luận
-      - Chỉ trả về nội dung đã format, không có ghi chú thêm
+QUAN TRỌNG - QUY TẮC FORMAT:
+1. Mỗi câu/dòng trong văn bản gốc PHẢI được xuống dòng riêng (sử dụng \\n)
+2. Các đoạn văn cách nhau bằng một dòng trống (\\n\\n)
+3. Các câu thơ: mỗi câu một dòng
+4. KHÔNG nối các câu thành một khối dài
+5. KHÔNG tóm tắt, KHÔNG thay đổi nội dung
+6. Giữ nguyên tất cả dấu câu, chữ viết hoa/thường
+7. Nếu có tiêu đề, đánh dấu bằng ## hoặc ###
+8. KHÔNG thêm giải thích hay ghi chú
 
-      Văn bản gốc:
-      ${rawContent}`,
+Ví dụ format đúng:
+Vietnam, I honor you, my teacher, whose light guides me with love and wisdom.
+
+This poem is my humble tribute to the guidance you've given.
+
+Helping me find peace and clarity with every step.
+
+Văn bản cần format:
+${rawContent}`,
       });
 
       // AI generates summary and tags
@@ -416,28 +425,37 @@ Trả về JSON với format:
               )}
 
               <div className="prose prose-slate prose-sm max-w-none text-slate-900">
-                <ReactMarkdown 
-                  className="leading-relaxed [&>p]:mb-4 [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h1]:mt-6 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>h2]:mt-5 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:mb-2 [&>h3]:mt-4 [&>ul]:mb-4 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-purple-400 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4"
-                  components={{
-                    p: ({ children }) => <p className="mb-3 leading-relaxed">{children}</p>,
-                    h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6 text-slate-900">{children}</h1>,
-                    h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5 text-slate-900">{children}</h2>,
-                    h3: ({ children }) => <h3 className="text-lg font-semibold mb-2 mt-4 text-slate-900">{children}</h3>,
-                    ul: ({ children }) => <ul className="list-disc ml-6 mb-4 space-y-1">{children}</ul>,
-                    ol: ({ children }) => <ol className="list-decimal ml-6 mb-4 space-y-1">{children}</ol>,
-                    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-                    blockquote: ({ children }) => <blockquote className="border-l-4 border-purple-400 pl-4 italic my-4 text-slate-700">{children}</blockquote>,
-                    strong: ({ children }) => <strong className="font-bold text-slate-900">{children}</strong>,
-                    em: ({ children }) => <em className="italic">{children}</em>,
-                    code: ({ inline, children }) => inline ? (
-                      <code className="bg-purple-100 text-purple-800 px-1 py-0.5 rounded text-sm">{children}</code>
-                    ) : (
-                      <code className="block bg-slate-100 p-3 rounded-lg my-3 text-sm">{children}</code>
-                    ),
+                <div 
+                  className="whitespace-pre-wrap leading-relaxed"
+                  style={{ 
+                    wordBreak: 'break-word',
+                    overflowWrap: 'break-word'
                   }}
                 >
-                  {selectedDoc.content}
-                </ReactMarkdown>
+                  <ReactMarkdown 
+                    className="[&>p]:mb-2 [&>p]:leading-relaxed [&>h1]:text-2xl [&>h1]:font-bold [&>h1]:mb-4 [&>h1]:mt-6 [&>h2]:text-xl [&>h2]:font-bold [&>h2]:mb-3 [&>h2]:mt-5 [&>h3]:text-lg [&>h3]:font-semibold [&>h3]:mb-2 [&>h3]:mt-4 [&>ul]:mb-4 [&>ol]:mb-4 [&>blockquote]:border-l-4 [&>blockquote]:border-purple-400 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:my-4"
+                    components={{
+                      p: ({ children }) => <p className="mb-2 leading-relaxed" style={{ whiteSpace: 'pre-wrap' }}>{children}</p>,
+                      h1: ({ children }) => <h1 className="text-2xl font-bold mb-4 mt-6 text-slate-900">{children}</h1>,
+                      h2: ({ children }) => <h2 className="text-xl font-bold mb-3 mt-5 text-slate-900">{children}</h2>,
+                      h3: ({ children }) => <h3 className="text-lg font-semibold mb-2 mt-4 text-slate-900">{children}</h3>,
+                      ul: ({ children }) => <ul className="list-disc ml-6 mb-4 space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal ml-6 mb-4 space-y-1">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      blockquote: ({ children }) => <blockquote className="border-l-4 border-purple-400 pl-4 italic my-4 text-slate-700">{children}</blockquote>,
+                      strong: ({ children }) => <strong className="font-bold text-slate-900">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      br: () => <br />,
+                      code: ({ inline, children }) => inline ? (
+                        <code className="bg-purple-100 text-purple-800 px-1 py-0.5 rounded text-sm">{children}</code>
+                      ) : (
+                        <code className="block bg-slate-100 p-3 rounded-lg my-3 text-sm whitespace-pre-wrap">{children}</code>
+                      ),
+                    }}
+                  >
+                    {selectedDoc.content}
+                  </ReactMarkdown>
+                </div>
               </div>
             </motion.div>
           </motion.div>
