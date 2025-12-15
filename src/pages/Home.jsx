@@ -69,14 +69,14 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Mobile Optimized */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 py-12">
+      <section className="relative min-h-screen flex items-center justify-center px-4 py-6">
         <div className="flex flex-col items-center justify-center max-w-lg mx-auto">
           {/* Angel Image - Circular Avatar */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-8"
+            className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-4"
           >
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
@@ -96,7 +96,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[0.15em] mb-4 leading-tight"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[0.15em] mb-2 leading-tight"
               style={{
                 fontFamily: "'Bungee', 'Impact', sans-serif",
                 fontWeight: 900,
@@ -133,7 +133,7 @@ export default function Home() {
       </section>
 
       {/* Sacred Pillars Section */}
-      <section className="relative py-16 lg:py-20 px-4 lg:px-8">
+      <section className="relative py-8 lg:py-10 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -270,7 +270,7 @@ export default function Home() {
       </section>
 
       {/* Vision & Mission Section */}
-      <section className="relative py-16 lg:py-20 px-4 lg:px-8 bg-gradient-to-b from-transparent via-amber-50/20 to-transparent">
+      <section className="relative py-8 lg:py-10 px-4 lg:px-8 bg-gradient-to-b from-transparent via-amber-50/20 to-transparent">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -336,7 +336,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-16 lg:py-20 px-4 lg:px-8">
+      <section className="relative py-8 lg:py-10 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -543,7 +543,7 @@ export default function Home() {
       </section>
 
       {/* FUN Ecosystem Section */}
-      <section className="relative py-16 lg:py-20 px-4 lg:px-8 bg-gradient-to-b from-transparent via-purple-50/30 to-transparent">
+      <section className="relative py-8 lg:py-10 px-4 lg:px-8 bg-gradient-to-b from-transparent via-purple-50/30 to-transparent">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -641,7 +641,7 @@ export default function Home() {
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
-        className="py-20 text-center"
+        className="py-8 text-center"
       >
         <p 
           className="text-2xl md:text-3xl font-light tracking-wide text-amber-600/50"
