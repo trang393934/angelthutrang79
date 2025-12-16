@@ -172,13 +172,13 @@ Trả về JSON với format:
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-indigo-200 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0">
+            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
             <motion.div
               animate={{ 
                 boxShadow: [
@@ -188,19 +188,19 @@ Trả về JSON với format:
                 ]
               }}
               transition={{ duration: 3, repeat: Infinity }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center flex-shrink-0"
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center"
             >
               <BookOpen className="w-5 h-5 text-white" />
             </motion.div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg truncate">Knowledge Base</h1>
-              <p className="text-purple-600 text-xs font-medium truncate">Kho Tri Thức Của AI</p>
+            <div className="text-center">
+              <h1 className="text-slate-900 font-semibold tracking-wide text-lg">Knowledge Base</h1>
+              <p className="text-purple-600 text-xs font-medium">Kho Tri Thức Của AI</p>
             </div>
           </div>
           {isAdmin && (
             <Button
               onClick={() => setShowUploadForm(true)}
-              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all flex-shrink-0 text-xs lg:text-sm px-3 lg:px-4 h-9 lg:h-10"
+              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all text-xs lg:text-sm px-3 lg:px-4 h-9 lg:h-10"
             >
               <Plus className="w-4 h-4 lg:mr-2" />
               <span className="hidden lg:inline">Upload Tài Liệu</span>
