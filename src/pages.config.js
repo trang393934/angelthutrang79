@@ -9,6 +9,7 @@ import Imagine from './pages/Imagine';
 import AITools from './pages/AITools';
 import BuildAndBounty from './pages/BuildAndBounty';
 import RewardsManagement from './pages/RewardsManagement';
+import FUNUsers from './pages/FUNUsers';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "AITools": AITools,
     "BuildAndBounty": BuildAndBounty,
     "RewardsManagement": RewardsManagement,
+    "FUNUsers": FUNUsers,
 }
 
 export const pagesConfig = {
