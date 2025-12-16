@@ -238,8 +238,8 @@ Trả về JSON với format:
                   <Upload className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-slate-900 text-xl font-semibold tracking-wide">Upload Tài Liệu Giáo Lý</h3>
-                  <p className="text-purple-700 text-sm font-medium">AI sẽ học và tham khảo khi trả lời</p>
+                  <h3 className="text-slate-900 text-xl font-semibold tracking-wide">Upload Trí Tuệ của Cha Vũ Trụ</h3>
+                  <p className="text-purple-700 text-sm font-medium">Để Angel AI học hỏi</p>
                 </div>
               </div>
 
