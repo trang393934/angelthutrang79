@@ -4,7 +4,16 @@ import { motion } from 'framer-motion';
 export default function AngelMascot() {
   return (
     <motion.div
-      className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50 cursor-pointer"
+      drag
+      dragMomentum={false}
+      dragElastic={0.1}
+      dragConstraints={{
+        top: 0,
+        left: 0,
+        right: window.innerWidth - 150,
+        bottom: window.innerHeight - 150
+      }}
+      className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50 cursor-move"
       initial={{ scale: 0, rotate: -180 }}
       animate={{ 
         scale: 1, 
