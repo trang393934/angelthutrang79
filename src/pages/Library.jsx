@@ -613,10 +613,10 @@ Trả về JSON với format:
               <Sparkles className="w-10 h-10 text-purple-300/40" />
             </div>
             <h3 className="text-slate-900 text-xl font-semibold mb-2">
-              {searchQuery || selectedTag ? 'Không Tìm Thấy Kết Quả' : 'Chưa Có Ánh Sáng'}
+              {searchQuery || selectedTags.length > 0 ? 'Không Tìm Thấy Kết Quả' : 'Chưa Có Ánh Sáng'}
             </h3>
             <p className="text-purple-700 font-medium">
-              {searchQuery || selectedTag 
+              {searchQuery || selectedTags.length > 0
                 ? 'Thử tìm kiếm với từ khóa khác' 
                 : 'Hãy bắt đầu trò chuyện hoặc nhận thông điệp ngày để xây dựng thư viện của bạn'}
             </p>
