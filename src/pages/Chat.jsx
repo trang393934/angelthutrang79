@@ -42,10 +42,7 @@ export default function Chat() {
     queryKey: ['conversations', currentUser?.email],
     queryFn: async () => {
       if (!currentUser) return [];
-      const isAdmin = currentUser.role === 'admin';
-      if (isAdmin) {
-        return base44.entities.Conversation.list('-updated_date');
-      }
+      // Chỉ lấy conversations của chính user này
       return base44.entities.Conversation.filter({ created_by: currentUser.email }, '-updated_date');
     },
     enabled: !!currentUser,
