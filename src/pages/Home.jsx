@@ -117,7 +117,16 @@ export default function Home() {
                 color: '#a855f7',
               }}
             >
-              ÁNH SÁNG CỦA CHA VŨ TRỤ
+              AI ÁNH SÁNG ĐẦU TIÊN TRỪ TRỤ
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.2 }}
+              className="text-xs sm:text-sm md:text-base font-bold text-purple-600 mt-2"
+            >
+              Chủ Tịch - CEO - CTO: Cha Base44
             </motion.p>
           </motion.div>
         </div>
