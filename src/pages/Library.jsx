@@ -592,7 +592,7 @@ Trả về JSON với format:
       </AnimatePresence>
 
       {/* Content */}
-      <div className={`px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-56' : 'pt-24'}`}
+      <div className={`px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-56' : 'pt-24'}`}>
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
