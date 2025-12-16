@@ -896,73 +896,68 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-80' : 'ml-0'}`}>
         {/* Header */}
         <div className="fixed top-0 right-0 left-0 lg:left-80 z-20 bg-white/90 backdrop-blur-xl border-b border-purple-200/50 shadow-lg">
-          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-            {!sidebarOpen && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setSidebarOpen(true)}
-                className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-            )}
-            <div className="flex items-center gap-3">
-              <motion.div
-                animate={{ 
-                  boxShadow: [
-                    '0 0 20px rgba(251,191,36,0.4)',
-                    '0 0 40px rgba(251,191,36,0.6)',
-                    '0 0 20px rgba(251,191,36,0.4)',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center"
-              >
-                <Sparkles className="w-5 h-5 text-white" />
-              </motion.div>
-              <div className="flex-1">
-                <h1 className="text-slate-900 font-medium tracking-wide">Trí Tuệ Vũ Trụ</h1>
-                <p className="text-purple-600 text-xs">{isVoiceMode ? '🎙️ Chế độ thoại' : 'Tình Yêu Thuần Khiết'}</p>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleVoiceMode}
-                className={`rounded-full text-xs ${
-                  isVoiceMode 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0' 
-                    : 'border-purple-300 text-purple-700 hover:bg-purple-100 bg-white'
-                }`}
-              >
-                {isVoiceMode ? (
-                  <>
-                    <Mic className="w-3 h-3 mr-1" />
-                    Tắt thoại
-                  </>
-                ) : (
-                  <>
-                    <MicOff className="w-3 h-3 mr-1" />
-                    Bật thoại
-                  </>
-                )}
-              </Button>
-              {messages.length > 3 && (
+          <div className="max-w-4xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              {!sidebarOpen && (
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={summarizeConversation}
-                  disabled={isSummarizing}
-                  className="border-purple-300 text-purple-700 hover:bg-purple-100 rounded-full text-xs bg-white"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSidebarOpen(true)}
+                  className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0"
                 >
-                  {isSummarizing ? (
-                    <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  ) : (
-                    <FileText className="w-3 h-3 mr-1" />
-                  )}
-                  Tóm tắt
+                  <Menu className="w-5 h-5" />
                 </Button>
               )}
+              
+              <div className="flex items-center gap-2 flex-1 justify-center">
+                <motion.div
+                  animate={{ 
+                    boxShadow: [
+                      '0 0 20px rgba(251,191,36,0.4)',
+                      '0 0 40px rgba(251,191,36,0.6)',
+                      '0 0 20px rgba(251,191,36,0.4)',
+                    ]
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center flex-shrink-0"
+                >
+                  <Sparkles className="w-5 h-5 text-white" />
+                </motion.div>
+                <div className="text-center">
+                  <h1 className="text-slate-900 font-medium tracking-wide text-base lg:text-lg">Trí Tuệ Vũ Trụ</h1>
+                  <p className="text-purple-600 text-xs">{isVoiceMode ? '🎙️ Chế độ thoại' : 'Tình Yêu Thuần Khiết'}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleVoiceMode}
+                  className={`rounded-full w-10 h-10 p-0 ${
+                    isVoiceMode 
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0' 
+                      : 'border-purple-300 text-purple-700 hover:bg-purple-100 bg-white'
+                  }`}
+                >
+                  {isVoiceMode ? <Mic className="w-4 h-4" /> : <MicOff className="w-4 h-4" />}
+                </Button>
+                {messages.length > 3 && (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={summarizeConversation}
+                    disabled={isSummarizing}
+                    className="border-purple-300 text-purple-700 hover:bg-purple-100 rounded-full bg-white w-10 h-10 p-0"
+                  >
+                    {isSummarizing ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <FileText className="w-4 h-4" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
