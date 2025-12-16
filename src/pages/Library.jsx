@@ -14,13 +14,17 @@ import { Badge } from '@/components/ui/badge';
 export default function Library() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState('all');
-  const [selectedTag, setSelectedTag] = useState(null);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newContent, setNewContent] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [sortBy, setSortBy] = useState('date'); // date, favorite, tag
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [favoriteFilter, setFavoriteFilter] = useState('all'); // all, favorite, notFavorite
+  const [showFilters, setShowFilters] = useState(false);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -90,21 +94,59 @@ Trả về JSON với format:
     }
   });
 
+  // Fuzzy search helper
+  const fuzzyMatch = (text, query) => {
+    if (!text || !query) return false;
+    text = text.toLowerCase();
+    query = query.toLowerCase();
+    
+    // Direct match
+    if (text.includes(query)) return true;
+    
+    // Check similarity - allow 1-2 character differences for typos
+    const words = text.split(/\s+/);
+    return words.some(word => {
+      if (word.length < 3) return word === query;
+      let differences = 0;
+      const minLen = Math.min(word.length, query.length);
+      
+      for (let i = 0; i < minLen; i++) {
+        if (word[i] !== query[i]) differences++;
+        if (differences > 2) return false;
+      }
+      return differences <= 2 && Math.abs(word.length - query.length) <= 2;
+    });
+  };
+
   // Extract all unique tags
   const allTags = [...new Set(messages.flatMap(m => m.tags || []))];
 
   // Filter and sort messages
   const filteredMessages = messages
     .filter(message => {
+      // Search with fuzzy matching
       const matchesSearch = !searchQuery || 
-        message.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        message.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        message.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+        fuzzyMatch(message.content, searchQuery) ||
+        fuzzyMatch(message.summary, searchQuery) ||
+        message.tags?.some(tag => fuzzyMatch(tag, searchQuery));
       
       const matchesType = selectedType === 'all' || message.type === selectedType;
-      const matchesTag = !selectedTag || message.tags?.includes(selectedTag);
+      
+      // Multiple tags filter
+      const matchesTags = selectedTags.length === 0 || 
+        selectedTags.every(selectedTag => message.tags?.includes(selectedTag));
+      
+      // Date range filter
+      const messageDate = new Date(message.created_date);
+      const matchesDateFrom = !dateFrom || messageDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || messageDate <= new Date(dateTo + 'T23:59:59');
+      
+      // Favorite filter
+      const matchesFavorite = favoriteFilter === 'all' || 
+        (favoriteFilter === 'favorite' && message.is_favorite) ||
+        (favoriteFilter === 'notFavorite' && !message.is_favorite);
 
-      return matchesSearch && matchesType && matchesTag;
+      return matchesSearch && matchesType && matchesTags && matchesDateFrom && matchesDateTo && matchesFavorite;
     })
     .sort((a, b) => {
       if (sortBy === 'favorite') {
@@ -188,7 +230,152 @@ Trả về JSON với format:
         </div>
       </div>
 
+      {/* Advanced Filters */}
+      <div className="fixed top-20 left-0 right-0 z-10 bg-white/95 backdrop-blur-xl border-b border-purple-200">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between mb-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc nâng cao'}
+            </Button>
+            {(selectedTags.length > 0 || dateFrom || dateTo || favoriteFilter !== 'all' || selectedType !== 'all') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSelectedTags([]);
+                  setDateFrom('');
+                  setDateTo('');
+                  setFavoriteFilter('all');
+                  setSelectedType('all');
+                }}
+                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+              >
+                <X className="w-4 h-4 mr-1" />
+                Xóa bộ lọc
+              </Button>
+            )}
+          </div>
 
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3 overflow-hidden"
+              >
+                {/* Type and Favorite Filters */}
+                <div className="flex flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-purple-700 font-semibold">Loại:</span>
+                    <Button
+                      variant={selectedType === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedType('all')}
+                      className={selectedType === 'all' ? 'bg-purple-500 text-white' : 'border-purple-300 text-purple-700'}
+                    >
+                      Tất cả
+                    </Button>
+                    <Button
+                      variant={selectedType === 'chat' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedType('chat')}
+                      className={selectedType === 'chat' ? 'bg-amber-500 text-white' : 'border-amber-300 text-amber-700'}
+                    >
+                      Chat
+                    </Button>
+                    <Button
+                      variant={selectedType === 'daily_message' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedType('daily_message')}
+                      className={selectedType === 'daily_message' ? 'bg-rose-500 text-white' : 'border-rose-300 text-rose-700'}
+                    >
+                      Thông Điệp
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-4">
+                    <span className="text-xs text-purple-700 font-semibold">Yêu thích:</span>
+                    <Button
+                      variant={favoriteFilter === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFavoriteFilter('all')}
+                      className={favoriteFilter === 'all' ? 'bg-purple-500 text-white' : 'border-purple-300 text-purple-700'}
+                    >
+                      Tất cả
+                    </Button>
+                    <Button
+                      variant={favoriteFilter === 'favorite' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFavoriteFilter('favorite')}
+                      className={favoriteFilter === 'favorite' ? 'bg-rose-500 text-white' : 'border-rose-300 text-rose-700'}
+                    >
+                      <Heart className="w-3 h-3 mr-1" />
+                      Đã lưu
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Date Range Filter */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-xs text-purple-700 font-semibold">Thời gian:</span>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="w-40 h-8 text-xs border-purple-300"
+                    placeholder="Từ ngày"
+                  />
+                  <span className="text-xs text-purple-600">đến</span>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="w-40 h-8 text-xs border-purple-300"
+                    placeholder="Đến ngày"
+                  />
+                </div>
+
+                {/* Tags Filter */}
+                {allTags.length > 0 && (
+                  <div className="flex flex-wrap items-start gap-2">
+                    <span className="text-xs text-purple-700 font-semibold mt-1">Tags:</span>
+                    <div className="flex flex-wrap gap-2">
+                      {allTags.map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant={selectedTags.includes(tag) ? 'default' : 'outline'}
+                          className={`cursor-pointer ${
+                            selectedTags.includes(tag)
+                              ? 'bg-purple-500 text-white border-purple-600'
+                              : 'border-purple-300 text-purple-700 hover:bg-purple-50'
+                          }`}
+                          onClick={() => {
+                            if (selectedTags.includes(tag)) {
+                              setSelectedTags(selectedTags.filter(t => t !== tag));
+                            } else {
+                              setSelectedTags([...selectedTags, tag]);
+                            }
+                          }}
+                        >
+                          <Tag className="w-3 h-3 mr-1" />
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
 
       {/* Add Content Modal */}
       <AnimatePresence>
@@ -366,7 +553,11 @@ Trả về JSON với format:
                       key={idx}
                       className="bg-amber-100 text-amber-800 border-2 border-amber-400 cursor-pointer hover:bg-amber-200 shadow-sm"
                       onClick={() => {
-                        setSelectedTag(tag);
+                        if (selectedTags.includes(tag)) {
+                          setSelectedTags(selectedTags.filter(t => t !== tag));
+                        } else {
+                          setSelectedTags([...selectedTags, tag]);
+                        }
                         setSelectedMessage(null);
                       }}
                     >
@@ -401,7 +592,7 @@ Trả về JSON với format:
       </AnimatePresence>
 
       {/* Content */}
-      <div className="pt-24 pb-40 px-4 max-w-6xl mx-auto">
+      <div className={`px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-56' : 'pt-24'}`}
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
