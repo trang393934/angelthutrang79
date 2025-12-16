@@ -38,8 +38,16 @@ export default function Chat() {
   const synthRef = useRef(null);
 
   const { data: conversations = [] } = useQuery({
-    queryKey: ['conversations'],
-    queryFn: () => base44.entities.Conversation.list('-updated_date'),
+    queryKey: ['conversations', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      const isAdmin = currentUser.role === 'admin';
+      if (isAdmin) {
+        return base44.entities.Conversation.list('-updated_date');
+      }
+      return base44.entities.Conversation.filter({ created_by: currentUser.email }, '-updated_date');
+    },
+    enabled: !!currentUser,
   });
 
   const [currentUser, setCurrentUser] = useState(null);

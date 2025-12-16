@@ -30,8 +30,15 @@ export default function Library() {
   const isAdmin = currentUser?.role === 'admin';
 
   const { data: messages = [], isLoading } = useQuery({
-    queryKey: ['light-messages'],
-    queryFn: () => base44.entities.LightMessage.list('-created_date'),
+    queryKey: ['light-messages', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      if (isAdmin) {
+        return base44.entities.LightMessage.list('-created_date');
+      }
+      return base44.entities.LightMessage.filter({ created_by: currentUser.email }, '-created_date');
+    },
+    enabled: !!currentUser,
   });
 
   const toggleFavoriteMutation = useMutation({
