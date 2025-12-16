@@ -172,8 +172,56 @@ Trả về JSON với format:
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 py-2">
+          {/* Mobile Layout */}
+          <div className="flex lg:hidden items-center gap-2">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 h-8 w-8">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <motion.div
+                animate={{ 
+                  boxShadow: [
+                    '0 0 20px rgba(168,85,247,0.4)',
+                    '0 0 40px rgba(251,191,36,0.4)',
+                    '0 0 20px rgba(168,85,247,0.4)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center flex-shrink-0"
+              >
+                <Sparkles className="w-4 h-4 text-white" />
+              </motion.div>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-slate-900 font-bold tracking-wide text-sm truncate">Thư Viện Ánh Sáng</h1>
+                <p className="text-purple-600 text-[10px] font-medium truncate">Kho tàng Trí Tuệ & Yêu Thương</p>
+              </div>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 h-8 w-8 flex-shrink-0"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+
+            {isAdmin && (
+              <Button
+                onClick={() => setShowAddForm(true)}
+                className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full shadow-lg h-8 px-3 flex-shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden lg:flex items-center gap-4 py-2">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
                 <ArrowLeft className="w-5 h-5" />
@@ -231,17 +279,17 @@ Trả về JSON với format:
       </div>
 
       {/* Advanced Filters */}
-      <div className="fixed top-20 left-0 right-0 z-10 bg-white/95 backdrop-blur-xl border-b border-purple-200">
-        <div className="max-w-6xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
+      <div className="fixed top-12 sm:top-14 lg:top-20 left-0 right-0 z-10 bg-white/95 backdrop-blur-xl border-b border-purple-200">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4 py-2">
+          <div className="flex items-center justify-between mb-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowFilters(!showFilters)}
-              className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+              className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 text-xs h-8"
             >
-              <Filter className="w-4 h-4 mr-2" />
-              {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc nâng cao'}
+              <Filter className="w-3 h-3 mr-1" />
+              <span className="hidden sm:inline">{showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}</span>
             </Button>
             {(selectedTags.length > 0 || dateFrom || dateTo || favoriteFilter !== 'all' || selectedType !== 'all') && (
               <Button
@@ -254,12 +302,34 @@ Trả về JSON với format:
                   setFavoriteFilter('all');
                   setSelectedType('all');
                 }}
-                className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                className="text-red-500 hover:text-red-700 hover:bg-red-100 text-xs h-8"
               >
-                <X className="w-4 h-4 mr-1" />
-                Xóa bộ lọc
+                <X className="w-3 h-3 mr-1" />
+                <span className="hidden sm:inline">Xóa</span>
               </Button>
             )}
+
+            {/* Mobile Search on Filter Bar */}
+            <div className="lg:hidden flex-1 mx-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-purple-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm kiếm..."
+                  className="pl-8 pr-3 bg-white border border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 h-8 text-xs"
+                />
+                {searchQuery && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-purple-700 text-[10px] bg-purple-100 border border-purple-300 px-1.5 py-0.5 rounded-full font-semibold"
+                  >
+                    {filteredMessages.length}
+                  </motion.div>
+                )}
+              </div>
+            </div>
           </div>
 
           <AnimatePresence>
@@ -592,7 +662,7 @@ Trả về JSON với format:
       </AnimatePresence>
 
       {/* Content */}
-      <div className={`px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-56' : 'pt-24'}`}>
+      <div className={`px-2 sm:px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-36 sm:pt-44 lg:pt-56' : 'pt-16 sm:pt-20 lg:pt-24'}`}>
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
