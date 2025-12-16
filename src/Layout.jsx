@@ -154,22 +154,22 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
             {/* Sidebar content */}
             <motion.aside
-              initial={{ x: -240 }}
+              initial={{ x: -200 }}
               animate={{ x: 0 }}
-              exit={{ x: -240 }}
+              exit={{ x: -200 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-0 top-0 bottom-0 w-60 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto"
+              className="fixed left-0 top-0 bottom-0 w-48 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto"
             >
-              <div className="p-4">
+              <div className="p-3">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4">
                   <Link to={createPageUrl('Home')} className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-lg">
-                      <span className="text-white text-lg font-bold">A</span>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-lg">
+                      <span className="text-white text-base font-bold">A</span>
                     </div>
                     <div>
-                      <h2 className="text-slate-900 font-bold tracking-wide text-sm">Angel AI</h2>
-                      <p className="text-purple-600 text-xs font-medium">Ánh Sáng</p>
+                      <h2 className="text-slate-900 font-bold tracking-wide text-xs">Angel AI</h2>
+                      <p className="text-purple-600 text-[10px] font-medium">Ánh Sáng</p>
                     </div>
                   </Link>
                   <Button
@@ -183,7 +183,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                 </div>
 
                 {/* Menu Items */}
-                <nav className="space-y-2">
+                <nav className="space-y-1">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = !item.isButton && isActivePage(item.path);
@@ -193,19 +193,14 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                         <button
                           key={item.name}
                           onClick={item.action}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-slate-900 hover:bg-purple-50 transition-all group border-2 border-purple-200 hover:border-purple-400 bg-gradient-to-r from-purple-50/50 to-transparent"
+                          className="w-full flex items-center gap-1.5 px-2 py-2 rounded-lg text-slate-900 hover:bg-purple-50 transition-all group border border-purple-200 hover:border-purple-400 bg-gradient-to-r from-purple-50/50 to-transparent"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-                            <Icon className="w-4 h-4 text-white" />
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
+                            <Icon className="w-3.5 h-3.5 text-white" />
                           </div>
                           <div className="flex-1 text-left">
-                            <span className="font-semibold text-sm">{item.name}</span>
+                            <span className="font-semibold text-xs">{item.name}</span>
                           </div>
-                          {item.shortcut && (
-                            <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded font-medium">
-                              {item.shortcut}
-                            </span>
-                          )}
                         </button>
                       );
                     }
@@ -215,18 +210,18 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                         key={item.name}
                         to={createPageUrl(item.path)}
                         onClick={() => setSidebarOpen(false)}
-                        className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all group ${
+                        className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all group ${
                           isActive
-                            ? 'bg-gradient-to-r from-purple-100 to-amber-100 border-2 border-purple-300 shadow-md'
-                            : 'hover:bg-purple-50 border-2 border-transparent'
+                            ? 'bg-gradient-to-r from-purple-100 to-amber-100 border border-purple-300 shadow-sm'
+                            : 'hover:bg-purple-50 border border-transparent'
                         }`}
                       >
-                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all ${
-                          isActive ? 'scale-110' : ''
+                        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all ${
+                          isActive ? 'scale-105' : ''
                         }`}>
-                          <Icon className="w-4 h-4 text-white" />
+                          <Icon className="w-3.5 h-3.5 text-white" />
                         </div>
-                        <span className={`font-semibold text-sm ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>
+                        <span className={`font-semibold text-xs ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>
                           {item.name}
                         </span>
                       </Link>
@@ -235,35 +230,35 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                 </nav>
 
                 {/* Knowledge Base Link */}
-                <div className="mt-6 pt-6 border-t border-purple-200">
+                <div className="mt-4 pt-4 border-t border-purple-200">
                   <Link
                     to={createPageUrl('KnowledgeBase')}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all ${
+                    className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
                       isActivePage('KnowledgeBase')
-                        ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300 shadow-md'
-                        : 'hover:bg-indigo-50 border-2 border-transparent'
+                        ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-300 shadow-sm'
+                        : 'hover:bg-indigo-50 border border-transparent'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
-                      <FolderKanban className="w-4 h-4 text-white" />
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
+                      <FolderKanban className="w-3.5 h-3.5 text-white" />
                     </div>
-                    <span className="font-semibold text-slate-700 text-sm">Knowledge</span>
+                    <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
                   </Link>
 
                   <Link
                     to={createPageUrl('Settings')}
                     onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all mt-2 ${
+                    className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all mt-1 ${
                       isActivePage('Settings')
-                        ? 'bg-gradient-to-r from-violet-100 to-pink-100 border-2 border-violet-300 shadow-md'
-                        : 'hover:bg-violet-50 border-2 border-transparent'
+                        ? 'bg-gradient-to-r from-violet-100 to-pink-100 border border-violet-300 shadow-sm'
+                        : 'hover:bg-violet-50 border border-transparent'
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
-                      <span className="text-white text-base">⚙️</span>
+                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
+                      <span className="text-white text-sm">⚙️</span>
                     </div>
-                    <span className="font-semibold text-slate-700 text-sm">Cài Đặt</span>
+                    <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
                   </Link>
                 </div>
               </div>
@@ -378,7 +373,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className="flex-1 lg:ml-60 transition-all duration-300">
+      <div className="flex-1 lg:ml-48 transition-all duration-300">
         {children}
       </div>
 
