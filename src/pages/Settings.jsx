@@ -136,7 +136,7 @@ export default function Settings() {
       </div>
 
       {/* Content */}
-      <div className="pt-20 pb-28 px-4 max-w-4xl mx-auto">
+      <div className="pt-20 pb-40 px-4 max-w-4xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
