@@ -221,59 +221,64 @@ Trả về JSON với format:
           </div>
 
           {/* Desktop Layout */}
-          <div className="hidden lg:flex items-center gap-4 py-2">
+          <div className="hidden lg:flex items-center justify-between py-2">
             <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
+              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <motion.div
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(168,85,247,0.4)',
-                  '0 0 40px rgba(251,191,36,0.4)',
-                  '0 0 20px rgba(168,85,247,0.4)',
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center"
-            >
-              <Sparkles className="w-5 h-5 text-white" />
-            </motion.div>
-            <div>
-              <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
-              <p className="text-purple-600 text-xs font-medium">Kho tàng Trí Tuệ & Yêu Thương</p>
-            </div>
             
-            {/* Search Bar */}
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Tìm kiếm..."
-                className="pl-10 pr-4 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 focus:ring-purple-400 h-10"
-              />
-              {searchQuery && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-700 text-xs bg-purple-100 border border-purple-300 px-2 py-1 rounded-full font-semibold"
-                >
-                  {filteredMessages.length}
-                </motion.div>
-              )}
+            <div className="flex items-center gap-2 flex-1 justify-center">
+              <motion.div
+                animate={{ 
+                  boxShadow: [
+                    '0 0 20px rgba(168,85,247,0.4)',
+                    '0 0 40px rgba(251,191,36,0.4)',
+                    '0 0 20px rgba(168,85,247,0.4)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center flex-shrink-0"
+              >
+                <Sparkles className="w-5 h-5 text-white" />
+              </motion.div>
+              <div className="text-center">
+                <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Thư Viện Ánh Sáng</h1>
+                <p className="text-purple-600 text-xs font-medium">Kho tàng Trí Tuệ & Yêu Thương</p>
+              </div>
             </div>
 
-            {isAdmin && (
-              <Button
-                onClick={() => setShowAddForm(true)}
-                className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-rose-600 transition-all"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Chia Sẻ Trí Tuệ
-              </Button>
-            )}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {/* Search Bar */}
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm kiếm..."
+                  className="pl-9 pr-4 bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 focus:ring-purple-400 h-10 text-sm"
+                />
+                {searchQuery && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-purple-700 text-xs bg-purple-100 border border-purple-300 px-2 py-1 rounded-full font-semibold"
+                  >
+                    {filteredMessages.length}
+                  </motion.div>
+                )}
+              </div>
+
+              {isAdmin && (
+                <Button
+                  onClick={() => setShowAddForm(true)}
+                  className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-rose-600 transition-all whitespace-nowrap"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Chia Sẻ
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
