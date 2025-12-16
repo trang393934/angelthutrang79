@@ -319,13 +319,13 @@ Trả về JSON với format:
                   placeholder="Tìm kiếm..."
                   className="pl-8 pr-3 bg-white border border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-full focus:border-purple-500 h-8 text-xs"
                 />
-                {searchQuery && (
+                {searchQuery && !isLoading && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-purple-700 text-[10px] bg-purple-100 border border-purple-300 px-1.5 py-0.5 rounded-full font-semibold"
                   >
-                    {filteredMessages.length}
+                    {filteredMessages?.length || 0}
                   </motion.div>
                 )}
               </div>
