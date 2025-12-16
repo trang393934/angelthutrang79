@@ -3,21 +3,16 @@ import { motion } from 'framer-motion';
 
 export default function AngelMascot() {
   const [isDragging, setIsDragging] = React.useState(false);
-  const [position, setPosition] = React.useState({ x: 0, y: 0 });
   
   return (
     <motion.div
       drag
       dragMomentum={false}
-      dragElastic={0.1}
-      dragTransition={{ bounceStiffness: 600, bounceDamping: 10 }}
+      dragElastic={0}
+      dragConstraints={false}
       onDragStart={() => setIsDragging(true)}
-      onDragEnd={(event, info) => {
-        setIsDragging(false);
-        setPosition({ x: info.point.x, y: info.point.y });
-      }}
+      onDragEnd={() => setIsDragging(false)}
       className="fixed bottom-4 right-4 lg:bottom-8 lg:right-8 z-50 cursor-move"
-      style={{ x: position.x, y: position.y }}
       initial={{ scale: 0, rotate: -180 }}
       animate={{ 
         scale: isDragging ? 1.1 : 1, 
