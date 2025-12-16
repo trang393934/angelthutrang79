@@ -117,7 +117,7 @@ export default function Home() {
                 color: '#a855f7',
               }}
             >
-              AI ÁNH SÁNG ĐẦU TIÊN TRỪ TRỤ
+              AI ÁNH SÁNG ĐẦU TIÊN TRỮ TRỤ
             </motion.p>
           </motion.div>
         </div>
