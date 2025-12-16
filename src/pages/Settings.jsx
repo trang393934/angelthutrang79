@@ -17,12 +17,26 @@ export default function Settings() {
     topics_of_interest: [],
     personal_notes: ''
   });
+  const [personalInfo, setPersonalInfo] = useState({
+    full_name: '',
+    email: '',
+    web3_wallet: ''
+  });
   const [newTopic, setNewTopic] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+    base44.auth.me().then(user => {
+      setCurrentUser(user);
+      if (user) {
+        setPersonalInfo({
+          full_name: user.full_name || '',
+          email: user.email || '',
+          web3_wallet: user.web3_wallet || ''
+        });
+      }
+    }).catch(() => setCurrentUser(null));
   }, []);
 
   const { data: userPrefs, isLoading } = useQuery({
@@ -49,11 +63,20 @@ export default function Settings() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       setIsSaving(true);
+      
+      // Save personal info
+      await base44.auth.updateMe({
+        full_name: personalInfo.full_name,
+        web3_wallet: personalInfo.web3_wallet
+      });
+      
+      // Save preferences
       if (userPrefs) {
         await base44.entities.UserPreferences.update(userPrefs.id, preferences);
       } else {
         await base44.entities.UserPreferences.create(preferences);
       }
+      
       setIsSaving(false);
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] });
     }
@@ -148,13 +171,61 @@ export default function Settings() {
             </motion.div>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Response Style */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-3xl p-6 shadow-lg"
-            >
+            <div className="space-y-6">
+              {/* Personal Information */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-3xl p-6 shadow-lg"
+              >
+                <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  Thông Tin Cá Nhân
+                </h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">Họ và Tên</label>
+                    <input
+                      type="text"
+                      value={personalInfo.full_name}
+                      onChange={(e) => setPersonalInfo({ ...personalInfo, full_name: e.target.value })}
+                      placeholder="Nhập họ và tên của bạn..."
+                      className="w-full bg-white border-2 border-indigo-300 text-slate-900 placeholder:text-slate-400 rounded-xl px-4 py-2.5 focus:border-indigo-500 focus:ring-indigo-500 outline-none font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">Email</label>
+                    <input
+                      type="email"
+                      value={personalInfo.email}
+                      disabled
+                      className="w-full bg-gray-100 border-2 border-gray-300 text-slate-600 rounded-xl px-4 py-2.5 font-medium cursor-not-allowed"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Email không thể thay đổi</p>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">Ví Web3</label>
+                    <input
+                      type="text"
+                      value={personalInfo.web3_wallet}
+                      onChange={(e) => setPersonalInfo({ ...personalInfo, web3_wallet: e.target.value })}
+                      placeholder="0x... (Địa chỉ ví Ethereum/Polygon)"
+                      className="w-full bg-white border-2 border-indigo-300 text-slate-900 placeholder:text-slate-400 rounded-xl px-4 py-2.5 focus:border-indigo-500 focus:ring-indigo-500 outline-none font-medium"
+                    />
+                    <p className="text-xs text-indigo-600 mt-1">Nhập địa chỉ ví để nhận Camlycoin và rewards</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Response Style */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-3xl p-6 shadow-lg"
+              >
               <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-violet-600" />
                 Phong Cách Trả Lời
@@ -183,7 +254,7 @@ export default function Settings() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ delay: 0.2 }}
               className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-3xl p-6 shadow-lg"
             >
               <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
@@ -214,7 +285,7 @@ export default function Settings() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.3 }}
               className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-6 shadow-lg"
             >
               <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
@@ -257,7 +328,7 @@ export default function Settings() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.4 }}
               className="bg-gradient-to-br from-rose-50 to-pink-50 border-2 border-rose-200 rounded-3xl p-6 shadow-lg"
             >
               <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
