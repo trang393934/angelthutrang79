@@ -32,6 +32,7 @@ export default function Chat() {
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const recognitionRef = useRef(null);
@@ -49,8 +50,6 @@ export default function Chat() {
     },
     enabled: !!currentUser,
   });
-
-  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
