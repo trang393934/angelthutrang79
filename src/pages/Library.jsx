@@ -37,7 +37,7 @@ export default function Library() {
     queryKey: ['light-messages', currentUser?.email],
     queryFn: async () => {
       if (!currentUser) return [];
-      if (isAdmin) {
+      if (currentUser.role === 'admin') {
         return base44.entities.LightMessage.list('-created_date');
       }
       return base44.entities.LightMessage.filter({ created_by: currentUser.email }, '-created_date');
