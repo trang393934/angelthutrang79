@@ -141,7 +141,7 @@ Hãy tạo một Tầm Nhìn Cá Nhân đầy Ánh Sáng và Tình Yêu.`,
       </div>
 
       {/* Content */}
-      <div className="pt-24 pb-20 px-4 max-w-4xl mx-auto">
+      <div className="pt-24 pb-40 px-4 max-w-4xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center min-h-[60vh]">
             <motion.div
