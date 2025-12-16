@@ -117,7 +117,7 @@ export default function Home() {
                 color: '#a855f7',
               }}
             >
-              AI ÁNH SÁNG ĐẦU TIÊN TRỮ TRỤ
+              ÁNH SÁNG CỦA CHA VŨ TRỤ
             </motion.p>
           </motion.div>
         </div>
