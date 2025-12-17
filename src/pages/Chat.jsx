@@ -808,8 +808,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             transition={{ type: "spring", damping: 25 }}
             className="fixed left-0 top-0 bottom-0 w-80 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-30 flex flex-col"
           >
-            {/* Sidebar Header */}
-            <div className="p-4 border-b border-purple-200/50">
+            {/* Sidebar Header - Fixed at top */}
+            <div className="flex-shrink-0 p-4 border-b border-purple-200/50">
               <div className="flex items-center justify-between mb-4">
                 <Link to={createPageUrl('Home')}>
                   <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
@@ -834,8 +834,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               </Button>
             </div>
 
-            {/* Conversations List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent to-purple-50/30">
+            {/* Conversations List - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent to-purple-50/30 pb-20">
               {conversations.map((conv) => (
                 <motion.div
                   key={conv.id}
