@@ -210,9 +210,9 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
               animate={{ x: 0 }}
               exit={{ x: -200 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-0 top-0 bottom-0 w-48 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto"
+              className="fixed left-0 top-0 bottom-0 w-48 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto flex flex-col"
             >
-              <div className="p-3">
+              <div className="flex-1 overflow-y-auto p-3 pb-0">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <Link to={createPageUrl('Home')} className="flex items-center gap-2">
@@ -234,8 +234,8 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                   </Button>
                 </div>
 
-                {/* Menu Items */}
-                <nav className="space-y-1">
+                {/* Menu Items - với padding dưới để không bị che */}
+                <nav className="space-y-1 mb-4">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = !item.isButton && isActivePage(item.path);
@@ -281,74 +281,78 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                   })}
                 </nav>
 
-                {/* Wallet Connection */}
-                <div className="mt-4 pt-4 border-t border-purple-200">
-                  {walletAddress ? (
-                    <div className="px-2 py-2 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Wallet className="w-3.5 h-3.5 text-green-600" />
-                        <span className="text-green-900 font-semibold text-xs">Ví Đã Kết Nối</span>
+                </div>
+
+                {/* Bottom Section - Fixed */}
+                <div className="flex-shrink-0 border-t border-purple-200 bg-white/95 p-3">
+                  {/* Wallet Connection */}
+                  <div className="mb-3">
+                    {walletAddress ? (
+                      <div className="px-2 py-2 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Wallet className="w-3.5 h-3.5 text-green-600" />
+                          <span className="text-green-900 font-semibold text-xs">Ví Đã Kết Nối</span>
+                        </div>
+                        <p className="text-green-800 text-[10px] font-medium mb-2 break-all">
+                          {formatAddress(walletAddress)}
+                        </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={disconnectWallet}
+                          className="w-full h-6 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                        >
+                          Ngắt Kết Nối
+                        </Button>
                       </div>
-                      <p className="text-green-800 text-[10px] font-medium mb-2 break-all">
-                        {formatAddress(walletAddress)}
-                      </p>
+                    ) : (
                       <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={disconnectWallet}
-                        className="w-full h-6 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                        onClick={connectWallet}
+                        disabled={isConnecting}
+                        className="w-full bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 shadow-md h-8 text-xs"
                       >
-                        Ngắt Kết Nối
+                        {isConnecting ? (
+                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        ) : (
+                          <Wallet className="w-3 h-3 mr-1" />
+                        )}
+                        Kết Nối Ví
                       </Button>
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={connectWallet}
-                      disabled={isConnecting}
-                      className="w-full bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 shadow-md h-8 text-xs"
+                    )}
+                  </div>
+
+                  {/* Knowledge Base & Settings Links */}
+                  <div className="space-y-1">
+                    <Link
+                      to={createPageUrl('KnowledgeBase')}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
+                        isActivePage('KnowledgeBase')
+                          ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-300 shadow-sm'
+                          : 'hover:bg-indigo-50 border border-transparent'
+                      }`}
                     >
-                      {isConnecting ? (
-                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                      ) : (
-                        <Wallet className="w-3 h-3 mr-1" />
-                      )}
-                      Kết Nối Ví
-                    </Button>
-                  )}
-                </div>
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
+                        <FolderKanban className="w-3.5 h-3.5 text-white" />
+                      </div>
+                      <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
+                    </Link>
 
-                {/* Knowledge Base Link */}
-                <div className="mt-4 pt-4 border-t border-purple-200">
-                  <Link
-                    to={createPageUrl('KnowledgeBase')}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
-                      isActivePage('KnowledgeBase')
-                        ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-300 shadow-sm'
-                        : 'hover:bg-indigo-50 border border-transparent'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
-                      <FolderKanban className="w-3.5 h-3.5 text-white" />
-                    </div>
-                    <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
-                  </Link>
-
-                  <Link
-                    to={createPageUrl('Settings')}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all mt-1 ${
-                      isActivePage('Settings')
-                        ? 'bg-gradient-to-r from-violet-100 to-pink-100 border border-violet-300 shadow-sm'
-                        : 'hover:bg-violet-50 border border-transparent'
-                    }`}
-                  >
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
-                      <span className="text-white text-sm">⚙️</span>
-                    </div>
-                    <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
-                  </Link>
-                </div>
+                    <Link
+                      to={createPageUrl('Settings')}
+                      onClick={() => setSidebarOpen(false)}
+                      className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
+                        isActivePage('Settings')
+                          ? 'bg-gradient-to-r from-violet-100 to-pink-100 border border-violet-300 shadow-sm'
+                          : 'hover:bg-violet-50 border border-transparent'
+                      }`}
+                    >
+                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
+                        <span className="text-white text-sm">⚙️</span>
+                      </div>
+                      <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
+                    </Link>
+                  </div>
               </div>
             </motion.aside>
           </>
