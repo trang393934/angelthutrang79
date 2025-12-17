@@ -281,6 +281,42 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                   })}
                 </nav>
 
+                {/* Wallet Connection */}
+                <div className="mt-4 pt-4 border-t border-purple-200">
+                  {walletAddress ? (
+                    <div className="px-2 py-2 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Wallet className="w-3.5 h-3.5 text-green-600" />
+                        <span className="text-green-900 font-semibold text-xs">Ví Đã Kết Nối</span>
+                      </div>
+                      <p className="text-green-800 text-[10px] font-medium mb-2 break-all">
+                        {formatAddress(walletAddress)}
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={disconnectWallet}
+                        className="w-full h-6 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                      >
+                        Ngắt Kết Nối
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={connectWallet}
+                      disabled={isConnecting}
+                      className="w-full bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 shadow-md h-8 text-xs"
+                    >
+                      {isConnecting ? (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      ) : (
+                        <Wallet className="w-3 h-3 mr-1" />
+                      )}
+                      Kết Nối Ví
+                    </Button>
+                  )}
+                </div>
+
                 {/* Knowledge Base Link */}
                 <div className="mt-4 pt-4 border-t border-purple-200">
                   <Link
