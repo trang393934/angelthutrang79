@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -14,6 +14,8 @@ export default function Layout({ children, currentPageName }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [walletAddress, setWalletAddress] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   const location = useLocation();
 
   const menuItems = [
@@ -74,6 +76,28 @@ export default function Layout({ children, currentPageName }) {
     },
   ];
 
+  // Check for existing wallet connection
+  useEffect(() => {
+    if (typeof window.ethereum !== 'undefined') {
+      window.ethereum.request({ method: 'eth_accounts' })
+        .then(accounts => {
+          if (accounts.length > 0) {
+            setWalletAddress(accounts[0]);
+          }
+        })
+        .catch(console.error);
+
+      // Listen for account changes
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        } else {
+          setWalletAddress(null);
+        }
+      });
+    }
+  }, []);
+
   // Keyboard shortcut for search
   React.useEffect(() => {
     const handleKeyDown = (e) => {
@@ -119,6 +143,34 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  const connectWallet = async () => {
+    if (typeof window.ethereum === 'undefined') {
+      alert('Vui lòng cài đặt MetaMask để kết nối ví!');
+      return;
+    }
+
+    setIsConnecting(true);
+    try {
+      const accounts = await window.ethereum.request({ 
+        method: 'eth_requestAccounts' 
+      });
+      setWalletAddress(accounts[0]);
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      alert('Không thể kết nối ví. Vui lòng thử lại!');
+    }
+    setIsConnecting(false);
+  };
+
+  const disconnectWallet = () => {
+    setWalletAddress(null);
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return '';
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
   const isActivePage = (path) => {
