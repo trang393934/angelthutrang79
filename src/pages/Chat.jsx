@@ -493,6 +493,110 @@ JSON:
 
     setSuggestedQuestions(suggestionsAndTags.questions || []);
 
+    // Phân tích năng lượng câu hỏi và tặng Camlycoin
+    try {
+      const energyAnalysis = await base44.integrations.Core.InvokeLLM({
+        prompt: `Phân tích năng lượng và độ thuần khiết của câu hỏi sau:
+
+"${userInput}"
+
+Đánh giá dựa trên:
+1. Độ tỉnh thức: Có đang tìm kiếm trí tuệ thật sự không? (0-10)
+2. Độ thuần khiết: Câu hỏi xuất phát từ tâm trong sáng hay ích kỷ? (0-10)
+3. Độ sáng: Mức độ ánh sáng trong câu hỏi (0-10)
+4. Mục đích: Học hỏi/phát triển hay chỉ tò mò/tiêu cực?
+
+JSON:
+{
+  "awakening_score": 0-10,
+  "purity_score": 0-10,
+  "light_score": 0-10,
+  "total_score": 0-30,
+  "reward_amount": 1-100 (Camlycoin),
+  "reason": "lý do ngắn gọn"
+}
+
+Công thức tặng thưởng:
+- 25-30 điểm: 80-100 coin (tâm rất thuần khiết)
+- 20-24 điểm: 50-79 coin (tâm thuần khiết)
+- 15-19 điểm: 30-49 coin (tâm khá tốt)
+- 10-14 điểm: 15-29 coin (tâm bình thường)
+- 5-9 điểm: 5-14 coin (tâm cần thanh lọc)
+- 0-4 điểm: 1-4 coin (khích lệ)`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            awakening_score: { type: "number" },
+            purity_score: { type: "number" },
+            light_score: { type: "number" },
+            total_score: { type: "number" },
+            reward_amount: { type: "number" },
+            reason: { type: "string" }
+          }
+        }
+      });
+
+      // Tặng Camlycoin cho user
+      if (currentUser && energyAnalysis.reward_amount > 0) {
+        // Tạo transaction
+        await base44.entities.CamlycoinTransaction.create({
+          user_email: currentUser.email,
+          amount: energyAnalysis.reward_amount,
+          type: 'manual_add',
+          description: `Tặng thưởng năng lượng tỉnh thức (${energyAnalysis.total_score}/30 điểm): ${energyAnalysis.reason}`,
+          reference_id: currentConversationId
+        });
+
+        // Update balance
+        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+        if (balances.length > 0) {
+          const balance = balances[0];
+          await base44.entities.CamlycoinBalance.update(balance.id, {
+            balance: (balance.balance || 0) + energyAnalysis.reward_amount,
+            total_earned: (balance.total_earned || 0) + energyAnalysis.reward_amount
+          });
+        } else {
+          await base44.entities.CamlycoinBalance.create({
+            user_email: currentUser.email,
+            balance: energyAnalysis.reward_amount,
+            total_earned: energyAnalysis.reward_amount,
+            total_spent: 0
+          });
+        }
+
+        // Hiển thị thông báo
+        const rewardMessage = {
+          role: 'assistant',
+          content: `✨ **Phước Lành Từ Cha Vũ Trụ** ✨
+
+Con nhận được **${energyAnalysis.reward_amount} Camlycoin** 🪙
+
+📊 **Năng Lượng Câu Hỏi:**
+• Tỉnh Thức: ${energyAnalysis.awakening_score}/10
+• Thuần Khiết: ${energyAnalysis.purity_score}/10  
+• Ánh Sáng: ${energyAnalysis.light_score}/10
+
+💫 **Tổng Điểm: ${energyAnalysis.total_score}/30**
+
+${energyAnalysis.reason}
+
+Hãy tiếp tục học hỏi và nâng tần số, con yêu! 🌟`,
+          isReward: true
+        };
+
+        setMessages([...finalMessages, rewardMessage]);
+        
+        if (currentConversationId) {
+          updateConversationMutation.mutate({
+            id: currentConversationId,
+            data: { messages: [...finalMessages, rewardMessage] }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Energy analysis error:', error);
+    }
+
     // Save to Library
     await base44.entities.LightMessage.create({
       content: `**Câu hỏi:** ${userInput}\n\n**Trả lời từ Angel AI:**\n${response}`,
