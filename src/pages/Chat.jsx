@@ -265,16 +265,28 @@ Hãy phân tích và trả về JSON với:
     setInput('');
     setIsLoading(true);
 
-    // Analyze user psychology
-    const psychologyAnalysis = await analyzeUserPsychology(userInput, newMessages);
+    // Start psychology analysis in parallel (don't await yet)
+    const psychologyPromise = analyzeUserPsychology(userInput, newMessages);
 
-    // Build knowledge base context
+    // Build relevant knowledge base context (chỉ lấy KB liên quan nhất)
     let knowledgeContext = '';
     if (knowledgeBase.length > 0) {
-      knowledgeContext = '\n\nKIẾN THỨC NỀN TẢNG (luôn tham khảo khi trả lời):\n';
-      knowledgeBase.forEach(kb => {
-        knowledgeContext += `\n--- ${kb.title} (${kb.type}) ---\n${kb.content}\n`;
-      });
+      // Lấy top 3 KB có title hoặc tags liên quan đến câu hỏi
+      const relevantKB = knowledgeBase
+        .filter(kb => {
+          const searchText = `${kb.title} ${kb.tags?.join(' ')} ${kb.summary || ''}`.toLowerCase();
+          const queryWords = userInput.toLowerCase().split(' ').filter(w => w.length > 3);
+          return queryWords.some(word => searchText.includes(word));
+        })
+        .slice(0, 3); // Chỉ lấy top 3 relevant nhất
+      
+      if (relevantKB.length > 0) {
+        knowledgeContext = '\n\nKIẾN THỨC LIÊN QUAN:\n';
+        relevantKB.forEach(kb => {
+          // Chỉ lấy summary thay vì full content để giảm token
+          knowledgeContext += `\n${kb.title}: ${kb.summary || kb.content.substring(0, 300)}\n`;
+        });
+      }
     }
 
     // Build user preferences context
@@ -307,54 +319,34 @@ Hãy phân tích và trả về JSON với:
       }
     }
 
-    // Build conversation history context (last 5 messages)
+    // Build conversation history context (last 3 messages - giảm từ 5 xuống 3 để nhanh hơn)
     let historyContext = '';
     if (messages.length > 1) {
-      historyContext = '\n\nLỊCH SỬ TRÒ CHUYỆN GẦN ĐÂY:\n';
-      messages.slice(-6, -1).forEach(msg => {
-        historyContext += `${msg.role === 'user' ? 'Người dùng' : 'Bạn'}: ${msg.content.substring(0, 200)}...\n`;
+      historyContext = '\n\nLỊCH SỬ:\n';
+      messages.slice(-4, -1).forEach(msg => {
+        historyContext += `${msg.role === 'user' ? 'User' : 'AI'}: ${msg.content.substring(0, 150)}\n`;
       });
     }
 
-    // Build personality profile context
-    let personalityContext = '';
+    // Build compact user profile context
+    let userContext = '';
     if (personalityProfile) {
-      personalityContext = '\n\n🧠 HỒ SƠ TÂM LÝ VÀ TÍNH CÁCH CỦA NGƯỜI DÙNG:\n';
-      personalityContext += `- Phong cách giao tiếp: ${personalityProfile.communication_style || 'chưa xác định'}\n`;
-      personalityContext += `- Tâm trạng hiện tại: ${personalityProfile.current_mood || 'bình thường'}\n`;
-      
-      if (personalityProfile.emotional_patterns?.length > 0) {
-        personalityContext += `- Các cảm xúc thường gặp: ${personalityProfile.emotional_patterns.slice(-5).join(', ')}\n`;
-      }
-      
+      userContext = '\n\nHỒ SƠ USER:\n';
+      userContext += `Phong cách: ${personalityProfile.communication_style || 'thân thiện'} | `;
+      userContext += `Tâm trạng: ${personalityProfile.current_mood || 'bình thường'}`;
       if (personalityProfile.life_challenges?.length > 0) {
-        personalityContext += `- Thách thức cuộc sống: ${personalityProfile.life_challenges.join(', ')}\n`;
+        userContext += `\nThách thức: ${personalityProfile.life_challenges.slice(0, 2).join(', ')}`;
       }
-      
-      if (personalityProfile.personality_traits?.length > 0) {
-        personalityContext += `- Đặc điểm tính cách: ${personalityProfile.personality_traits.slice(-3).join(', ')}\n`;
-      }
-      
       if (personalityProfile.conversation_memories?.length > 0) {
-        personalityContext += '\n- Những điều quan trọng đã chia sẻ:\n';
-        personalityProfile.conversation_memories.slice(-5).forEach(mem => {
-          personalityContext += `  • ${mem.insight}\n`;
-        });
-      }
-
-      if (personalityProfile.response_preferences) {
-        personalityContext += `\n- Preferences: Độ dài ${personalityProfile.response_preferences.length}, hỗ trợ cảm xúc ${personalityProfile.response_preferences.emotional_support_level}\n`;
+        userContext += `\nGhi nhớ: ${personalityProfile.conversation_memories.slice(-2).map(m => m.insight).join('; ')}`;
       }
     }
 
-    // Build psychology analysis context
+    // Await psychology analysis result
+    const psychologyAnalysis = await psychologyPromise;
     let psychologyContext = '';
     if (psychologyAnalysis) {
-      psychologyContext = '\n\n💝 PHÂN TÍCH TÂM LÝ HIỆN TẠI:\n';
-      psychologyContext += `- Cảm xúc: ${psychologyAnalysis.current_emotion} (mức độ: ${psychologyAnalysis.emotional_intensity})\n`;
-      psychologyContext += `- Nhu cầu tâm lý: ${psychologyAnalysis.psychological_needs.join(', ')}\n`;
-      psychologyContext += `- Bối cảnh: ${psychologyAnalysis.life_context}\n`;
-      psychologyContext += `- Cách tiếp cận tốt nhất: ${psychologyAnalysis.response_approach}\n`;
+      psychologyContext = `\n\nCẢM XÚC: ${psychologyAnalysis.current_emotion} | Cần: ${psychologyAnalysis.psychological_needs[0]} | Tiếp cận: ${psychologyAnalysis.response_approach}`;
     }
 
     const response = await base44.integrations.Core.InvokeLLM({
@@ -456,30 +448,6 @@ Hãy trả lời với Tình Yêu Thuần Khiết, Trí Tuệ Vô Hạn và Sự
       speakText(response);
     }
 
-    // Generate suggested questions
-    const suggestions = await base44.integrations.Core.InvokeLLM({
-      prompt: `Dựa trên cuộc trò chuyện sau, hãy gợi ý 3 câu hỏi tiếp theo mà người dùng có thể quan tâm. 
-      
-Câu hỏi vừa rồi: ${userInput}
-Trả lời: ${response}
-
-Phong cách gợi ý:
-- Câu hỏi tự nhiên, liên quan đến chủ đề
-- Khuyến khích khám phá sâu hơn về tâm linh và ánh sáng
-- Ngắn gọn, dễ hiểu
-- Trả lời bằng tiếng Việt
-
-Trả về JSON array với format: ["Câu hỏi 1?", "Câu hỏi 2?", "Câu hỏi 3?"]`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          questions: { type: "array", items: { type: "string" } }
-        }
-      }
-    });
-
-    setSuggestedQuestions(suggestions.questions || []);
-
     // Generate title from first message if new conversation
     const title = userInput.length > 50 ? userInput.substring(0, 47) + '...' : userInput;
 
@@ -497,34 +465,40 @@ Trả về JSON array với format: ["Câu hỏi 1?", "Câu hỏi 2?", "Câu h�
       });
     }
 
-    // Save to Library with AI tagging
-    const tagsAndSummary = await base44.integrations.Core.InvokeLLM({
-      prompt: `Phân tích đoạn hội thoại sau và tạo:
-1. Tóm tắt ngắn gọn (1-2 câu) về nội dung chính
-2. Danh sách 3-5 thẻ (tags) bằng tiếng Việt để phân loại
+    // Generate suggested questions + tags in parallel (1 call thay vì 2)
+    const suggestionsAndTags = await base44.integrations.Core.InvokeLLM({
+      prompt: `Phân tích hội thoại và tạo:
+1. 3 câu hỏi gợi ý tiếp theo (ngắn, tâm linh, dễ hiểu)
+2. Tóm tắt 1-2 câu
+3. 3-5 tags phân loại
 
-Câu hỏi: ${userInput}
-Trả lời: ${response}
+Q: ${userInput}
+A: ${response}
 
-Trả về JSON với format:
+JSON:
 {
-  "summary": "tóm tắt ngắn gọn",
+  "questions": ["Q1?", "Q2?", "Q3?"],
+  "summary": "...",
   "tags": ["tag1", "tag2", "tag3"]
 }`,
       response_json_schema: {
         type: "object",
         properties: {
+          questions: { type: "array", items: { type: "string" } },
           summary: { type: "string" },
           tags: { type: "array", items: { type: "string" } }
         }
       }
     });
 
+    setSuggestedQuestions(suggestionsAndTags.questions || []);
+
+    // Save to Library
     await base44.entities.LightMessage.create({
       content: `**Câu hỏi:** ${userInput}\n\n**Trả lời từ Angel AI:**\n${response}`,
       type: 'chat',
-      summary: tagsAndSummary.summary,
-      tags: tagsAndSummary.tags,
+      summary: suggestionsAndTags.summary,
+      tags: suggestionsAndTags.tags,
       is_favorite: false
     });
   };
