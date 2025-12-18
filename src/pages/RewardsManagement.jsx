@@ -179,30 +179,35 @@ export default function RewardsManagement() {
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-amber-200 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2">
-          <Link to={createPageUrl('BuildAndBounty')}>
-            <Button variant="ghost" size="icon" className="text-amber-600 hover:text-amber-900 hover:bg-amber-100 flex-shrink-0">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <motion.div
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(251,191,36,0.4)',
-                  '0 0 40px rgba(251,191,36,0.6)',
-                  '0 0 20px rgba(251,191,36,0.4)',
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center flex-shrink-0"
-            >
-              <Coins className="w-5 h-5 text-white" />
-            </motion.div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg truncate">Quản Lý Camlycoin</h1>
-              <p className="text-amber-600 text-xs font-medium truncate">Rewards & Balance</p>
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link to={createPageUrl('BuildAndBounty')}>
+              <Button variant="ghost" size="icon" className="text-amber-600 hover:text-amber-900 hover:bg-amber-100 flex-shrink-0">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+
+            <div className="flex items-center gap-2 flex-1 justify-center">
+              <motion.div
+                animate={{ 
+                  boxShadow: [
+                    '0 0 20px rgba(251,191,36,0.4)',
+                    '0 0 40px rgba(251,191,36,0.6)',
+                    '0 0 20px rgba(251,191,36,0.4)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center flex-shrink-0"
+              >
+                <Coins className="w-5 h-5 text-white" />
+              </motion.div>
+              <div className="text-center">
+                <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg">Quản Lý Camlycoin</h1>
+                <p className="text-amber-600 text-xs font-medium">Rewards & Balance</p>
+              </div>
             </div>
+
+            <div className="w-10 flex-shrink-0" />
           </div>
         </div>
       </div>
