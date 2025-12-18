@@ -235,7 +235,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                 </div>
 
                 {/* Menu Items - với padding dưới để không bị che */}
-                <nav className="space-y-1 mb-4">
+                <nav className="space-y-1 pb-6">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = !item.isButton && isActivePage(item.path);
