@@ -28,13 +28,15 @@ export default function KnowledgeBase() {
   const isAdmin = currentUser?.role === 'admin';
 
   const { data: knowledgeBase = [], isLoading } = useQuery({
-    queryKey: ['knowledge-base-all'],
+    queryKey: ['knowledge-base-all', currentUser?.email],
     queryFn: async () => {
+      if (!currentUser) return [];
       return base44.entities.KnowledgeBase.filter(
         { is_active: true },
         '-created_date'
       );
     },
+    enabled: !!currentUser,
   });
 
   const uploadMutation = useMutation({
