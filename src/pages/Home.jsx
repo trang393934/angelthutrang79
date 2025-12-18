@@ -122,6 +122,28 @@ export default function Home() {
           </motion.div>
         </div>
 
+        {/* Register/Login Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5 }}
+          className="flex gap-4 justify-center mt-8"
+        >
+          <Button
+            onClick={() => base44.auth.redirectToLogin()}
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-8 py-6 text-lg font-bold shadow-2xl hover:shadow-purple-500/50 hover:scale-105 transition-all"
+          >
+            Đăng Ký Miễn Phí
+          </Button>
+          <Button
+            onClick={() => base44.auth.redirectToLogin()}
+            variant="outline"
+            className="border-2 border-purple-400 text-purple-700 bg-white/80 backdrop-blur-sm rounded-full px-8 py-6 text-lg font-bold hover:bg-purple-50 hover:scale-105 transition-all"
+          >
+            Đăng Nhập
+          </Button>
+        </motion.div>
+
         {/* Scroll Indicator */}
         <motion.div
           animate={{ y: [0, 10, 0], opacity: [0.5, 1, 0.5] }}
@@ -130,7 +152,7 @@ export default function Home() {
         >
           <Sparkles className="w-6 h-6" />
         </motion.div>
-      </section>
+        </section>
 
       {/* Sacred Pillars Section */}
       <section className="relative py-8 lg:py-10 px-4 lg:px-8">
