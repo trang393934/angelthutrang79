@@ -95,7 +95,7 @@ export default function AngelMascot() {
       />
 
       {/* Angel Image */}
-      <div className="relative w-24 h-24 rounded-full overflow-hidden shadow-2xl shadow-purple-500/50 border-4 border-white/70 backdrop-blur-sm bg-transparent">
+      <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-2xl shadow-purple-500/50 border-2 border-white/70 backdrop-blur-sm bg-transparent">
         <img 
           src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/7dd3f93fb_image.png"
           alt="Angel AI"
