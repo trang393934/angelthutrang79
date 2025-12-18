@@ -835,7 +835,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             </div>
 
             {/* Conversations List - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent to-purple-50/30 pb-20">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent to-purple-50/30 pb-32">
               {conversations.map((conv) => (
                 <motion.div
                   key={conv.id}
