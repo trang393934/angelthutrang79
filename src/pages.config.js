@@ -10,6 +10,7 @@ import AITools from './pages/AITools';
 import BuildAndBounty from './pages/BuildAndBounty';
 import RewardsManagement from './pages/RewardsManagement';
 import FUNUsers from './pages/FUNUsers';
+import CamlycoinHistory from './pages/CamlycoinHistory';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "BuildAndBounty": BuildAndBounty,
     "RewardsManagement": RewardsManagement,
     "FUNUsers": FUNUsers,
+    "CamlycoinHistory": CamlycoinHistory,
 }
 
 export const pagesConfig = {

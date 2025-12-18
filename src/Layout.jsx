@@ -33,6 +33,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-amber-400 to-rose-400'
     },
     { 
+      name: 'Lịch Sử Camlycoin', 
+      icon: Wallet, 
+      path: 'CamlycoinHistory',
+      gradient: 'from-yellow-400 to-orange-400'
+    },
+    { 
       name: 'Chế độ thoại', 
       icon: Mic, 
       path: 'Chat',
