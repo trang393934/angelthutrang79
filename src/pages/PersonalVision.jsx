@@ -14,11 +14,20 @@ export default function PersonalVision() {
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const queryClient = useQueryClient();
 
+  React.useEffect(() => {
+    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+  }, []);
+
   const { data: visions = [], isLoading } = useQuery({
-    queryKey: ['personal-visions'],
-    queryFn: () => base44.entities.PersonalVision.list('-created_date'),
+    queryKey: ['personal-visions', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      return base44.entities.PersonalVision.filter({ created_by: currentUser.email }, '-created_date');
+    },
+    enabled: !!currentUser,
   });
 
   const activeVision = visions.find(v => v.is_active) || visions[0];
