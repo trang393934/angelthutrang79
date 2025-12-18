@@ -473,7 +473,27 @@ Trả về JSON với format:
 
       {/* Content */}
       <div className="pt-20 pb-40 px-4 max-w-6xl mx-auto">
-        {isLoading ? (
+        {!currentUser ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-400/20 to-purple-400/20 flex items-center justify-center mx-auto mb-6">
+              <BookOpen className="w-10 h-10 text-indigo-300/40" />
+            </div>
+            <h3 className="text-slate-900 text-xl font-semibold mb-2">Vui Lòng Đăng Nhập</h3>
+            <p className="text-purple-700 font-medium mb-6">
+              Đăng nhập để xem Knowledge Base
+            </p>
+            <Button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl"
+            >
+              Đăng Nhập
+            </Button>
+          </motion.div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
               animate={{ rotate: 360 }}

@@ -668,7 +668,27 @@ Trả về JSON với format:
 
       {/* Content */}
       <div className={`px-2 sm:px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-36 sm:pt-44 lg:pt-56' : 'pt-16 sm:pt-20 lg:pt-24'}`}>
-        {isLoading ? (
+        {!currentUser ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400/20 to-amber-400/20 flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-10 h-10 text-purple-300/40" />
+            </div>
+            <h3 className="text-slate-900 text-xl font-semibold mb-2">Vui Lòng Đăng Nhập</h3>
+            <p className="text-purple-700 font-medium mb-6">
+              Đăng nhập để xem Thư Viện Ánh Sáng
+            </p>
+            <Button
+              onClick={() => base44.auth.redirectToLogin()}
+              className="bg-gradient-to-r from-purple-500 to-amber-500 text-white rounded-full shadow-lg hover:shadow-xl"
+            >
+              Đăng Nhập
+            </Button>
+          </motion.div>
+        ) : isLoading ? (
           <div className="flex items-center justify-center min-h-[50vh]">
             <motion.div
               animate={{ rotate: 360 }}
