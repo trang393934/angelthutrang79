@@ -24,8 +24,8 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     base44.auth.me().then(user => {
       setCurrentUser(user);
-      // Redirect to Home if not agreed to Light Law
-      if (user && !user.light_law_agreed && currentPageName !== 'Home') {
+      // Redirect to Home if not agreed to Light Law (except Home and LightLaw pages)
+      if (user && !user.light_law_agreed && currentPageName !== 'Home' && currentPageName !== 'LightLaw') {
         window.location.href = createPageUrl('Home');
       }
     }).catch(() => setCurrentUser(null));
