@@ -91,7 +91,16 @@ Hãy đánh giá:
 1. Category (code/content/idea/community/design/marketing)
 2. Impact level (low/medium/high)
 3. Feasibility (low/medium/high)
-4. Suggested reward points (10-100)
+4. Reward Camlycoin:
+   • Low impact + Low feasibility: 10,000 Camlycoin
+   • Low impact + Medium feasibility: 15,000 Camlycoin
+   • Low impact + High feasibility: 20,000 Camlycoin
+   • Medium impact + Low feasibility: 20,000 Camlycoin
+   • Medium impact + Medium feasibility: 30,000 Camlycoin
+   • Medium impact + High feasibility: 40,000 Camlycoin
+   • High impact + Low feasibility: 30,000 Camlycoin
+   • High impact + Medium feasibility: 40,000 Camlycoin
+   • High impact + High feasibility: 50,000 Camlycoin
 
 Trả về JSON:`,
         response_json_schema: {
@@ -112,7 +121,7 @@ Trả về JSON:`,
         status: 'pending',
         impact: analysis.impact,
         feasibility: analysis.feasibility,
-        reward_points: 10000,
+        reward_points: analysis.reward_points,
         votes: 0
       });
 
@@ -282,10 +291,19 @@ Trả về JSON:`,
     },
     {
       id: 2,
-      title: 'Tìm và báo cáo Bug',
-      description: 'Phát hiện và báo cáo lỗi bảo mật hoặc bug trong ứng dụng',
+      title: 'Tìm và báo cáo Bug (Nhỏ)',
+      description: 'Phát hiện và báo cáo lỗi UI nhỏ hoặc bug không nghiêm trọng',
       category: 'bug',
-      reward: 10000,
+      reward: 20000,
+      icon: Bug,
+      gradient: 'from-orange-400 to-amber-400'
+    },
+    {
+      id: 7,
+      title: 'Tìm và báo cáo Bug (Nghiêm trọng)',
+      description: 'Phát hiện lỗi bảo mật hoặc bug nghiêm trọng ảnh hưởng đến hệ thống',
+      category: 'bug',
+      reward: 50000,
       icon: Bug,
       gradient: 'from-red-400 to-orange-400'
     },
@@ -294,7 +312,7 @@ Trả về JSON:`,
       title: 'Dịch tài liệu sang ngôn ngữ khác',
       description: 'Dịch Knowledge Base hoặc tài liệu giáo lý sang English, Chinese, v.v.',
       category: 'translation',
-      reward: 10000,
+      reward: 30000,
       icon: FileText,
       gradient: 'from-purple-400 to-pink-400'
     },
@@ -303,25 +321,25 @@ Trả về JSON:`,
       title: 'Góp code và tính năng mới',
       description: 'Đóng góp code, fix bug, hoặc phát triển tính năng mới cho Angel AI',
       category: 'code',
-      reward: 10000,
+      reward: 40000,
       icon: Code,
       gradient: 'from-green-400 to-emerald-400'
     },
     {
       id: 5,
-      title: 'Tạo nội dung giáo dục',
-      description: 'Viết bài hướng dẫn, video tutorial, hoặc tài liệu giáo dục về Angel AI',
+      title: 'Tạo nội dung giáo dục chất lượng cao',
+      description: 'Viết bài hướng dẫn chi tiết, video tutorial, hoặc tài liệu giáo dục chuyên sâu về Angel AI',
       category: 'content',
-      reward: 10000,
+      reward: 40000,
       icon: MessageSquare,
       gradient: 'from-amber-400 to-yellow-400'
     },
     {
       id: 6,
-      title: 'Tham gia và xây dựng cộng đồng',
-      description: 'Tích cực trả lời câu hỏi, hỗ trợ thành viên mới trong cộng đồng',
+      title: 'Xây dựng & Quản lý Cộng đồng',
+      description: 'Tích cực trả lời câu hỏi, hỗ trợ thành viên mới, tổ chức sự kiện cộng đồng',
       category: 'community',
-      reward: 10000,
+      reward: 30000,
       icon: Users,
       gradient: 'from-indigo-400 to-purple-400'
     },
