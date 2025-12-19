@@ -12,6 +12,7 @@ import RewardsManagement from './pages/RewardsManagement';
 import FUNUsers from './pages/FUNUsers';
 import CamlycoinHistory from './pages/CamlycoinHistory';
 import Analytics from './pages/Analytics';
+import UserProfile from './pages/UserProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "FUNUsers": FUNUsers,
     "CamlycoinHistory": CamlycoinHistory,
     "Analytics": Analytics,
+    "UserProfile": UserProfile,
 }
 
 export const pagesConfig = {

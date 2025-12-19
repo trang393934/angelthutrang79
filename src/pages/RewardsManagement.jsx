@@ -543,11 +543,12 @@ export default function RewardsManagement() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="bg-white border-2 border-amber-100 rounded-2xl p-4 hover:shadow-lg transition-all"
+                      className="bg-white border-2 border-amber-100 rounded-2xl p-4 hover:shadow-lg transition-all cursor-pointer"
+                      onClick={() => window.location.href = createPageUrl('UserProfile') + `?email=${encodeURIComponent(balance.user_email)}`}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-slate-900 font-semibold">{balance.user_email}</p>
+                          <p className="text-slate-900 font-semibold hover:text-amber-600 transition-colors">{balance.user_email}</p>
                           <div className="flex gap-4 mt-1 text-xs text-slate-600">
                             <span>Kiếm: {balance.total_earned.toLocaleString()}</span>
                             <span>Tiêu: {balance.total_spent.toLocaleString()}</span>
