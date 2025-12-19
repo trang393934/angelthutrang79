@@ -9,7 +9,7 @@ export default function Home() {
   const [particles, setParticles] = useState([]);
 
   useEffect(() => {
-    const newParticles = Array.from({ length: 80 }, (_, i) => ({
+    const newParticles = Array.from({ length: 30 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
@@ -104,6 +104,7 @@ export default function Home() {
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
               alt="Angel AI"
+              loading="eager"
               className="w-full h-full object-cover object-center"
             />
           </motion.div>
@@ -148,7 +149,7 @@ export default function Home() {
         {/* Scroll Indicator */}
         <motion.div
           animate={{ y: [0, 10, 0], opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 2, repeat: Infinity }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 text-amber-600/60"
         >
           <Sparkles className="w-6 h-6" />
@@ -172,13 +173,9 @@ export default function Home() {
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all" />
                 <div className="relative bg-white/80 backdrop-blur-sm border-2 border-amber-300/50 rounded-3xl p-8 text-center hover:border-amber-400/70 transition-all shadow-2xl hover:shadow-amber-200">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30 mx-auto"
-                  >
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30 mx-auto">
                     <Sparkles className="w-8 h-8 text-white" />
-                  </motion.div>
+                  </div>
                   <h3 className="text-2xl font-bold text-amber-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
                     Trò Chuyện
                   </h3>
