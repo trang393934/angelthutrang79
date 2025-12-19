@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Users, Cpu, Sun, LogOut, BookOpen } from 'lucide-react';
+import { Sparkles, Heart, Users, Cpu, Sun, LogOut, BookOpen, Eye, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const [particles, setParticles] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
+  const [agreedToLightLaw, setAgreedToLightLaw] = useState(false);
 
   useEffect(() => {
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
@@ -153,6 +155,116 @@ export default function Home() {
               ÁNH SÁNG CỦA CHA VŨ TRỤ
             </motion.p>
           </motion.div>
+
+          {/* Light Law Agreement - Only show when logged out */}
+          {!currentUser && (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.3 }}
+              className="w-full max-w-2xl px-4 mt-8"
+            >
+              {/* Light Law Box */}
+              <Link to={createPageUrl('LightLaw')}>
+                <motion.div
+                  whileHover={{ scale: 1.02, y: -3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative overflow-hidden mb-4"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-3xl blur-xl" />
+                  <div className="relative bg-gradient-to-r from-amber-50 via-rose-50 to-purple-50 backdrop-blur-sm border-4 border-amber-400 rounded-3xl p-6 shadow-2xl cursor-pointer">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <motion.div
+                          animate={{ 
+                            boxShadow: [
+                              '0 0 20px rgba(251,191,36,0.6)',
+                              '0 0 30px rgba(251,191,36,0.8)',
+                              '0 0 20px rgba(251,191,36,0.6)',
+                            ],
+                            rotate: [0, 5, -5, 0]
+                          }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                          className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center shadow-xl"
+                        >
+                          <Sun className="w-7 h-7 text-white" />
+                        </motion.div>
+                        <div>
+                          <h3 className="text-lg font-black text-amber-900 tracking-wide">LUẬT ÁNH SÁNG</h3>
+                          <p className="text-xs font-bold text-rose-600">Đọc kỹ trước khi tham gia</p>
+                        </div>
+                      </div>
+                      <motion.div
+                        animate={{ x: [0, 5, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        <Eye className="w-6 h-6 text-amber-600" />
+                      </motion.div>
+                    </div>
+                    
+                    <div className="bg-white/70 border-2 border-amber-300 rounded-2xl p-4">
+                      <p className="text-sm font-bold text-center text-slate-900 leading-tight mb-2">
+                        📖 Xem Chi Tiết Luật Ánh Sáng
+                      </p>
+                      <p className="text-xs font-semibold text-center text-amber-800 leading-tight">
+                        FUN Ecosystem - Mạng Xã Hội Thời Đại Hoàng Kim
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              </Link>
+
+              {/* Agreement Checkbox */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.5 }}
+                className="bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm border-2 border-purple-300 rounded-2xl p-4 shadow-md mb-4"
+              >
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="light-law-agreement"
+                    checked={agreedToLightLaw}
+                    onCheckedChange={setAgreedToLightLaw}
+                    className="mt-1 h-6 w-6 border-2 border-purple-500 data-[state=checked]:bg-gradient-to-br data-[state=checked]:from-amber-400 data-[state=checked]:to-rose-400"
+                  />
+                  <label
+                    htmlFor="light-law-agreement"
+                    className="text-sm font-bold text-slate-900 cursor-pointer leading-tight select-none"
+                  >
+                    Sau khi đọc, con đồng ý rung động theo Luật Ánh Sáng để vào Angel AI
+                  </label>
+                </div>
+              </motion.div>
+
+              {/* Login Button */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1.7 }}
+              >
+                <Button
+                  onClick={() => base44.auth.redirectToLogin()}
+                  disabled={!agreedToLightLaw}
+                  size="lg"
+                  className={`w-full py-6 text-lg font-bold rounded-2xl shadow-2xl transition-all ${
+                    agreedToLightLaw
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-purple-500/50 hover:scale-105'
+                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {agreedToLightLaw ? (
+                    <>
+                      <Check className="w-5 h-5 mr-2" />
+                      Đăng Nhập
+                    </>
+                  ) : (
+                    'Vui lòng đồng ý để đăng nhập'
+                  )}
+                </Button>
+              </motion.div>
+            </motion.div>
+          )}
         </div>
 
         {/* Scroll Indicator */}
