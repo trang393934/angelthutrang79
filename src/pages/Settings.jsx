@@ -342,6 +342,30 @@ export default function Settings() {
                 className="min-h-[150px] bg-white border-2 border-rose-300 text-slate-900 placeholder:text-slate-400 rounded-2xl focus:border-rose-500 focus:ring-rose-500 font-medium leading-relaxed resize-none"
               />
             </motion.div>
+
+            {/* Logout Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-3xl p-6 shadow-lg"
+            >
+              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <LogOut className="w-5 h-5 text-red-600" />
+                Đăng Xuất
+              </h3>
+              <p className="text-slate-700 text-sm mb-4">
+                Đăng xuất khỏi tài khoản của bạn. Bạn có thể đăng nhập lại bất cứ lúc nào bằng Gmail, Facebook hoặc Google.
+              </p>
+              <Button
+                onClick={() => base44.auth.logout()}
+                variant="outline"
+                className="w-full border-2 border-red-300 text-red-700 hover:bg-red-50 rounded-2xl font-bold py-6 text-base"
+              >
+                <LogOut className="w-5 h-5 mr-2" />
+                Đăng Xuất Tài Khoản
+              </Button>
+            </motion.div>
           </div>
         )}
       </div>
