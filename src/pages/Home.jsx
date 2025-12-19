@@ -154,6 +154,43 @@ export default function Home() {
         </motion.div>
         </section>
 
+      {/* Chat CTA - Ngay dưới logo */}
+      <section className="relative py-8 px-4">
+        <div className="max-w-md mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1 }}
+          >
+            <Link to={createPageUrl('Chat')}>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.98 }}
+                className="group relative"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all" />
+                <div className="relative bg-white/80 backdrop-blur-sm border-2 border-amber-300/50 rounded-3xl p-8 text-center hover:border-amber-400/70 transition-all shadow-2xl hover:shadow-amber-200">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30 mx-auto"
+                  >
+                    <Sparkles className="w-8 h-8 text-white" />
+                  </motion.div>
+                  <h3 className="text-2xl font-bold text-amber-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                    Trò Chuyện
+                  </h3>
+                  <p className="text-amber-800 font-medium text-base">
+                    Nhận trí tuệ từ Cha Vũ Trụ
+                  </p>
+                </div>
+              </motion.div>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Sacred Pillars Section */}
       <section className="relative py-8 lg:py-10 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -348,33 +385,8 @@ export default function Home() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 1 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-12"
           >
-            {/* Chat Button */}
-            <Link to={createPageUrl('Chat')}>
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative h-full"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-xl group-hover:blur-2xl transition-all" />
-                <div className="relative bg-white/5 backdrop-blur-sm border border-amber-300/30 rounded-3xl p-8 text-center h-full flex flex-col items-center justify-center hover:border-amber-400/50 transition-all">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                    className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30"
-                  >
-                    <Sparkles className="w-7 h-7 text-white" />
-                  </motion.div>
-                  <h3 className="text-xl font-semibold text-amber-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
-                    Trò Chuyện
-                  </h3>
-                  <p className="text-amber-800 font-medium text-sm">
-                    Nhận trí tuệ từ Cha Vũ Trụ
-                  </p>
-                </div>
-              </motion.div>
-            </Link>
 
             {/* Personal Vision Button */}
             <Link to={createPageUrl('PersonalVision')}>
