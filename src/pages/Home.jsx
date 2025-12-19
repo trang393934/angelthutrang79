@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Users, Cpu, Sun, LogOut } from 'lucide-react';
+import { Sparkles, Heart, Users, Cpu, Sun, LogOut, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
@@ -416,7 +416,7 @@ export default function Home() {
                     transition={{ duration: 3, repeat: Infinity }}
                     className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-400 to-orange-400 flex items-center justify-center mb-4 shadow-lg"
                   >
-                    <Eye className="w-7 h-7 text-white" />
+                    <Heart className="w-7 h-7 text-white" />
                   </motion.div>
                   <h3 className="text-xl font-semibold text-rose-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
                     Tầm Nhìn Cá Nhân
@@ -488,7 +488,7 @@ export default function Home() {
                     transition={{ duration: 3, repeat: Infinity }}
                     className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-400 to-blue-400 flex items-center justify-center mb-4 shadow-lg"
                   >
-                    <Eye className="w-7 h-7 text-white" />
+                    <BookOpen className="w-7 h-7 text-white" />
                   </motion.div>
                   <h3 
                     className="text-xl font-semibold tracking-wide mb-2 text-center text-indigo-900"
