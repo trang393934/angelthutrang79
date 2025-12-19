@@ -16,6 +16,7 @@ export default function Layout({ children, currentPageName }) {
   const [isSearching, setIsSearching] = useState(false);
   const [walletAddress, setWalletAddress] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const location = useLocation();
 
   const menuItems = [
@@ -115,6 +116,39 @@ export default function Layout({ children, currentPageName }) {
       });
     }
   }, []);
+
+  // Track user activity
+  useEffect(() => {
+    const updateActivity = () => setLastActivityTime(Date.now());
+    
+    window.addEventListener('mousemove', updateActivity);
+    window.addEventListener('keydown', updateActivity);
+    window.addEventListener('click', updateActivity);
+    window.addEventListener('scroll', updateActivity);
+    window.addEventListener('touchstart', updateActivity);
+    
+    return () => {
+      window.removeEventListener('mousemove', updateActivity);
+      window.removeEventListener('keydown', updateActivity);
+      window.removeEventListener('click', updateActivity);
+      window.removeEventListener('scroll', updateActivity);
+      window.removeEventListener('touchstart', updateActivity);
+    };
+  }, []);
+
+  // Auto-disconnect wallet after 30 minutes of inactivity
+  useEffect(() => {
+    const checkInactivity = setInterval(() => {
+      const inactiveTime = Date.now() - lastActivityTime;
+      const thirtyMinutes = 30 * 60 * 1000;
+      
+      if (walletAddress && inactiveTime > thirtyMinutes) {
+        disconnectWallet();
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(checkInactivity);
+  }, [walletAddress, lastActivityTime]);
 
   // Keyboard shortcut for search
   React.useEffect(() => {
