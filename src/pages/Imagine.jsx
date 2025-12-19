@@ -52,10 +52,17 @@ export default function Imagine() {
     setIsGenerating(true);
     try {
       const result = await base44.integrations.Core.GenerateImage({ prompt });
+      
+      // Check if result has url property
+      if (!result || !result.url) {
+        throw new Error('Không nhận được URL hình ảnh từ API');
+      }
+      
       setGeneratedImages([{ url: result.url, prompt }, ...generatedImages]);
       setPrompt('');
     } catch (error) {
-      alert('Lỗi khi tạo hình ảnh');
+      console.error('Generate image error:', error);
+      alert('Lỗi khi tạo hình ảnh: ' + (error.message || 'Vui lòng thử lại sau'));
     }
     setIsGenerating(false);
   };
@@ -78,6 +85,11 @@ Return only the enhanced prompt, nothing else.`,
         prompt: enhancedPrompt 
       });
       
+      // Check if result has url property
+      if (!result || !result.url) {
+        throw new Error('Không nhận được URL hình ảnh từ API');
+      }
+      
       setGeneratedImages([{ 
         url: result.url, 
         prompt: editPrompt,
@@ -86,7 +98,8 @@ Return only the enhanced prompt, nothing else.`,
       }, ...generatedImages]);
       setEditPrompt('');
     } catch (error) {
-      alert('Lỗi khi chỉnh sửa hình ảnh');
+      console.error('Edit image error:', error);
+      alert('Lỗi khi chỉnh sửa hình ảnh: ' + (error.message || 'Vui lòng thử lại sau'));
     }
     setIsGenerating(false);
   };
