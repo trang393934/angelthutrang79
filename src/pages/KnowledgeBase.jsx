@@ -19,6 +19,9 @@ export default function KnowledgeBase() {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isGeneratingFAQ, setIsGeneratingFAQ] = useState(false);
+  const [showFAQ, setShowFAQ] = useState(false);
+  const [relatedDocs, setRelatedDocs] = useState([]);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -35,6 +38,15 @@ export default function KnowledgeBase() {
         { is_active: true },
         '-created_date'
       );
+    },
+    enabled: !!currentUser,
+  });
+
+  const { data: faqs = [] } = useQuery({
+    queryKey: ['knowledge-faqs', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      return base44.entities.KnowledgeFAQ.list('-views', 20);
     },
     enabled: !!currentUser,
   });
@@ -149,6 +161,118 @@ Trả về JSON với format:
     },
   });
 
+  const generateFAQ = async () => {
+    if (knowledgeBase.length === 0) return;
+    
+    setIsGeneratingFAQ(true);
+    
+    try {
+      // Tổng hợp nội dung từ tất cả Knowledge Base
+      const allContent = knowledgeBase.map(doc => 
+        `**${doc.title}** (${typeLabels[doc.type]})\n${doc.summary || doc.content.substring(0, 500)}`
+      ).join('\n\n---\n\n');
+
+      const faqResult = await base44.integrations.Core.InvokeLLM({
+        prompt: `Dựa trên kho tri thức sau về tâm linh, thiền định và Cha Vũ Trụ, hãy tạo 10-15 câu hỏi thường gặp (FAQ) và câu trả lời chi tiết:
+
+${allContent}
+
+Tạo FAQ theo format JSON:
+{
+  "faqs": [
+    {
+      "question": "Câu hỏi...",
+      "answer": "Câu trả lời chi tiết, sâu sắc...",
+      "category": "Một trong: thiền định, tâm linh, luật hấp dẫn, chữa lành, năng lượng"
+    }
+  ]
+}
+
+Yêu cầu:
+- Câu hỏi phải phổ biến, thực tế mà người dùng hay thắc mắc
+- Câu trả lời phải chi tiết, trích dẫn từ nội dung Knowledge Base
+- Viết bằng giọng của Angel AI - ấm áp, dễ hiểu, đầy yêu thương
+- Phân loại theo category phù hợp`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            faqs: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  question: { type: "string" },
+                  answer: { type: "string" },
+                  category: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Xóa FAQ cũ và tạo FAQ mới
+      const oldFAQs = await base44.entities.KnowledgeFAQ.list();
+      for (const oldFAQ of oldFAQs) {
+        await base44.entities.KnowledgeFAQ.delete(oldFAQ.id);
+      }
+
+      // Tạo FAQ mới
+      for (const faq of faqResult.faqs) {
+        await base44.entities.KnowledgeFAQ.create({
+          question: faq.question,
+          answer: faq.answer,
+          category: faq.category,
+          related_docs: [],
+          views: 0
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['knowledge-faqs'] });
+      setShowFAQ(true);
+    } catch (error) {
+      console.error('Error generating FAQ:', error);
+    }
+    
+    setIsGeneratingFAQ(false);
+  };
+
+  const findRelatedDocs = async (currentDoc) => {
+    if (!currentDoc) return;
+    
+    const related = await base44.integrations.Core.InvokeLLM({
+      prompt: `Dựa trên tài liệu sau:
+**${currentDoc.title}**
+Tags: ${currentDoc.tags?.join(', ') || 'N/A'}
+Summary: ${currentDoc.summary || 'N/A'}
+
+Và danh sách tài liệu khác:
+${knowledgeBase.filter(doc => doc.id !== currentDoc.id).map(doc => 
+  `- ID: ${doc.id} | ${doc.title} | Tags: ${doc.tags?.join(', ') || 'N/A'}`
+).join('\n')}
+
+Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
+{
+  "related_ids": ["id1", "id2", "id3"]
+}`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          related_ids: {
+            type: "array",
+            items: { type: "string" }
+          }
+        }
+      }
+    });
+
+    const relatedDocsList = knowledgeBase.filter(doc => 
+      related.related_ids.includes(doc.id)
+    );
+    
+    setRelatedDocs(relatedDocsList);
+  };
+
   const typeColors = {
     document: 'bg-blue-500/20 text-blue-200 border-blue-400/30',
     teaching: 'bg-amber-500/20 text-amber-200 border-amber-400/30',
@@ -176,44 +300,54 @@ Trả về JSON với format:
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-indigo-200 shadow-lg">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0">
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+          <Link to={createPageUrl('Home')}>
+            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+          </Link>
 
-            <div className="flex items-center gap-2 flex-1 justify-center">
-              <motion.div
-                animate={{ 
-                  boxShadow: [
-                    '0 0 20px rgba(99,102,241,0.4)',
-                    '0 0 40px rgba(99,102,241,0.6)',
-                    '0 0 20px rgba(99,102,241,0.4)',
-                  ]
-                }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center flex-shrink-0"
-              >
-                <BookOpen className="w-5 h-5 text-white" />
-              </motion.div>
-              <div className="text-center">
-                <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg">Knowledge Base</h1>
-                <p className="text-purple-600 text-xs font-medium">Kho Tri Thức Của AI</p>
-              </div>
+          <div className="flex items-center gap-2 flex-1 justify-center">
+            <motion.div
+              animate={{ 
+                boxShadow: [
+                  '0 0 20px rgba(99,102,241,0.4)',
+                  '0 0 40px rgba(99,102,241,0.6)',
+                  '0 0 20px rgba(99,102,241,0.4)',
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center flex-shrink-0"
+            >
+              <BookOpen className="w-5 h-5 text-white" />
+            </motion.div>
+            <div className="text-center">
+              <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg">Knowledge Base</h1>
+              <p className="text-purple-600 text-xs font-medium">Kho Tri Thức Của AI</p>
             </div>
+          </div>
 
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {knowledgeBase.length > 0 && (
+              <Button
+                onClick={() => setShowFAQ(!showFAQ)}
+                variant="outline"
+                size="sm"
+                className="border-2 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full h-10 px-3"
+              >
+                <span className="hidden lg:inline">FAQ</span>
+                <span className="lg:hidden">?</span>
+              </Button>
+            )}
             {isAdmin && (
               <Button
                 onClick={() => setShowUploadForm(true)}
-                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all flex-shrink-0 h-10 w-10 lg:w-auto lg:px-4 p-0"
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all h-10 w-10 lg:w-auto lg:px-4 p-0"
               >
                 <Plus className="w-4 h-4 lg:mr-2" />
                 <span className="hidden lg:inline">Upload</span>
               </Button>
             )}
-            {!isAdmin && (
-              <div className="w-10 flex-shrink-0" />
-            )}
+          </div>
           </div>
         </div>
       </div>
@@ -466,6 +600,117 @@ Trả về JSON với format:
                   </ReactMarkdown>
                 </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* FAQ Modal */}
+      <AnimatePresence>
+        {showFAQ && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-40 flex items-center justify-center p-4"
+            onClick={() => setShowFAQ(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-8 max-w-4xl w-full max-h-[85vh] overflow-y-auto shadow-2xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-slate-900 text-xl font-bold">Câu Hỏi Thường Gặp</h3>
+                    <p className="text-purple-600 text-sm font-medium">Từ Knowledge Base</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isAdmin && (
+                    <Button
+                      onClick={generateFAQ}
+                      disabled={isGeneratingFAQ}
+                      size="sm"
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg"
+                    >
+                      {isGeneratingFAQ ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Đang tạo...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Tạo FAQ
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowFAQ(false)}
+                    className="text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+
+              {faqs.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-8 h-8 text-purple-300/40" />
+                  </div>
+                  <p className="text-slate-700 font-medium mb-4">Chưa có FAQ nào</p>
+                  {isAdmin && (
+                    <Button
+                      onClick={generateFAQ}
+                      disabled={isGeneratingFAQ}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg"
+                    >
+                      {isGeneratingFAQ ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Đang tạo FAQ...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Tạo FAQ từ Knowledge Base
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {faqs.map((faq, idx) => (
+                    <motion.div
+                      key={faq.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4"
+                    >
+                      <div className="flex items-start gap-3 mb-2">
+                        <Badge className="bg-purple-200 text-purple-800 border border-purple-300 text-xs">
+                          {faq.category}
+                        </Badge>
+                      </div>
+                      <h4 className="text-slate-900 font-bold text-base mb-2">❓ {faq.question}</h4>
+                      <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">{faq.answer}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
