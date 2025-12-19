@@ -14,6 +14,7 @@ import CamlycoinHistory from './pages/CamlycoinHistory';
 import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
 import GratitudeJournal from './pages/GratitudeJournal';
+import LightLaw from './pages/LightLaw';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "Analytics": Analytics,
     "UserProfile": UserProfile,
     "GratitudeJournal": GratitudeJournal,
+    "LightLaw": LightLaw,
 }
 
 export const pagesConfig = {

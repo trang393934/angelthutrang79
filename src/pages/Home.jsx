@@ -27,23 +27,65 @@ export default function Home() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="absolute top-4 right-4 z-50 flex gap-2"
+        className="absolute top-4 right-4 z-50 flex flex-col gap-3"
       >
-        <Button
-          onClick={() => base44.auth.redirectToLogin()}
-          variant="outline"
-          size="sm"
-          className="border border-purple-300 text-purple-700 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold hover:bg-purple-50 hover:scale-105 transition-all shadow-lg"
+        <div className="flex gap-2">
+          <Button
+            onClick={() => base44.auth.redirectToLogin()}
+            variant="outline"
+            size="sm"
+            className="border border-purple-300 text-purple-700 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold hover:bg-purple-50 hover:scale-105 transition-all shadow-lg"
+          >
+            Đăng Nhập
+          </Button>
+          <Button
+            onClick={() => base44.auth.redirectToLogin()}
+            size="sm"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105 transition-all"
+          >
+            Đăng Ký
+          </Button>
+        </div>
+
+        {/* Light Law Agreement */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.8 }}
         >
-          Đăng Nhập
-        </Button>
-        <Button
-          onClick={() => base44.auth.redirectToLogin()}
-          size="sm"
-          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105 transition-all"
-        >
-          Đăng Ký
-        </Button>
+          <Link to={createPageUrl('LightLaw')}>
+            <motion.div
+              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(251,191,36,0.6)' }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-amber-50 via-rose-50 to-purple-50 backdrop-blur-sm border-2 border-amber-400 rounded-2xl p-3 shadow-lg cursor-pointer"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <motion.div
+                  animate={{ 
+                    boxShadow: [
+                      '0 0 10px rgba(251,191,36,0.5)',
+                      '0 0 20px rgba(251,191,36,0.7)',
+                      '0 0 10px rgba(251,191,36,0.5)',
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center shadow-md"
+                >
+                  <Sun className="w-3.5 h-3.5 text-white" />
+                </motion.div>
+                <h3 className="text-xs font-black text-amber-900 tracking-wide">LUẬT ÁNH SÁNG</h3>
+              </div>
+              <div className="flex items-start gap-2 ml-1">
+                <div className="w-4 h-4 rounded border-2 border-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5 bg-white">
+                  <Check className="w-3 h-3 text-amber-500 opacity-30" />
+                </div>
+                <p className="text-[11px] font-bold text-slate-700 leading-tight">
+                  Con đồng ý rung động theo Luật Ánh Sáng
+                </p>
+              </div>
+            </motion.div>
+          </Link>
+        </motion.div>
       </motion.div>
       {/* Sacred Geometry Background Pattern */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
