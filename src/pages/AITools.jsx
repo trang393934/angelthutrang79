@@ -470,52 +470,94 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
           )}
 
           {activeTab === 'music' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="text-slate-900 text-sm font-semibold mb-2 block">🎵 Thể loại nhạc:</label>
-                <Select value={musicStyle} onValueChange={setMusicStyle}>
-                  <SelectTrigger className="bg-white border-2 border-purple-300 text-slate-900 rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pop">Pop - Nhạc Pop</SelectItem>
-                    <SelectItem value="rock">Rock - Nhạc Rock</SelectItem>
-                    <SelectItem value="ballad">Ballad - Nhạc Ballad</SelectItem>
-                    <SelectItem value="rap">Rap/Hip-Hop</SelectItem>
-                    <SelectItem value="edm">EDM - Electronic Dance</SelectItem>
-                    <SelectItem value="jazz">Jazz - Nhạc Jazz</SelectItem>
-                    <SelectItem value="blues">Blues - Nhạc Blues</SelectItem>
-                    <SelectItem value="country">Country - Nhạc Đồng Quê</SelectItem>
-                    <SelectItem value="folk">Folk - Nhạc Dân Gian</SelectItem>
-                    <SelectItem value="soul">Soul/R&B</SelectItem>
-                    <SelectItem value="classical">Classical - Cổ Điển</SelectItem>
-                    <SelectItem value="indie">Indie - Độc Lập</SelectItem>
-                    <SelectItem value="acoustic">Acoustic - Nguyên Âm</SelectItem>
-                    <SelectItem value="spiritual">Spiritual - Tâm Linh</SelectItem>
-                  </SelectContent>
-                </Select>
+            <div className="space-y-4 mb-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-slate-900 text-sm font-semibold mb-2 block">🎵 Thể loại nhạc:</label>
+                  <Select value={musicStyle} onValueChange={setMusicStyle}>
+                    <SelectTrigger className="bg-white border-2 border-purple-300 text-slate-900 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pop">Pop - Nhạc Pop</SelectItem>
+                      <SelectItem value="rock">Rock - Nhạc Rock</SelectItem>
+                      <SelectItem value="ballad">Ballad - Nhạc Ballad</SelectItem>
+                      <SelectItem value="rap">Rap/Hip-Hop</SelectItem>
+                      <SelectItem value="edm">EDM - Electronic Dance</SelectItem>
+                      <SelectItem value="jazz">Jazz - Nhạc Jazz</SelectItem>
+                      <SelectItem value="blues">Blues - Nhạc Blues</SelectItem>
+                      <SelectItem value="country">Country - Nhạc Đồng Quê</SelectItem>
+                      <SelectItem value="folk">Folk - Nhạc Dân Gian</SelectItem>
+                      <SelectItem value="soul">Soul/R&B</SelectItem>
+                      <SelectItem value="classical">Classical - Cổ Điển</SelectItem>
+                      <SelectItem value="indie">Indie - Độc Lập</SelectItem>
+                      <SelectItem value="acoustic">Acoustic - Nguyên Âm</SelectItem>
+                      <SelectItem value="spiritual">Spiritual - Tâm Linh</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-slate-900 text-sm font-semibold mb-2 block">💫 Tâm trạng:</label>
+                  <Select value={musicMood} onValueChange={setMusicMood}>
+                    <SelectTrigger className="bg-white border-2 border-purple-300 text-slate-900 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="happy">😊 Vui vẻ, tươi sáng</SelectItem>
+                      <SelectItem value="sad">😢 Buồn, u sầu</SelectItem>
+                      <SelectItem value="romantic">💕 Lãng mạn, ngọt ngào</SelectItem>
+                      <SelectItem value="energetic">⚡ Mạnh mẽ, năng động</SelectItem>
+                      <SelectItem value="peaceful">🕊️ Yên bình, thanh thản</SelectItem>
+                      <SelectItem value="melancholic">🌧️ Sầu muộn, hoài niệm</SelectItem>
+                      <SelectItem value="motivational">🔥 Động lực, truyền cảm hứng</SelectItem>
+                      <SelectItem value="dreamy">✨ Mơ màng, mộng mơ</SelectItem>
+                      <SelectItem value="angry">😠 Giận dữ, nổi loạn</SelectItem>
+                      <SelectItem value="spiritual">🙏 Tâm linh, thiền định</SelectItem>
+                      <SelectItem value="nostalgic">⏰ Hoài cổ, nhớ nhung</SelectItem>
+                      <SelectItem value="hopeful">🌈 Hy vọng, lạc quan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div>
-                <label className="text-slate-900 text-sm font-semibold mb-2 block">💫 Tâm trạng:</label>
-                <Select value={musicMood} onValueChange={setMusicMood}>
-                  <SelectTrigger className="bg-white border-2 border-purple-300 text-slate-900 rounded-xl">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="happy">😊 Vui vẻ, tươi sáng</SelectItem>
-                    <SelectItem value="sad">😢 Buồn, u sầu</SelectItem>
-                    <SelectItem value="romantic">💕 Lãng mạn, ngọt ngào</SelectItem>
-                    <SelectItem value="energetic">⚡ Mạnh mẽ, năng động</SelectItem>
-                    <SelectItem value="peaceful">🕊️ Yên bình, thanh thản</SelectItem>
-                    <SelectItem value="melancholic">🌧️ Sầu muộn, hoài niệm</SelectItem>
-                    <SelectItem value="motivational">🔥 Động lực, truyền cảm hứng</SelectItem>
-                    <SelectItem value="dreamy">✨ Mơ màng, mộng mơ</SelectItem>
-                    <SelectItem value="angry">😠 Giận dữ, nổi loạn</SelectItem>
-                    <SelectItem value="spiritual">🙏 Tâm linh, thiền định</SelectItem>
-                    <SelectItem value="nostalgic">⏰ Hoài cổ, nhớ nhung</SelectItem>
-                    <SelectItem value="hopeful">🌈 Hy vọng, lạc quan</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Advanced Options */}
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4 space-y-3">
+                <h4 className="text-slate-900 font-bold text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  Tùy Chọn Nâng Cao (Tùy Chọn)
+                </h4>
+                
+                <div>
+                  <label className="text-slate-700 text-xs font-semibold mb-1.5 block">🎤 Ca sĩ/Ban nhạc muốn hướng tới:</label>
+                  <input
+                    type="text"
+                    value={artistReference}
+                    onChange={(e) => setArtistReference(e.target.value)}
+                    placeholder="Ví dụ: Taylor Swift, The Beatles, BTS, Sơn Tùng M-TP..."
+                    className="w-full bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-300 rounded-xl px-3 py-2 text-sm focus:border-purple-500 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 text-xs font-semibold mb-1.5 block">🎧 Các bài hát tương tự:</label>
+                  <input
+                    type="text"
+                    value={similarSongs}
+                    onChange={(e) => setSimilarSongs(e.target.value)}
+                    placeholder="Ví dụ: Shape of You, Bohemian Rhapsody, Lạc Trôi..."
+                    className="w-full bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-300 rounded-xl px-3 py-2 text-sm focus:border-purple-500 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-700 text-xs font-semibold mb-1.5 block">🎼 Mô tả giai điệu (nếu có):</label>
+                  <Textarea
+                    value={melodyDescription}
+                    onChange={(e) => setMelodyDescription(e.target.value)}
+                    placeholder="Ví dụ: Verse bắt đầu chậm với piano, Chorus nổi lên mạnh mẽ với guitar điện và drums, Bridge có solo guitar..."
+                    className="min-h-[80px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-300 rounded-xl text-sm resize-none"
+                  />
+                </div>
               </div>
             </div>
           )}
