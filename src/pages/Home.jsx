@@ -22,6 +22,29 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
+      {/* Auth Buttons - Top Right */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="fixed top-4 right-4 z-50 flex gap-2"
+      >
+        <Button
+          onClick={() => base44.auth.redirectToLogin()}
+          variant="outline"
+          size="sm"
+          className="border border-purple-300 text-purple-700 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold hover:bg-purple-50 hover:scale-105 transition-all shadow-lg"
+        >
+          Đăng Nhập
+        </Button>
+        <Button
+          onClick={() => base44.auth.redirectToLogin()}
+          size="sm"
+          className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105 transition-all"
+        >
+          Đăng Ký
+        </Button>
+      </motion.div>
       {/* Sacred Geometry Background Pattern */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -121,28 +144,6 @@ export default function Home() {
             </motion.p>
           </motion.div>
         </div>
-
-        {/* Register/Login Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.5 }}
-          className="flex gap-4 justify-center mt-8"
-        >
-          <Button
-            onClick={() => base44.auth.redirectToLogin()}
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-8 py-6 text-lg font-bold shadow-2xl hover:shadow-purple-500/50 hover:scale-105 transition-all"
-          >
-            Đăng Ký Miễn Phí
-          </Button>
-          <Button
-            onClick={() => base44.auth.redirectToLogin()}
-            variant="outline"
-            className="border-2 border-purple-400 text-purple-700 bg-white/80 backdrop-blur-sm rounded-full px-8 py-6 text-lg font-bold hover:bg-purple-50 hover:scale-105 transition-all"
-          >
-            Đăng Nhập
-          </Button>
-        </motion.div>
 
         {/* Scroll Indicator */}
         <motion.div
