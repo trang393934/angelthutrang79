@@ -34,10 +34,12 @@ export default function Chat() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [copiedMessageIndex, setCopiedMessageIndex] = useState(null);
+  const [messageReadTimes, setMessageReadTimes] = useState({});
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const recognitionRef = useRef(null);
   const synthRef = useRef(null);
+  const messageObserverRef = useRef(null);
 
   const { data: conversations = [] } = useQuery({
     queryKey: ['conversations', currentUser?.email],
@@ -149,6 +151,62 @@ export default function Chat() {
 
   useEffect(() => {
     scrollToBottom();
+  }, [messages]);
+
+  // Track reading time for AI messages
+  useEffect(() => {
+    if (!messageObserverRef.current) {
+      messageObserverRef.current = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const messageIndex = parseInt(entry.target.dataset.messageIndex);
+            const message = messages[messageIndex];
+            
+            if (message && message.role === 'assistant' && !message.isReward) {
+              if (entry.isIntersecting) {
+                // Start tracking read time
+                setMessageReadTimes(prev => ({
+                  ...prev,
+                  [messageIndex]: {
+                    ...prev[messageIndex],
+                    startTime: prev[messageIndex]?.startTime || Date.now(),
+                    visible: true
+                  }
+                }));
+              } else {
+                // Stop tracking when not visible
+                setMessageReadTimes(prev => {
+                  if (!prev[messageIndex]) return prev;
+                  
+                  const elapsed = Date.now() - prev[messageIndex].startTime;
+                  return {
+                    ...prev,
+                    [messageIndex]: {
+                      ...prev[messageIndex],
+                      totalTime: (prev[messageIndex].totalTime || 0) + elapsed,
+                      visible: false
+                    }
+                  };
+                });
+              }
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+    }
+
+    // Observe all assistant messages
+    const messageElements = document.querySelectorAll('[data-message-index]');
+    messageElements.forEach(el => {
+      messageObserverRef.current.observe(el);
+    });
+
+    return () => {
+      if (messageObserverRef.current) {
+        messageObserverRef.current.disconnect();
+      }
+    };
   }, [messages]);
 
   const loadConversation = (conversation) => {
@@ -345,9 +403,22 @@ export default function Chat() {
         }
       }).then(result => setSuggestedQuestions(result.questions || [])),
 
-      // 2. Energy analysis + Camlycoin
+      // 2. Energy analysis + Camlycoin (delayed to track reading time)
       (async () => {
         try {
+          // Calculate expected reading time (words per minute)
+          const wordCount = response.split(' ').length;
+          const expectedReadTimeMs = (wordCount / 200) * 60 * 1000; // 200 words/min
+          const messageIndex = finalMessages.length - 1;
+
+          // Wait for reading time tracking
+          await new Promise(resolve => setTimeout(resolve, Math.min(expectedReadTimeMs, 30000)));
+
+          // Get actual reading time
+          const readData = messageReadTimes[messageIndex];
+          const actualReadTime = readData?.totalTime || 0;
+          const readPercentage = Math.min(100, Math.round((actualReadTime / expectedReadTimeMs) * 100));
+
           const energyAnalysis = await base44.integrations.Core.InvokeLLM({
             prompt: `Phân tích tâm và năng lượng của câu hỏi: "${userInput.substring(0, 200)}"
 
@@ -391,45 +462,69 @@ export default function Chat() {
           });
 
           if (currentUser && energyAnalysis.reward_amount !== 0) {
-            const transactionType = energyAnalysis.reward_amount > 0 ? 'manual_add' : 'manual_deduct';
-            await base44.entities.CamlycoinTransaction.create({
-              user_email: currentUser.email,
-              amount: energyAnalysis.reward_amount,
-              type: transactionType,
-              description: `${energyAnalysis.reward_amount < 0 ? '⚠️ Cảnh báo' : 'Thưởng'} (${energyAnalysis.total_score}/30): ${energyAnalysis.reason}`,
-              reference_id: currentConversationId
-            });
+            // Adjust reward based on reading percentage
+            const maxReward = energyAnalysis.reward_amount;
+            let actualReward = 0;
+            let readingPenalty = 0;
 
-            const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
-            if (balances.length > 0) {
-              const balance = balances[0];
-              await base44.entities.CamlycoinBalance.update(balance.id, {
-                balance: (balance.balance || 0) + energyAnalysis.reward_amount,
-                total_earned: energyAnalysis.reward_amount > 0 ? (balance.total_earned || 0) + energyAnalysis.reward_amount : balance.total_earned,
-                total_spent: energyAnalysis.reward_amount < 0 ? (balance.total_spent || 0) + Math.abs(energyAnalysis.reward_amount) : balance.total_spent
-              });
+            if (readPercentage === 0) {
+              actualReward = 0;
+              readingPenalty = maxReward;
+            } else if (readPercentage < 30) {
+              actualReward = Math.round(maxReward * 0.3);
+              readingPenalty = maxReward - actualReward;
+            } else if (readPercentage < 50) {
+              actualReward = Math.round(maxReward * 0.5);
+              readingPenalty = maxReward - actualReward;
+            } else if (readPercentage < 80) {
+              actualReward = Math.round(maxReward * 0.7);
+              readingPenalty = maxReward - actualReward;
             } else {
-              await base44.entities.CamlycoinBalance.create({
-                user_email: currentUser.email,
-                balance: energyAnalysis.reward_amount,
-                total_earned: energyAnalysis.reward_amount > 0 ? energyAnalysis.reward_amount : 0,
-                total_spent: energyAnalysis.reward_amount < 0 ? Math.abs(energyAnalysis.reward_amount) : 0
-              });
+              actualReward = maxReward;
+              readingPenalty = 0;
             }
 
-            const rewardMessage = {
-              role: 'assistant',
-              content: `${energyAnalysis.reward_amount < 0 ? '⚠️' : '✨'} ${energyAnalysis.reward_amount > 0 ? '+' : ''}${energyAnalysis.reward_amount} Camlycoin 🪙\n\n${energyAnalysis.reason}`,
-              isReward: true
-            };
-
-            setMessages([...finalMessages, rewardMessage]);
-            
-            if (currentConversationId) {
-              updateConversationMutation.mutate({
-                id: currentConversationId,
-                data: { messages: [...finalMessages, rewardMessage] }
+            if (actualReward !== 0) {
+              const transactionType = actualReward > 0 ? 'manual_add' : 'manual_deduct';
+              await base44.entities.CamlycoinTransaction.create({
+                user_email: currentUser.email,
+                amount: actualReward,
+                type: transactionType,
+                description: `${actualReward < 0 ? '⚠️ Cảnh báo' : '✨ Thưởng'} (${energyAnalysis.total_score}/30)\n📖 Đọc ${readPercentage}% nội dung\n💰 Tối đa: ${maxReward > 0 ? '+' : ''}${maxReward} Camlycoin\n${readingPenalty !== 0 ? `⚠️ Trừ do đọc chưa hết: -${readingPenalty} Camlycoin\n` : ''}✅ Nhận thực tế: ${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin\n💡 ${energyAnalysis.reason}`,
+                reference_id: currentConversationId
               });
+
+              const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+              if (balances.length > 0) {
+                const balance = balances[0];
+                await base44.entities.CamlycoinBalance.update(balance.id, {
+                  balance: (balance.balance || 0) + actualReward,
+                  total_earned: actualReward > 0 ? (balance.total_earned || 0) + actualReward : balance.total_earned,
+                  total_spent: actualReward < 0 ? (balance.total_spent || 0) + Math.abs(actualReward) : balance.total_spent
+                });
+              } else {
+                await base44.entities.CamlycoinBalance.create({
+                  user_email: currentUser.email,
+                  balance: actualReward,
+                  total_earned: actualReward > 0 ? actualReward : 0,
+                  total_spent: actualReward < 0 ? Math.abs(actualReward) : 0
+                });
+              }
+
+              const rewardMessage = {
+                role: 'assistant',
+                content: `${actualReward < 0 ? '⚠️' : '✨'} Nhận Camlycoin 🪙\n\n📖 **Đọc:** ${readPercentage}%\n💰 **Tối đa:** ${maxReward > 0 ? '+' : ''}${maxReward}\n${readingPenalty !== 0 ? `⚠️ **Trừ:** -${readingPenalty}\n` : ''}✅ **Nhận:** ${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin\n\n💡 ${energyAnalysis.reason}\n\n${readPercentage < 100 ? '📚 Hãy đọc hết nội dung để nhận 100% phần thưởng nhé con!' : '🎉 Tuyệt vời! Con đã đọc hết câu trả lời!'}`,
+                isReward: true
+              };
+
+              setMessages(prev => [...prev, rewardMessage]);
+              
+              if (currentConversationId) {
+                updateConversationMutation.mutate({
+                  id: currentConversationId,
+                  data: { messages: [...finalMessages, rewardMessage] }
+                });
+              }
             }
           }
         } catch (error) {
@@ -893,6 +988,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             {messages.map((message, index) => (
               <motion.div
                 key={index}
+                data-message-index={index}
                 initial={{ opacity: 0, y: 20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
