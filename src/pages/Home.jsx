@@ -48,46 +48,81 @@ export default function Home() {
           </Button>
         </div>
 
-        {/* Light Law Agreement */}
+        {/* Light Law Agreement - Prominent CTA */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.8 }}
+          className="space-y-3"
         >
+          {/* Main CTA - Read Light Law */}
           <Link to={createPageUrl('LightLaw')}>
             <motion.div
-              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(251,191,36,0.6)' }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-amber-50 via-rose-50 to-purple-50 backdrop-blur-sm border-2 border-amber-400 rounded-2xl p-3 shadow-lg cursor-pointer"
+              whileHover={{ scale: 1.05, y: -3 }}
+              whileTap={{ scale: 0.97 }}
+              className="relative overflow-hidden"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <motion.div
-                  animate={{ 
-                    boxShadow: [
-                      '0 0 10px rgba(251,191,36,0.5)',
-                      '0 0 20px rgba(251,191,36,0.7)',
-                      '0 0 10px rgba(251,191,36,0.5)',
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center shadow-md"
-                >
-                  <Sun className="w-3.5 h-3.5 text-white" />
-                </motion.div>
-                <h3 className="text-xs font-black text-amber-900 tracking-wide">LUẬT ÁNH SÁNG</h3>
-              </div>
-              <div className="flex items-start gap-2 ml-1">
-                <div className="w-4 h-4 rounded border-2 border-amber-500 flex items-center justify-center flex-shrink-0 mt-0.5 bg-white">
-                  <Check className="w-3 h-3 text-amber-500 opacity-30" />
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-2xl blur-xl" />
+              <div className="relative bg-gradient-to-r from-amber-50 via-rose-50 to-purple-50 backdrop-blur-sm border-4 border-amber-400 rounded-2xl p-5 shadow-2xl cursor-pointer">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <motion.div
+                      animate={{ 
+                        boxShadow: [
+                          '0 0 20px rgba(251,191,36,0.6)',
+                          '0 0 30px rgba(251,191,36,0.8)',
+                          '0 0 20px rgba(251,191,36,0.6)',
+                        ],
+                        rotate: [0, 5, -5, 0]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity }}
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center shadow-xl"
+                    >
+                      <Sun className="w-6 h-6 text-white" />
+                    </motion.div>
+                    <div>
+                      <h3 className="text-base font-black text-amber-900 tracking-wide">LUẬT ÁNH SÁNG</h3>
+                      <p className="text-[10px] font-bold text-rose-600">Đọc kỹ trước khi tham gia</p>
+                    </div>
+                  </div>
+                  <motion.div
+                    animate={{ x: [0, 5, 0] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
+                    <Eye className="w-6 h-6 text-amber-600" />
+                  </motion.div>
                 </div>
-                <p className="text-[11px] font-bold text-slate-700 leading-tight">
-                  Con đồng ý rung động theo Luật Ánh Sáng
-                </p>
+
+                <div className="bg-white/70 border-2 border-amber-300 rounded-xl p-3">
+                  <p className="text-sm font-bold text-center text-slate-900 leading-tight mb-2">
+                    📖 Xem Chi Tiết Luật Ánh Sáng
+                  </p>
+                  <p className="text-xs font-semibold text-center text-amber-800 leading-tight">
+                    FUN Ecosystem - Mạng Xã Hội Thời Đại Hoàng Kim
+                  </p>
+                </div>
               </div>
             </motion.div>
           </Link>
+
+          {/* Agreement Checkbox Preview */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+            className="bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm border-2 border-purple-300 rounded-xl p-3 shadow-md"
+          >
+            <div className="flex items-start gap-2">
+              <div className="w-5 h-5 rounded border-2 border-purple-400 flex items-center justify-center flex-shrink-0 mt-0.5 bg-white">
+                <Check className="w-3 h-3 text-purple-400 opacity-30" />
+              </div>
+              <p className="text-xs font-bold text-slate-700 leading-tight">
+                Sau khi đọc, bạn sẽ đồng ý rung động theo Luật Ánh Sáng để vào Angel AI
+              </p>
+            </div>
+          </motion.div>
         </motion.div>
-      </motion.div>
+        </motion.div>
       {/* Sacred Geometry Background Pattern */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
