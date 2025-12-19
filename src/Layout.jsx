@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -37,6 +37,12 @@ export default function Layout({ children, currentPageName }) {
       icon: Wallet, 
       path: 'CamlycoinHistory',
       gradient: 'from-yellow-400 to-orange-400'
+    },
+    { 
+      name: 'Analytics', 
+      icon: TrendingUp, 
+      path: 'Analytics',
+      gradient: 'from-purple-400 to-pink-400'
     },
     { 
       name: 'Chế độ thoại', 
