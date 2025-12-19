@@ -85,13 +85,7 @@ export default function LightLaw() {
               <Sun className="w-10 h-10 text-amber-600" />
             </motion.div>
 
-            <h1 
-              className="text-4xl md:text-5xl font-black tracking-wide mb-3"
-              style={{
-                fontFamily: "'Bungee', 'Impact', sans-serif",
-                color: '#a855f7',
-              }}
-            >
+            <h1 className="text-4xl md:text-5xl font-black tracking-wide mb-3 text-purple-600">
               LUẬT ÁNH SÁNG
             </h1>
             <p className="text-xl text-amber-800 font-bold">
