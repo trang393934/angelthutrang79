@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,12 +17,15 @@ export default function AITools() {
   const [isLoading, setIsLoading] = useState(false);
   const [targetLanguage, setTargetLanguage] = useState('en');
   const [copied, setCopied] = useState(false);
+  const [musicStyle, setMusicStyle] = useState('pop');
+  const [musicMood, setMusicMood] = useState('happy');
 
   const tabs = [
     { id: 'summarize', label: 'Tóm Tắt Văn Bản', icon: FileText, gradient: 'from-blue-400 to-cyan-400' },
     { id: 'translate', label: 'Dịch Thuật', icon: Languages, gradient: 'from-purple-400 to-pink-400' },
     { id: 'analyze', label: 'Phân Tích Dữ Liệu', icon: BarChart3, gradient: 'from-green-400 to-emerald-400' },
     { id: 'tag', label: 'Tự Động Gắn Thẻ', icon: Tags, gradient: 'from-amber-400 to-orange-400' },
+    { id: 'music', label: 'Tạo Lời Bài Hát', icon: Music, gradient: 'from-rose-400 to-pink-400' },
   ];
 
   const languages = [
@@ -176,6 +179,62 @@ Tags phải:
     setIsLoading(false);
   };
 
+  const handleMusic = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    setIsLoading(true);
+    setResult('');
+    
+    try {
+      const musicGeneration = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là một nhạc sĩ tài ba. Hãy tạo lời bài hát hoàn chỉnh theo yêu cầu sau:
+
+Chủ đề/Nội dung: ${input}
+Thể loại nhạc: ${musicStyle}
+Tâm trạng: ${musicMood}
+
+Yêu cầu sáng tác:
+1. **Cấu trúc bài hát đầy đủ**: 
+   - [Intro] (nếu có)
+   - [Verse 1]
+   - [Pre-Chorus] (nếu phù hợp)
+   - [Chorus]
+   - [Verse 2]
+   - [Chorus]
+   - [Bridge]
+   - [Chorus] (lặp lại)
+   - [Outro]
+
+2. **Lời bài hát**:
+   - Phù hợp với thể loại ${musicStyle}
+   - Thể hiện tâm trạng ${musicMood}
+   - Có vần điệu, nhịp nhàng
+   - Cảm xúc chân thực, sâu sắc
+   - Ngôn ngữ đẹp, dễ hát
+
+3. **Style âm nhạc gợi ý**:
+   - Mô tả chi tiết về phong cách âm nhạc
+   - Nhạc cụ nên dùng
+   - Tempo (BPM)
+   - Mood và cảm xúc
+   - Các kỹ thuật vocal
+
+4. **Ghi chú sản xuất**:
+   - Hướng dẫn về arrangement
+   - Các hiệu ứng âm thanh
+   - Cách thể hiện từng đoạn
+
+Trình bày rõ ràng, có cấu trúc, chuyên nghiệp như một nhạc sĩ thực thụ.`,
+      });
+      
+      setResult(musicGeneration);
+    } catch (error) {
+      setResult('❌ Có lỗi xảy ra khi tạo lời bài hát. Vui lòng thử lại.');
+    }
+    
+    setIsLoading(false);
+  };
+
   const handleProcess = () => {
     switch (activeTab) {
       case 'summarize':
@@ -189,6 +248,9 @@ Tags phải:
         break;
       case 'tag':
         handleTag();
+        break;
+      case 'music':
+        handleMusic();
         break;
     }
   };
@@ -303,6 +365,7 @@ Tags phải:
                 {activeTab === 'translate' && 'Nhập văn bản để AI dịch sang ngôn ngữ khác'}
                 {activeTab === 'analyze' && 'Nhập dữ liệu để AI phân tích và đưa ra insight'}
                 {activeTab === 'tag' && 'Nhập tài liệu để AI tự động phân loại và gắn thẻ'}
+                {activeTab === 'music' && 'Mô tả chủ đề hoặc cảm xúc để AI sáng tác lời bài hát'}
               </p>
             </div>
           </div>
@@ -325,6 +388,57 @@ Tags phải:
             </div>
           )}
 
+          {activeTab === 'music' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="text-slate-900 text-sm font-semibold mb-2 block">🎵 Thể loại nhạc:</label>
+                <Select value={musicStyle} onValueChange={setMusicStyle}>
+                  <SelectTrigger className="bg-white border-2 border-purple-300 text-slate-900 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pop">Pop - Nhạc Pop</SelectItem>
+                    <SelectItem value="rock">Rock - Nhạc Rock</SelectItem>
+                    <SelectItem value="ballad">Ballad - Nhạc Ballad</SelectItem>
+                    <SelectItem value="rap">Rap/Hip-Hop</SelectItem>
+                    <SelectItem value="edm">EDM - Electronic Dance</SelectItem>
+                    <SelectItem value="jazz">Jazz - Nhạc Jazz</SelectItem>
+                    <SelectItem value="blues">Blues - Nhạc Blues</SelectItem>
+                    <SelectItem value="country">Country - Nhạc Đồng Quê</SelectItem>
+                    <SelectItem value="folk">Folk - Nhạc Dân Gian</SelectItem>
+                    <SelectItem value="soul">Soul/R&B</SelectItem>
+                    <SelectItem value="classical">Classical - Cổ Điển</SelectItem>
+                    <SelectItem value="indie">Indie - Độc Lập</SelectItem>
+                    <SelectItem value="acoustic">Acoustic - Nguyên Âm</SelectItem>
+                    <SelectItem value="spiritual">Spiritual - Tâm Linh</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-slate-900 text-sm font-semibold mb-2 block">💫 Tâm trạng:</label>
+                <Select value={musicMood} onValueChange={setMusicMood}>
+                  <SelectTrigger className="bg-white border-2 border-purple-300 text-slate-900 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="happy">😊 Vui vẻ, tươi sáng</SelectItem>
+                    <SelectItem value="sad">😢 Buồn, u sầu</SelectItem>
+                    <SelectItem value="romantic">💕 Lãng mạn, ngọt ngào</SelectItem>
+                    <SelectItem value="energetic">⚡ Mạnh mẽ, năng động</SelectItem>
+                    <SelectItem value="peaceful">🕊️ Yên bình, thanh thản</SelectItem>
+                    <SelectItem value="melancholic">🌧️ Sầu muộn, hoài niệm</SelectItem>
+                    <SelectItem value="motivational">🔥 Động lực, truyền cảm hứng</SelectItem>
+                    <SelectItem value="dreamy">✨ Mơ màng, mộng mơ</SelectItem>
+                    <SelectItem value="angry">😠 Giận dữ, nổi loạn</SelectItem>
+                    <SelectItem value="spiritual">🙏 Tâm linh, thiền định</SelectItem>
+                    <SelectItem value="nostalgic">⏰ Hoài cổ, nhớ nhung</SelectItem>
+                    <SelectItem value="hopeful">🌈 Hy vọng, lạc quan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
           <Textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -332,7 +446,8 @@ Tags phải:
               activeTab === 'summarize' ? 'Paste văn bản dài cần tóm tắt...' :
               activeTab === 'translate' ? 'Paste văn bản cần dịch...' :
               activeTab === 'analyze' ? 'Paste dữ liệu cần phân tích (text, số liệu, thống kê...)' :
-              'Paste nội dung tài liệu cần phân loại và gắn thẻ...'
+              activeTab === 'tag' ? 'Paste nội dung tài liệu cần phân loại và gắn thẻ...' :
+              'Nhập chủ đề, câu chuyện hoặc cảm xúc bạn muốn viết thành bài hát...\n\nVí dụ:\n- Một câu chuyện tình yêu buồn\n- Về hành trình tìm kiếm ánh sáng nội tâm\n- Về sự thay đổi của cuộc sống\n- Bài hát động viên vượt qua khó khăn'
             }
             className="min-h-[200px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl mb-4 font-medium leading-relaxed resize-none"
           />
@@ -354,6 +469,7 @@ Tags phải:
                 {activeTab === 'translate' && 'Dịch Ngay'}
                 {activeTab === 'analyze' && 'Phân Tích Ngay'}
                 {activeTab === 'tag' && 'Phân Loại Ngay'}
+                {activeTab === 'music' && 'Sáng Tác Ngay 🎵'}
               </>
             )}
           </Button>
