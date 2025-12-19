@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Users, Cpu, Sun, Eye, Check } from 'lucide-react';
+import { Sparkles, Heart, Users, Cpu, Sun, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const [particles, setParticles] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
@@ -19,110 +20,40 @@ export default function Home() {
       delay: Math.random() * 3,
     }));
     setParticles(newParticles);
+
+    // Check if user is logged in
+    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
-      {/* Auth Buttons - Top Right */}
+      {/* Auth Button - Top Right */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="absolute top-4 right-4 z-50 flex flex-col gap-3"
+        className="absolute top-4 right-4 z-50"
       >
-        <div className="flex gap-2">
+        {currentUser ? (
           <Button
-            onClick={() => base44.auth.redirectToLogin()}
+            onClick={() => base44.auth.logout()}
             variant="outline"
             size="sm"
-            className="border border-purple-300 text-purple-700 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold hover:bg-purple-50 hover:scale-105 transition-all shadow-lg"
+            className="border border-red-300 text-red-700 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold hover:bg-red-50 hover:scale-105 transition-all shadow-lg"
           >
-            Đăng Nhập
+            <LogOut className="w-4 h-4 mr-2" />
+            Đăng Xuất
           </Button>
+        ) : (
           <Button
             onClick={() => base44.auth.redirectToLogin()}
             size="sm"
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105 transition-all"
           >
-            Đăng Ký
+            Đăng Nhập
           </Button>
-        </div>
-
-        {/* Light Law Agreement - Prominent CTA */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8 }}
-          className="space-y-3"
-        >
-          {/* Main CTA - Read Light Law */}
-          <Link to={createPageUrl('LightLaw')}>
-            <motion.div
-              whileHover={{ scale: 1.05, y: -3 }}
-              whileTap={{ scale: 0.97 }}
-              className="relative overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-2xl blur-xl" />
-              <div className="relative bg-gradient-to-r from-amber-50 via-rose-50 to-purple-50 backdrop-blur-sm border-4 border-amber-400 rounded-2xl p-5 shadow-2xl cursor-pointer">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <motion.div
-                      animate={{ 
-                        boxShadow: [
-                          '0 0 20px rgba(251,191,36,0.6)',
-                          '0 0 30px rgba(251,191,36,0.8)',
-                          '0 0 20px rgba(251,191,36,0.6)',
-                        ],
-                        rotate: [0, 5, -5, 0]
-                      }}
-                      transition={{ duration: 3, repeat: Infinity }}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 flex items-center justify-center shadow-xl"
-                    >
-                      <Sun className="w-6 h-6 text-white" />
-                    </motion.div>
-                    <div>
-                      <h3 className="text-base font-black text-amber-900 tracking-wide">LUẬT ÁNH SÁNG</h3>
-                      <p className="text-[10px] font-bold text-rose-600">Đọc kỹ trước khi tham gia</p>
-                    </div>
-                  </div>
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <Eye className="w-6 h-6 text-amber-600" />
-                  </motion.div>
-                </div>
-
-                <div className="bg-white/70 border-2 border-amber-300 rounded-xl p-3">
-                  <p className="text-sm font-bold text-center text-slate-900 leading-tight mb-2">
-                    📖 Xem Chi Tiết Luật Ánh Sáng
-                  </p>
-                  <p className="text-xs font-semibold text-center text-amber-800 leading-tight">
-                    FUN Ecosystem - Mạng Xã Hội Thời Đại Hoàng Kim
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </Link>
-
-          {/* Agreement Checkbox Preview */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-            className="bg-gradient-to-r from-purple-50/80 to-pink-50/80 backdrop-blur-sm border-2 border-purple-300 rounded-xl p-3 shadow-md"
-          >
-            <div className="flex items-start gap-2">
-              <div className="w-5 h-5 rounded border-2 border-purple-400 flex items-center justify-center flex-shrink-0 mt-0.5 bg-white">
-                <Check className="w-3 h-3 text-purple-400 opacity-30" />
-              </div>
-              <p className="text-xs font-bold text-slate-700 leading-tight">
-                Sau khi đọc, bạn sẽ đồng ý rung động theo Luật Ánh Sáng để vào Angel AI
-              </p>
-            </div>
-          </motion.div>
-        </motion.div>
-        </motion.div>
+        )}
+      </motion.div>
       {/* Sacred Geometry Background Pattern */}
       <div className="fixed inset-0 opacity-[0.03] pointer-events-none">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
