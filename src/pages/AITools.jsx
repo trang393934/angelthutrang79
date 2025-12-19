@@ -19,6 +19,8 @@ export default function AITools() {
   const [copied, setCopied] = useState(false);
   const [musicStyle, setMusicStyle] = useState('pop');
   const [musicMood, setMusicMood] = useState('happy');
+  const [musicMessages, setMusicMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
 
   const tabs = [
     { id: 'summarize', label: 'Tóm Tắt Văn Bản', icon: FileText, gradient: 'from-blue-400 to-cyan-400' },
@@ -184,6 +186,8 @@ Tags phải:
     
     setIsLoading(true);
     setResult('');
+    const userMessage = { role: 'user', content: input };
+    setMusicMessages([userMessage]);
     
     try {
       const musicGeneration = await base44.integrations.Core.InvokeLLM({
@@ -228,8 +232,50 @@ Trình bày rõ ràng, có cấu trúc, chuyên nghiệp như một nhạc sĩ t
       });
       
       setResult(musicGeneration);
+      setMusicMessages([userMessage, { role: 'assistant', content: musicGeneration }]);
     } catch (error) {
       setResult('❌ Có lỗi xảy ra khi tạo lời bài hát. Vui lòng thử lại.');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleMusicChat = async () => {
+    if (!chatInput.trim() || isLoading || musicMessages.length === 0) return;
+    
+    setIsLoading(true);
+    const userMessage = { role: 'user', content: chatInput };
+    const updatedMessages = [...musicMessages, userMessage];
+    setMusicMessages(updatedMessages);
+    setChatInput('');
+    
+    try {
+      const conversationHistory = updatedMessages.map(m => 
+        `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`
+      ).join('\n\n');
+      
+      const refinedMusic = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là một nhạc sĩ chuyên nghiệp. Dựa trên cuộc trò chuyện trước đó, hãy chỉnh sửa/cải thiện lời bài hát theo yêu cầu mới.
+
+Lịch sử trò chuyện:
+${conversationHistory}
+
+Thể loại: ${musicStyle}
+Tâm trạng: ${musicMood}
+
+Hãy:
+- Giữ nguyên cấu trúc bài hát tốt
+- Áp dụng chỉnh sửa theo yêu cầu mới nhất
+- Đảm bảo lời bài hát vẫn hay, có vần điệu
+- Trình bày đầy đủ như bản gốc
+
+Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
+      });
+      
+      setResult(refinedMusic);
+      setMusicMessages([...updatedMessages, { role: 'assistant', content: refinedMusic }]);
+    } catch (error) {
+      setResult('❌ Có lỗi xảy ra. Vui lòng thử lại.');
     }
     
     setIsLoading(false);
@@ -513,6 +559,62 @@ Trình bày rõ ràng, có cấu trúc, chuyên nghiệp như một nhạc sĩ t
                   )}
                 </Button>
               </div>
+
+              {activeTab === 'music' && musicMessages.length > 0 && (
+                <div className="mt-6 bg-gradient-to-r from-rose-50 to-pink-50 border-2 border-rose-300 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Music className="w-5 h-5 text-rose-600" />
+                    <h4 className="text-slate-900 font-bold">Chỉnh Sửa Lời Bài Hát</h4>
+                  </div>
+                  
+                  <div className="max-h-[300px] overflow-y-auto mb-4 space-y-3">
+                    {musicMessages.map((msg, idx) => (
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-xl ${
+                          msg.role === 'user'
+                            ? 'bg-white border-2 border-rose-300 ml-8'
+                            : 'bg-rose-100 border-2 border-rose-200 mr-8'
+                        }`}
+                      >
+                        <p className="text-xs font-semibold text-rose-700 mb-1">
+                          {msg.role === 'user' ? '👤 Bạn' : '🎵 AI Nhạc Sĩ'}
+                        </p>
+                        <p className="text-slate-900 text-sm whitespace-pre-wrap">
+                          {msg.content.length > 200 && msg.role === 'user'
+                            ? msg.content
+                            : msg.role === 'user'
+                            ? msg.content
+                            : msg.content.substring(0, 200) + '... (xem kết quả đầy đủ bên dưới)'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleMusicChat()}
+                      placeholder="Ví dụ: Làm đoạn Chorus thêm catchy hơn, Thay đổi verse 2..."
+                      className="flex-1 bg-white border-2 border-rose-300 text-slate-900 placeholder:text-rose-400 rounded-xl px-4 py-2 focus:border-rose-500 focus:ring-rose-500 outline-none font-medium"
+                      disabled={isLoading}
+                    />
+                    <Button
+                      onClick={handleMusicChat}
+                      disabled={!chatInput.trim() || isLoading}
+                      className="bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {activeTab === 'tag' ? (
                 (() => {
