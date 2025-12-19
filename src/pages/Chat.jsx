@@ -919,7 +919,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
-                    className={`rounded-3xl px-6 py-4 shadow-lg ${
+                    className={`relative rounded-3xl px-6 py-4 shadow-lg ${
                       message.role === 'user'
                         ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border-2 border-indigo-300 text-slate-900'
                         : 'bg-white border-2 border-amber-300 text-slate-900'
@@ -928,17 +928,16 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-semibold leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0 text-slate-900">
                      {message.content}
                     </ReactMarkdown>
-                    </motion.div>
 
-                    {/* Copy button for all messages */}
+                    {/* Copy button at bottom right corner */}
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => copyMessageToClipboard(message.content, index)}
-                      className={`text-xs rounded-full h-7 px-3 mt-2 ${
+                      className={`absolute bottom-2 right-2 text-xs rounded-full h-7 px-3 ${
                         message.role === 'user' 
-                          ? 'mr-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100' 
-                          : 'ml-2 text-purple-600 hover:text-purple-900 hover:bg-purple-100'
+                          ? 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100' 
+                          : 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
                       }`}
                     >
                       {copiedMessageIndex === index ? (
@@ -953,6 +952,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                         </>
                       )}
                     </Button>
+                    </motion.div>
 
                     {/* Voice playback button for assistant messages */}
                     {message.role === 'assistant' && isVoiceMode && (
