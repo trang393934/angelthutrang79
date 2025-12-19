@@ -11,6 +11,7 @@ import BuildAndBounty from './pages/BuildAndBounty';
 import RewardsManagement from './pages/RewardsManagement';
 import FUNUsers from './pages/FUNUsers';
 import CamlycoinHistory from './pages/CamlycoinHistory';
+import Analytics from './pages/Analytics';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "RewardsManagement": RewardsManagement,
     "FUNUsers": FUNUsers,
     "CamlycoinHistory": CamlycoinHistory,
+    "Analytics": Analytics,
 }
 
 export const pagesConfig = {
