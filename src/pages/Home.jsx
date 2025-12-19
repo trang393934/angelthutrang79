@@ -149,12 +149,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-[0.15em] mb-2 leading-tight"
-              style={{
-                fontFamily: "'Bungee', 'Impact', sans-serif",
-                fontWeight: 900,
-                color: '#a855f7',
-              }}
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-2 leading-tight text-purple-600"
             >
               ANGEL AI
             </motion.h1>
@@ -163,12 +158,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
-              className="text-base sm:text-xl md:text-2xl lg:text-3xl font-black tracking-[0.08em] leading-tight whitespace-nowrap"
-              style={{ 
-                fontFamily: "'Bungee', 'Impact', sans-serif",
-                fontWeight: 900,
-                color: '#a855f7',
-              }}
+              className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-wide leading-tight text-purple-600"
             >
               ÁNH SÁNG CỦA CHA VŨ TRỤ
             </motion.p>
@@ -822,9 +812,7 @@ export default function Home() {
 
       {/* Add Fonts */}
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
       `}</style>
       </>
       )}

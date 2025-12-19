@@ -17,7 +17,19 @@ export default function Layout({ children, currentPageName }) {
   const [walletAddress, setWalletAddress] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
+  const [currentUser, setCurrentUser] = useState(null);
   const location = useLocation();
+
+  // Check user authentication and Light Law agreement
+  useEffect(() => {
+    base44.auth.me().then(user => {
+      setCurrentUser(user);
+      // Redirect to Home if not agreed to Light Law
+      if (user && !user.light_law_agreed && currentPageName !== 'Home') {
+        window.location.href = createPageUrl('Home');
+      }
+    }).catch(() => setCurrentUser(null));
+  }, [currentPageName]);
 
   const menuItems = [
     { 
@@ -310,13 +322,19 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = !item.isButton && isActivePage(item.path);
+                    const isDisabled = currentUser && !currentUser.light_law_agreed;
 
                     if (item.isButton) {
                       return (
                         <button
                           key={item.name}
-                          onClick={item.action}
-                          className="w-full flex items-center gap-1.5 px-2 py-2 rounded-lg text-slate-900 hover:bg-purple-50 transition-all group border border-purple-200 hover:border-purple-400 bg-gradient-to-r from-purple-50/50 to-transparent"
+                          onClick={isDisabled ? undefined : item.action}
+                          disabled={isDisabled}
+                          className={`w-full flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all group border ${
+                            isDisabled 
+                              ? 'opacity-50 cursor-not-allowed bg-gray-100 border-gray-200' 
+                              : 'text-slate-900 hover:bg-purple-50 border-purple-200 hover:border-purple-400 bg-gradient-to-r from-purple-50/50 to-transparent'
+                          }`}
                         >
                           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
                             <Icon className="w-3.5 h-3.5 text-white" />
@@ -325,6 +343,20 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                             <span className="font-semibold text-xs">{item.name}</span>
                           </div>
                         </button>
+                      );
+                    }
+
+                    if (isDisabled) {
+                      return (
+                        <div
+                          key={item.name}
+                          className="flex items-center gap-1.5 px-2 py-2 rounded-lg opacity-50 cursor-not-allowed bg-gray-100 border border-gray-200"
+                        >
+                          <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md`}>
+                            <Icon className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="font-semibold text-xs text-slate-700">{item.name}</span>
+                        </div>
                       );
                     }
 
@@ -394,35 +426,55 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
                   {/* Knowledge Base & Settings Links */}
                   <div className="space-y-1">
-                    <Link
-                      to={createPageUrl('KnowledgeBase')}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
-                        isActivePage('KnowledgeBase')
-                          ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-300 shadow-sm'
-                          : 'hover:bg-indigo-50 border border-transparent'
-                      }`}
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
-                        <FolderKanban className="w-3.5 h-3.5 text-white" />
-                      </div>
-                      <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
-                    </Link>
+                    {currentUser && !currentUser.light_law_agreed ? (
+                      <>
+                        <div className="flex items-center gap-1.5 px-2 py-2 rounded-lg opacity-50 cursor-not-allowed bg-gray-100 border border-gray-200">
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
+                            <FolderKanban className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
+                        </div>
 
-                    <Link
-                      to={createPageUrl('Settings')}
-                      onClick={() => setSidebarOpen(false)}
-                      className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
-                        isActivePage('Settings')
-                          ? 'bg-gradient-to-r from-violet-100 to-pink-100 border border-violet-300 shadow-sm'
-                          : 'hover:bg-violet-50 border border-transparent'
-                      }`}
-                    >
-                      <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
-                        <span className="text-white text-sm">⚙️</span>
-                      </div>
-                      <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
-                    </Link>
+                        <div className="flex items-center gap-1.5 px-2 py-2 rounded-lg opacity-50 cursor-not-allowed bg-gray-100 border border-gray-200">
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
+                            <span className="text-white text-sm">⚙️</span>
+                          </div>
+                          <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          to={createPageUrl('KnowledgeBase')}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
+                            isActivePage('KnowledgeBase')
+                              ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-300 shadow-sm'
+                              : 'hover:bg-indigo-50 border border-transparent'
+                          }`}
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
+                            <FolderKanban className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
+                        </Link>
+
+                        <Link
+                          to={createPageUrl('Settings')}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
+                            isActivePage('Settings')
+                              ? 'bg-gradient-to-r from-violet-100 to-pink-100 border border-violet-300 shadow-sm'
+                              : 'hover:bg-violet-50 border border-transparent'
+                          }`}
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
+                            <span className="text-white text-sm">⚙️</span>
+                          </div>
+                          <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
+                        </Link>
+                      </>
+                    )}
                   </div>
               </div>
             </motion.aside>
