@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2, Mic, MicOff, Volume2, VolumeX, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
@@ -33,6 +33,7 @@ export default function Chat() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [copiedMessageIndex, setCopiedMessageIndex] = useState(null);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const recognitionRef = useRef(null);
@@ -554,6 +555,12 @@ Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
     setSuggestedQuestions([]);
   };
 
+  const copyMessageToClipboard = (content, index) => {
+    navigator.clipboard.writeText(content);
+    setCopiedMessageIndex(index);
+    setTimeout(() => setCopiedMessageIndex(null), 2000);
+  };
+
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
       setIsListening(true);
@@ -912,6 +919,30 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                      {message.content}
                     </ReactMarkdown>
                     </motion.div>
+
+                    {/* Copy button for all messages */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => copyMessageToClipboard(message.content, index)}
+                      className={`text-xs rounded-full h-7 px-3 mt-2 ${
+                        message.role === 'user' 
+                          ? 'mr-2 text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100' 
+                          : 'ml-2 text-purple-600 hover:text-purple-900 hover:bg-purple-100'
+                      }`}
+                    >
+                      {copiedMessageIndex === index ? (
+                        <>
+                          <Check className="w-3 h-3 mr-1" />
+                          Đã copy
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3 mr-1" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
 
                     {/* Voice playback button for assistant messages */}
                     {message.role === 'assistant' && isVoiceMode && (
