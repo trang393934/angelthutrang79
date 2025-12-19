@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
-import { Sparkles, Heart, Users, Cpu, Sun, Eye } from 'lucide-react';
+import { Sparkles, Heart, Users, Cpu, Sun, Eye, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { base44 } from '@/api/base44Client';
 
 export default function Home() {
   const [particles, setParticles] = useState([]);
