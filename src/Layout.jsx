@@ -45,6 +45,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-purple-400 to-pink-400'
     },
     { 
+      name: 'AI Tools', 
+      icon: Sparkles, 
+      path: 'AITools',
+      gradient: 'from-indigo-400 to-purple-400'
+    },
+    { 
       name: 'Imagine', 
       icon: Image, 
       path: 'Imagine',
@@ -61,12 +67,6 @@ export default function Layout({ children, currentPageName }) {
       icon: History, 
       path: 'Library',
       gradient: 'from-violet-400 to-purple-400'
-    },
-    { 
-      name: 'AI Tools', 
-      icon: Sparkles, 
-      path: 'AITools',
-      gradient: 'from-indigo-400 to-purple-400'
     },
     { 
       name: 'Build & Bounty', 
