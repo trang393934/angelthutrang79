@@ -273,7 +273,7 @@ export default function RewardsManagement() {
                       : 'bg-white border-2 border-amber-200 text-slate-900 hover:border-amber-400'
                   }`}
                 >
-                  <Icon className="w-5 h-5 mr-2" />
+                  <Icon className={`w-5 h-5 mr-2 ${activeTab === tab.id ? 'text-amber-900' : ''}`} />
                   {tab.label}
                 </Button>
               );
