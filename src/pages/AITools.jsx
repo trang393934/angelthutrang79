@@ -412,13 +412,13 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
                     : 'bg-white border-2 border-purple-200 hover:border-purple-400 shadow-md'
                 }`}
               >
-                <div className="flex flex-col items-center gap-2">
+                <div className="flex flex-col items-center justify-center gap-2">
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                     activeTab === tab.id ? 'bg-white/30' : 'bg-gradient-to-br ' + tab.gradient
                   }`}>
                     <TabIcon className={`w-6 h-6 ${activeTab === tab.id ? 'text-white' : 'text-white'}`} />
                   </div>
-                  <span className={`text-sm font-bold text-center ${
+                  <span className={`text-sm font-bold text-center leading-tight ${
                     activeTab === tab.id ? 'text-white' : 'text-slate-900'
                   }`}>
                     {tab.label}
