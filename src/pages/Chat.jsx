@@ -880,9 +880,9 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       </AnimatePresence>
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-80' : 'ml-0'}`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? 'lg:ml-64' : 'ml-0'}`}>
         {/* Header */}
-        <div className="fixed top-0 right-0 left-0 lg:left-80 z-20 bg-white/90 backdrop-blur-xl border-b border-purple-200/50 shadow-lg">
+        <div className="fixed top-0 right-0 left-0 lg:left-64 z-20 bg-white/90 backdrop-blur-xl border-b border-purple-200/50 shadow-lg">
           <div className="max-w-4xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
               {!sidebarOpen && (
@@ -1290,7 +1290,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
         </AnimatePresence>
 
         {/* Input */}
-        <div className="fixed bottom-0 right-0 left-0 lg:left-80 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl">
+        <div className="fixed bottom-0 right-0 left-0 lg:left-64 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl">
           <div className="max-w-4xl mx-auto p-4">
             <div className="flex items-end gap-3">
               {!isVoiceMode && (
