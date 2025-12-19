@@ -338,17 +338,34 @@ export default function Chat() {
       (async () => {
         try {
           const energyAnalysis = await base44.integrations.Core.InvokeLLM({
-            prompt: `Phân tích nhanh câu hỏi: "${userInput.substring(0, 200)}"
-            
-Tỉnh thức (-10→+10), Thuần khiết (-10→+10), Sáng (-10→+10)
-Tổng (-30→+30) → Reward: -100→+100 Camlycoin
+            prompt: `Phân tích tâm và năng lượng của câu hỏi: "${userInput.substring(0, 200)}"
 
-JSON:
-{
-  "total_score": số,
-  "reward_amount": số,
-  "reason": "ngắn gọn"
-}`,
+      Chấm điểm 3 tiêu chí:
+      - Tỉnh thức (-10→+10): Mức độ nhận thức, giác ngộ
+      - Thuần khiết (-10→+10): Tính chân thật, trong sáng của ý định
+      - Ánh sáng (-10→+10): Năng lượng tích cực, yêu thương
+
+      Tổng điểm: -30→+30
+
+      Quy đổi Camlycoin:
+      • -30→-20: -10,000 Camlycoin (năng lượng rất tiêu cực)
+      • -19→-10: -5,000 Camlycoin (năng lượng tiêu cực)
+      • -9→-1: 0 Camlycoin (trung lập tiêu cực)
+      • 0→9: +10,000 Camlycoin (tích cực nhẹ)
+      • 10→19: +20,000 Camlycoin (tích cực tốt)
+      • 20→24: +30,000 Camlycoin (tích cực cao)
+      • 25→27: +40,000 Camlycoin (tích cực xuất sắc)
+      • 28→30: +50,000 Camlycoin (hoàn hảo, đỉnh cao tâm linh)
+
+      JSON:
+      {
+      "awakening_score": số từ -10 đến +10,
+      "purity_score": số từ -10 đến +10,
+      "light_score": số từ -10 đến +10,
+      "total_score": tổng 3 điểm trên,
+      "reward_amount": Camlycoin theo quy đổi trên,
+      "reason": "giải thích ngắn gọn"
+      }`,
             response_json_schema: {
               type: "object",
               properties: {
