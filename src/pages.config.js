@@ -15,6 +15,7 @@ import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
 import GratitudeJournal from './pages/GratitudeJournal';
 import LightLaw from './pages/LightLaw';
+import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "GratitudeJournal": GratitudeJournal,
     "LightLaw": LightLaw,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
