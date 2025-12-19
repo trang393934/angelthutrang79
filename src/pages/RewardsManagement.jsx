@@ -269,7 +269,7 @@ export default function RewardsManagement() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`rounded-2xl py-6 font-bold transition-all ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-xl'
+                      ? 'bg-gradient-to-r from-yellow-300 to-amber-400 text-slate-900 shadow-2xl border-2 border-amber-500'
                       : 'bg-white border-2 border-amber-200 text-slate-900 hover:border-amber-400'
                   }`}
                 >
