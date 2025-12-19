@@ -11,6 +11,7 @@ export default function Home() {
   const [particles, setParticles] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [agreedToLightLaw, setAgreedToLightLaw] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
@@ -26,6 +27,23 @@ export default function Home() {
     // Check if user is logged in
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
+
+  const handleAgreeToLightLaw = async () => {
+    if (!agreedToLightLaw || !currentUser) return;
+    
+    setIsUpdating(true);
+    try {
+      await base44.auth.updateMe({ light_law_agreed: true });
+      // Reload to update user state
+      window.location.reload();
+    } catch (error) {
+      console.error('Error updating agreement:', error);
+      setIsUpdating(false);
+    }
+  };
+
+  // Check if user needs to agree to Light Law
+  const needsToAgree = currentUser && !currentUser.light_law_agreed;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
@@ -105,12 +123,12 @@ export default function Home() {
       {/* Hero Section - Mobile Optimized */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-2 pb-6">
         <div className="flex flex-col items-center justify-center max-w-lg mx-auto">
-          {/* Angel Image - Circular Avatar */}
+          {/* Angel Image - Circular Avatar - Reduced to 1/3 */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-4"
+            className="relative w-48 h-48 sm:w-52 sm:h-52 md:w-64 md:h-64 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-4"
           >
             <img 
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
@@ -156,13 +174,13 @@ export default function Home() {
             </motion.p>
           </motion.div>
 
-          {/* Light Law Agreement - Only show when logged out */}
-          {!currentUser && (
+          {/* Light Law Agreement - Show for not logged in OR not agreed users */}
+          {(!currentUser || needsToAgree) && (
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.3 }}
-              className="w-full max-w-2xl px-4 mt-8"
+              className="w-full max-w-2xl px-4 mt-6"
             >
               {/* Light Law Box */}
               <Link to={createPageUrl('LightLaw')}>
@@ -237,31 +255,55 @@ export default function Home() {
                 </div>
               </motion.div>
 
-              {/* Login Button */}
+              {/* Action Button */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1.7 }}
               >
-                <Button
-                  onClick={() => base44.auth.redirectToLogin()}
-                  disabled={!agreedToLightLaw}
-                  size="lg"
-                  className={`w-full py-6 text-lg font-bold rounded-2xl shadow-2xl transition-all ${
-                    agreedToLightLaw
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-purple-500/50 hover:scale-105'
-                      : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
-                  {agreedToLightLaw ? (
-                    <>
-                      <Check className="w-5 h-5 mr-2" />
-                      Đăng Nhập
-                    </>
-                  ) : (
-                    'Vui lòng đồng ý để đăng nhập'
-                  )}
-                </Button>
+                {currentUser ? (
+                  <Button
+                    onClick={handleAgreeToLightLaw}
+                    disabled={!agreedToLightLaw || isUpdating}
+                    size="lg"
+                    className={`w-full py-6 text-lg font-bold rounded-2xl shadow-2xl transition-all ${
+                      agreedToLightLaw && !isUpdating
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-purple-500/50 hover:scale-105'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {isUpdating ? (
+                      'Đang Xác Nhận...'
+                    ) : agreedToLightLaw ? (
+                      <>
+                        <Check className="w-5 h-5 mr-2" />
+                        Xác Nhận Đồng Ý
+                      </>
+                    ) : (
+                      'Vui lòng đồng ý để tiếp tục'
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => base44.auth.redirectToLogin()}
+                    disabled={!agreedToLightLaw}
+                    size="lg"
+                    className={`w-full py-6 text-lg font-bold rounded-2xl shadow-2xl transition-all ${
+                      agreedToLightLaw
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-purple-500/50 hover:scale-105'
+                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                  >
+                    {agreedToLightLaw ? (
+                      <>
+                        <Check className="w-5 h-5 mr-2" />
+                        Đăng Nhập
+                      </>
+                    ) : (
+                      'Vui lòng đồng ý để đăng nhập'
+                    )}
+                  </Button>
+                )}
               </motion.div>
             </motion.div>
           )}
@@ -277,6 +319,9 @@ export default function Home() {
         </motion.div>
         </section>
 
+      {/* Only show content if user has agreed to Light Law */}
+      {currentUser && currentUser.light_law_agreed && (
+        <>
       {/* Chat CTA - Ngay dưới logo */}
       <section className="relative py-8 px-4">
         <div className="max-w-md mx-auto">
@@ -784,6 +829,8 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
       `}</style>
+      </>
+      )}
     </div>
   );
 }
