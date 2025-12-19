@@ -401,23 +401,12 @@ export default function Chat() {
             questions: { type: "array", items: { type: "string" } }
           }
         }
-      }).then(result => setSuggestedQuestions(result.questions || [])),
+      }).then(result => setSuggestedQuestions(result.questions || [])).catch(err => console.error('Suggestions error:', err)),
 
-      // 2. Energy analysis + Camlycoin (delayed to track reading time)
+      // 2. Energy analysis + Camlycoin (simplified - no reading time tracking)
       (async () => {
         try {
-          // Calculate expected reading time (words per minute)
-          const wordCount = response.split(' ').length;
-          const expectedReadTimeMs = (wordCount / 200) * 60 * 1000; // 200 words/min
           const messageIndex = finalMessages.length - 1;
-
-          // Wait for reading time tracking
-          await new Promise(resolve => setTimeout(resolve, Math.min(expectedReadTimeMs, 30000)));
-
-          // Get actual reading time
-          const readData = messageReadTimes[messageIndex];
-          const actualReadTime = readData?.totalTime || 0;
-          const readPercentage = Math.min(100, Math.round((actualReadTime / expectedReadTimeMs) * 100));
 
           const energyAnalysis = await base44.integrations.Core.InvokeLLM({
             prompt: `Phân tích tâm và năng lượng của câu hỏi: "${userInput.substring(0, 200)}"
@@ -462,69 +451,47 @@ export default function Chat() {
           });
 
           if (currentUser && energyAnalysis.reward_amount !== 0) {
-            // Adjust reward based on reading percentage
-            const maxReward = energyAnalysis.reward_amount;
-            let actualReward = 0;
-            let readingPenalty = 0;
+            const actualReward = energyAnalysis.reward_amount;
+            const transactionType = actualReward > 0 ? 'manual_add' : 'manual_deduct';
 
-            if (readPercentage === 0) {
-              actualReward = 0;
-              readingPenalty = maxReward;
-            } else if (readPercentage < 30) {
-              actualReward = Math.round(maxReward * 0.3);
-              readingPenalty = maxReward - actualReward;
-            } else if (readPercentage < 50) {
-              actualReward = Math.round(maxReward * 0.5);
-              readingPenalty = maxReward - actualReward;
-            } else if (readPercentage < 80) {
-              actualReward = Math.round(maxReward * 0.7);
-              readingPenalty = maxReward - actualReward;
+            await base44.entities.CamlycoinTransaction.create({
+              user_email: currentUser.email,
+              amount: actualReward,
+              type: transactionType,
+              description: `${actualReward < 0 ? '⚠️ Cảnh báo' : '✨ Thưởng'} (${energyAnalysis.total_score}/30)\n💰 ${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin\n💡 ${energyAnalysis.reason}`,
+              reference_id: currentConversationId
+            });
+
+            const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+            if (balances.length > 0) {
+              const balance = balances[0];
+              await base44.entities.CamlycoinBalance.update(balance.id, {
+                balance: (balance.balance || 0) + actualReward,
+                total_earned: actualReward > 0 ? (balance.total_earned || 0) + actualReward : balance.total_earned,
+                total_spent: actualReward < 0 ? (balance.total_spent || 0) + Math.abs(actualReward) : balance.total_spent
+              });
             } else {
-              actualReward = maxReward;
-              readingPenalty = 0;
+              await base44.entities.CamlycoinBalance.create({
+                user_email: currentUser.email,
+                balance: actualReward,
+                total_earned: actualReward > 0 ? actualReward : 0,
+                total_spent: actualReward < 0 ? Math.abs(actualReward) : 0
+              });
             }
 
-            if (actualReward !== 0) {
-              const transactionType = actualReward > 0 ? 'manual_add' : 'manual_deduct';
-              await base44.entities.CamlycoinTransaction.create({
-                user_email: currentUser.email,
-                amount: actualReward,
-                type: transactionType,
-                description: `${actualReward < 0 ? '⚠️ Cảnh báo' : '✨ Thưởng'} (${energyAnalysis.total_score}/30)\n📖 Đọc ${readPercentage}% nội dung\n💰 Tối đa: ${maxReward > 0 ? '+' : ''}${maxReward} Camlycoin\n${readingPenalty !== 0 ? `⚠️ Trừ do đọc chưa hết: -${readingPenalty} Camlycoin\n` : ''}✅ Nhận thực tế: ${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin\n💡 ${energyAnalysis.reason}`,
-                reference_id: currentConversationId
+            const rewardMessage = {
+              role: 'assistant',
+              content: `${actualReward < 0 ? '⚠️' : '✨'} Nhận Camlycoin 🪙\n\n💰 **${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin**\n📊 Điểm: ${energyAnalysis.total_score}/30\n💡 ${energyAnalysis.reason}`,
+              isReward: true
+            };
+
+            setMessages(prev => [...prev, rewardMessage]);
+
+            if (currentConversationId) {
+              updateConversationMutation.mutate({
+                id: currentConversationId,
+                data: { messages: [...finalMessages, rewardMessage] }
               });
-
-              const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
-              if (balances.length > 0) {
-                const balance = balances[0];
-                await base44.entities.CamlycoinBalance.update(balance.id, {
-                  balance: (balance.balance || 0) + actualReward,
-                  total_earned: actualReward > 0 ? (balance.total_earned || 0) + actualReward : balance.total_earned,
-                  total_spent: actualReward < 0 ? (balance.total_spent || 0) + Math.abs(actualReward) : balance.total_spent
-                });
-              } else {
-                await base44.entities.CamlycoinBalance.create({
-                  user_email: currentUser.email,
-                  balance: actualReward,
-                  total_earned: actualReward > 0 ? actualReward : 0,
-                  total_spent: actualReward < 0 ? Math.abs(actualReward) : 0
-                });
-              }
-
-              const rewardMessage = {
-                role: 'assistant',
-                content: `${actualReward < 0 ? '⚠️' : '✨'} Nhận Camlycoin 🪙\n\n📖 **Đọc:** ${readPercentage}%\n💰 **Tối đa:** ${maxReward > 0 ? '+' : ''}${maxReward}\n${readingPenalty !== 0 ? `⚠️ **Trừ:** -${readingPenalty}\n` : ''}✅ **Nhận:** ${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin\n\n💡 ${energyAnalysis.reason}\n\n${readPercentage < 100 ? '📚 Hãy đọc hết nội dung để nhận 100% phần thưởng nhé con!' : '🎉 Tuyệt vời! Con đã đọc hết câu trả lời!'}`,
-                isReward: true
-              };
-
-              setMessages(prev => [...prev, rewardMessage]);
-              
-              if (currentConversationId) {
-                updateConversationMutation.mutate({
-                  id: currentConversationId,
-                  data: { messages: [...finalMessages, rewardMessage] }
-                });
-              }
             }
           }
         } catch (error) {
