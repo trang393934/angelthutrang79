@@ -63,6 +63,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-indigo-400 to-cyan-400'
     },
     { 
+      name: 'Nhật Ký Biết Ơn', 
+      icon: Heart, 
+      path: 'GratitudeJournal',
+      gradient: 'from-yellow-400 to-amber-400'
+    },
+    { 
       name: 'Dự án', 
       icon: FolderKanban, 
       path: 'PersonalVision',

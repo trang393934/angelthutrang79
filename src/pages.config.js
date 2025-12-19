@@ -13,6 +13,7 @@ import FUNUsers from './pages/FUNUsers';
 import CamlycoinHistory from './pages/CamlycoinHistory';
 import Analytics from './pages/Analytics';
 import UserProfile from './pages/UserProfile';
+import GratitudeJournal from './pages/GratitudeJournal';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "CamlycoinHistory": CamlycoinHistory,
     "Analytics": Analytics,
     "UserProfile": UserProfile,
+    "GratitudeJournal": GratitudeJournal,
 }
 
 export const pagesConfig = {
