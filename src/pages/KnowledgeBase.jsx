@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy } from 'lucide-react';
+import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,6 +27,12 @@ export default function KnowledgeBase() {
   React.useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
+
+  React.useEffect(() => {
+    if (selectedDoc && knowledgeBase.length > 1) {
+      findRelatedDocs(selectedDoc);
+    }
+  }, [selectedDoc]);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -600,6 +606,39 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                   </ReactMarkdown>
                 </div>
               </div>
+
+              {/* Related Documents */}
+              {relatedDocs.length > 0 && (
+                <div className="mt-6 pt-6 border-t border-indigo-200">
+                  <h4 className="text-slate-900 font-bold text-sm mb-3 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-indigo-600" />
+                    Tài Liệu Liên Quan
+                  </h4>
+                  <div className="space-y-2">
+                    {relatedDocs.map((doc) => (
+                      <motion.div
+                        key={doc.id}
+                        whileHover={{ x: 4 }}
+                        onClick={() => {
+                          setSelectedDoc(doc);
+                          setRelatedDocs([]);
+                        }}
+                        className="flex items-center gap-2 p-2 rounded-lg hover:bg-indigo-50 cursor-pointer transition-all"
+                      >
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center flex-shrink-0">
+                          <BookOpen className="w-3 h-3 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-slate-900 text-sm font-medium truncate">{doc.title}</p>
+                          <Badge className={`text-xs mt-1 ${typeColors[doc.type]}`}>
+                            {typeLabels[doc.type]}
+                          </Badge>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           </motion.div>
         )}
