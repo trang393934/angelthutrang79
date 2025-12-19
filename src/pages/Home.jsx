@@ -22,13 +22,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
-      {/* Auth Buttons - Top Right - Fixed Position */}
+      {/* Auth Buttons - Top Right */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="fixed top-4 right-4 z-[100] flex gap-2"
-        style={{ position: 'fixed' }}
+        className="absolute top-4 right-4 z-50 flex gap-2"
       >
         <Button
           onClick={() => base44.auth.redirectToLogin()}
