@@ -788,94 +788,159 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       {/* Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
-          <motion.div
-            initial={{ x: -300, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -300, opacity: 0 }}
-            transition={{ type: "spring", damping: 25 }}
-            className="fixed left-0 top-0 bottom-0 w-80 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-30 flex flex-col"
-          >
-            {/* Sidebar Header - Fixed at top */}
-            <div className="flex-shrink-0 p-4 border-b border-purple-200/50">
-              <div className="flex items-center justify-between mb-4">
-                <Link to={createPageUrl('Home')}>
-                  <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
-                    <ArrowLeft className="w-5 h-5" />
-                  </Button>
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setSidebarOpen(false)}
-                  className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 lg:hidden"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-              <Button
-                onClick={startNewConversation}
-                className="w-full bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-xl hover:shadow-xl hover:from-amber-500 hover:to-rose-500"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Cuộc Trò Chuyện Mới
-              </Button>
-            </div>
-
-            {/* Conversations List - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent to-purple-50/30 pb-32">
-              {conversations.map((conv) => (
-                <motion.div
-                  key={conv.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className={`group relative p-3 rounded-xl cursor-pointer transition-all ${
-                    currentConversationId === conv.id
-                      ? 'bg-gradient-to-r from-amber-100 to-rose-100 border border-amber-300 shadow-lg'
-                      : 'bg-white hover:bg-purple-50 border border-purple-100 shadow-sm'
-                  }`}
-                  onClick={() => loadConversation(conv)}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-slate-900 text-sm font-medium truncate">
-                        {conv.title}
-                      </p>
-                      <p className="text-purple-600/60 text-xs mt-1">
-                        {new Date(conv.updated_date).toLocaleDateString('vi-VN', {
-                          day: 'numeric',
-                          month: 'short'
-                        })}
-                      </p>
+          <>
+            {/* Mobile backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSidebarOpen(false)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden"
+            />
+            
+            <motion.div
+              initial={{ x: -300, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -300, opacity: 0 }}
+              transition={{ type: "spring", damping: 25 }}
+              className="fixed left-0 top-0 bottom-0 w-80 bg-white/98 backdrop-blur-xl border-r-2 border-purple-200 shadow-2xl z-50 flex flex-col"
+            >
+              {/* Fixed Header */}
+              <div className="flex-shrink-0 bg-gradient-to-b from-purple-50 to-white border-b-2 border-purple-200 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <Link to={createPageUrl('Home')}>
+                    <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
+                      <ArrowLeft className="w-5 h-5" />
+                    </Button>
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-lg">
+                      <span className="text-white text-base font-bold">A</span>
                     </div>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-rose-500 hover:text-rose-700 hover:bg-rose-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(conv);
-                        }}
-                      >
-                        <Heart className={`w-4 h-4 ${conv.is_favorite ? 'fill-rose-400 text-rose-400' : ''}`} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-100"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteConversationMutation.mutate(conv.id);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <div>
+                      <h2 className="text-slate-900 font-bold text-sm">Lịch Sử Chat</h2>
+                      <p className="text-purple-600 text-xs font-medium">{conversations.length} cuộc trò chuyện</p>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setSidebarOpen(false)}
+                    className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 lg:hidden"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+                <Button
+                  onClick={startNewConversation}
+                  className="w-full bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-xl hover:shadow-xl hover:from-amber-500 hover:to-rose-500 shadow-md font-bold"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Cuộc Trò Chuyện Mới
+                </Button>
+              </div>
+
+              {/* Scrollable Conversations List */}
+              <div className="flex-1 overflow-y-auto p-4 pb-6">
+                <style>{`
+                  .flex-1.overflow-y-auto::-webkit-scrollbar {
+                    width: 6px;
+                  }
+                  .flex-1.overflow-y-auto::-webkit-scrollbar-track {
+                    background: rgba(168, 85, 247, 0.08);
+                    border-radius: 3px;
+                    margin: 4px 0;
+                  }
+                  .flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+                    background: rgba(168, 85, 247, 0.4);
+                    border-radius: 3px;
+                  }
+                  .flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                    background: rgba(168, 85, 247, 0.6);
+                  }
+                `}</style>
+
+                {conversations.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="w-8 h-8 text-purple-400" />
+                    </div>
+                    <p className="text-slate-600 font-medium text-sm">Chưa có cuộc trò chuyện nào</p>
+                    <p className="text-purple-600 text-xs mt-1">Bắt đầu chat với Angel AI ngay!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {conversations.map((conv) => (
+                      <motion.div
+                        key={conv.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        whileHover={{ scale: 1.02, x: 4 }}
+                        className={`group relative p-4 rounded-2xl cursor-pointer transition-all border-2 ${
+                          currentConversationId === conv.id
+                            ? 'bg-gradient-to-br from-amber-50 to-rose-50 border-amber-300 shadow-lg'
+                            : 'bg-white hover:bg-purple-50/50 border-purple-100 hover:border-purple-300 shadow-sm hover:shadow-md'
+                        }`}
+                        onClick={() => {
+                          loadConversation(conv);
+                          setSidebarOpen(false);
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              {conv.is_favorite && (
+                                <Heart className="w-4 h-4 fill-rose-400 text-rose-400 flex-shrink-0" />
+                              )}
+                              <p className={`text-sm font-bold truncate ${
+                                currentConversationId === conv.id ? 'text-slate-900' : 'text-slate-800'
+                              }`}>
+                                {conv.title}
+                              </p>
+                            </div>
+                            <p className="text-purple-600/70 text-xs font-medium">
+                              {new Date(conv.updated_date).toLocaleDateString('vi-VN', {
+                                day: '2-digit',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                          <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-rose-500 hover:text-rose-700 hover:bg-rose-100 rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavorite(conv);
+                              }}
+                            >
+                              <Heart className={`w-4 h-4 ${conv.is_favorite ? 'fill-rose-400 text-rose-400' : ''}`} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-lg"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (confirm('Xóa cuộc trò chuyện này?')) {
+                                  deleteConversationMutation.mutate(conv.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
 
