@@ -224,22 +224,26 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
               transition={{ type: "spring", damping: 25 }}
               className="fixed left-0 top-0 bottom-0 w-48 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto flex flex-col"
             >
-              <div className="flex-1 overflow-y-auto p-3 pb-0 pr-1.5">
-                <style>{`
-                  .flex-1.overflow-y-auto::-webkit-scrollbar {
-                    width: 6px;
-                  }
-                  .flex-1.overflow-y-auto::-webkit-scrollbar-track {
-                    background: transparent;
-                  }
-                  .flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
-                    background: rgba(168, 85, 247, 0.3);
-                    border-radius: 3px;
-                  }
-                  .flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-                    background: rgba(168, 85, 247, 0.5);
-                  }
-                `}</style>
+              <div className="flex-1 overflow-y-auto p-3 pb-0 pr-2">
+                        <style>{`
+                          .flex-1.overflow-y-auto::-webkit-scrollbar {
+                            width: 8px;
+                          }
+                          .flex-1.overflow-y-auto::-webkit-scrollbar-track {
+                            background: rgba(168, 85, 247, 0.08);
+                            border-radius: 4px;
+                            margin: 4px 2px;
+                          }
+                          .flex-1.overflow-y-auto::-webkit-scrollbar-thumb {
+                            background: rgba(168, 85, 247, 0.5);
+                            border-radius: 4px;
+                            border: 2px solid rgba(255, 255, 255, 0.95);
+                            background-clip: padding-box;
+                          }
+                          .flex-1.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                            background: rgba(168, 85, 247, 0.7);
+                          }
+                        `}</style>
                 {/* Header */}
                 <div className="flex items-center justify-between mb-4">
                   <Link to={createPageUrl('Home')} className="flex items-center gap-2">
@@ -311,7 +315,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                 </div>
 
                 {/* Bottom Section - Fixed */}
-                <div className="flex-shrink-0 border-t border-purple-200 bg-white/95 p-3">
+                <div className="flex-shrink-0 border-t border-purple-200 bg-white/95 p-3 mr-2">
                   {/* Wallet Connection */}
                   <div className="mb-3">
                     {walletAddress ? (
