@@ -19,6 +19,9 @@ export default function AITools() {
   const [copied, setCopied] = useState(false);
   const [musicStyle, setMusicStyle] = useState('pop');
   const [musicMood, setMusicMood] = useState('happy');
+  const [artistReference, setArtistReference] = useState('');
+  const [similarSongs, setSimilarSongs] = useState('');
+  const [melodyDescription, setMelodyDescription] = useState('');
   const [musicMessages, setMusicMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
 
