@@ -194,44 +194,76 @@ Tags phải:
     
     try {
       const musicGeneration = await base44.integrations.Core.InvokeLLM({
-        prompt: `Bạn là một nhạc sĩ tài ba. Hãy tạo lời bài hát hoàn chỉnh theo yêu cầu sau:
+        prompt: `Bạn là một nhạc sĩ chuyên nghiệp và producer âm nhạc. Hãy tạo lời bài hát hoàn chỉnh cùng hướng dẫn sản xuất chi tiết:
 
+📝 **THÔNG TIN ĐẦU VÀO:**
 Chủ đề/Nội dung: ${input}
 Thể loại nhạc: ${musicStyle}
 Tâm trạng: ${musicMood}
+${artistReference ? `Ca sĩ/Ban nhạc tham khảo: ${artistReference}` : ''}
+${similarSongs ? `Các bài hát tương tự: ${similarSongs}` : ''}
+${melodyDescription ? `Mô tả giai điệu: ${melodyDescription}` : ''}
 
-Yêu cầu sáng tác:
-1. **Cấu trúc bài hát đầy đủ**: 
-   - [Intro] (nếu có)
-   - [Verse 1]
-   - [Pre-Chorus] (nếu phù hợp)
-   - [Chorus]
-   - [Verse 2]
-   - [Chorus]
-   - [Bridge]
-   - [Chorus] (lặp lại)
-   - [Outro]
+🎵 **YÊU CẦU SÁNG TÁC:**
 
-2. **Lời bài hát**:
-   - Phù hợp với thể loại ${musicStyle}
+1. **CẤU TRÚC BÀI HÁT ĐẦY ĐỦ**: 
+   - [Intro] - Mở đầu bắt tai
+   - [Verse 1] - Câu chuyện bắt đầu
+   - [Pre-Chorus] - Xây dựng cảm xúc (nếu phù hợp)
+   - [Chorus] - Hook chính, dễ nhớ
+   - [Verse 2] - Phát triển câu chuyện
+   - [Chorus] - Lặp lại hook
+   - [Bridge] - Đổi màu, climax cảm xúc
+   - [Chorus] - Final hook với biến tấu
+   - [Outro] - Kết thúc ấn tượng
+
+2. **LỜI BÀI HÁT**:
+   - Phù hợp với thể loại ${musicStyle}${artistReference ? ` (phong cách ${artistReference})` : ''}
    - Thể hiện tâm trạng ${musicMood}
-   - Có vần điệu, nhịp nhàng
+   - Có vần điệu, nhịp nhàng, dễ hát
    - Cảm xúc chân thực, sâu sắc
-   - Ngôn ngữ đẹp, dễ hát
+   - Ngôn ngữ đẹp, hình ảnh nghệ thuật
+   - Hook chorus phải catchy và memorable
+   ${melodyDescription ? `- Lời phải khớp với giai điệu: ${melodyDescription}` : ''}
 
-3. **Style âm nhạc gợi ý**:
-   - Mô tả chi tiết về phong cách âm nhạc
-   - Nhạc cụ nên dùng
-   - Tempo (BPM)
-   - Mood và cảm xúc
-   - Các kỹ thuật vocal
+3. **CHI TIẾT SẢN XUẤT & ARRANGEMENT**:
+   
+   🎹 **Nhạc Cụ & Layers**:
+   - Main instruments (Piano, Guitar, Synth, Bass, Drums...)
+   - Supporting instruments
+   - Sound effects và atmosphere
+   - Layer theo từng đoạn
+   
+   ⚡ **Tempo & Rhythm**:
+   - BPM (Beats Per Minute) cụ thể
+   - Time signature (4/4, 3/4, 6/8...)
+   - Groove và feel
+   - Drum pattern gợi ý
+   
+   🎤 **Vocal Performance**:
+   - Cách hát từng đoạn (belting, falsetto, whisper, powerful...)
+   - Harmony và backing vocals
+   - Vocal effects (reverb, delay, autotune...)
+   - Ad-libs và variations
+   
+   🎛️ **Production Notes**:
+   - EQ và mixing tips
+   - Build-ups và drops (nếu có)
+   - Dynamic range (quiet → loud)
+   - Transitions giữa các đoạn
+   - Special effects cho từng phần
+   
+   🎺 **Chord Progression**:
+   - Hợp âm chính cho Verse
+   - Hợp âm cho Chorus
+   - Chord changes cho Bridge
+   - Key signature và modulation (nếu có)
 
-4. **Ghi chú sản xuất**:
-   - Hướng dẫn về arrangement
-   - Các hiệu ứng âm thanh
-   - Cách thể hiện từng đoạn
+4. **CẢM HỨNG NGHỆ SĨ**:
+   ${artistReference ? `- Học hỏi từ ${artistReference}: phong cách vocal, arrangement, production style` : '- Tạo phong cách độc đáo'}
+   ${similarSongs ? `- Lấy cảm hứng từ: ${similarSongs} (về cấu trúc, vibe, production)` : ''}
 
-Trình bày rõ ràng, có cấu trúc, chuyên nghiệp như một nhạc sĩ thực thụ.`,
+Trình bày chuyên nghiệp, chi tiết như một nhạc sĩ & producer thực thụ. Mỗi phần cần có giải thích cụ thể để có thể sản xuất ngay!`,
       });
       
       setResult(musicGeneration);
