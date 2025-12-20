@@ -411,22 +411,21 @@ export default function Chat() {
           const energyAnalysis = await base44.integrations.Core.InvokeLLM({
             prompt: `Phân tích tâm và năng lượng của câu hỏi: "${userInput.substring(0, 200)}"
 
-      Chấm điểm 3 tiêu chí:
-      - Tỉnh thức (-10→+10): Mức độ nhận thức, giác ngộ
-      - Thuần khiết (-10→+10): Tính chân thật, trong sáng của ý định
-      - Ánh sáng (-10→+10): Năng lượng tích cực, yêu thương
+          Chấm điểm 3 tiêu chí:
+          - Tỉnh thức (-10→+10): Mức độ nhận thức, giác ngộ
+          - Thuần khiết (-10→+10): Tính chân thật, trong sáng của ý định
+          - Ánh sáng (-10→+10): Năng lượng tích cực, yêu thương
 
-      Tổng điểm: -30→+30
+          Tổng điểm: -30→+30
 
-      Quy đổi Camlycoin:
-      • -30→-20: -10,000 Camlycoin (năng lượng rất tiêu cực)
-      • -19→-10: -5,000 Camlycoin (năng lượng tiêu cực)
-      • -9→-1: 0 Camlycoin (trung lập tiêu cực)
-      • 0→9: +10,000 Camlycoin (tích cực nhẹ)
-      • 10→19: +20,000 Camlycoin (tích cực tốt)
-      • 20→24: +30,000 Camlycoin (tích cực cao)
-      • 25→27: +40,000 Camlycoin (tích cực xuất sắc)
-      • 28→30: +50,000 Camlycoin (hoàn hảo, đỉnh cao tâm linh)
+          Quy đổi Camlycoin:
+          • -30→-20: -5,000 Camlycoin (năng lượng tiêu cực cao)
+          • -19→-10: -2,500 Camlycoin (năng lượng tiêu cực)
+          • -9→-1: 0 Camlycoin (trung lập tiêu cực)
+          • 0→7: +5,000 Camlycoin (tích cực cơ bản)
+          • 8→15: +10,000 Camlycoin (tích cực tốt)
+          • 16→23: +15,000 Camlycoin (tích cực cao)
+          • 24→30: +20,000 Camlycoin (tích cực xuất sắc)
 
       JSON:
       {
