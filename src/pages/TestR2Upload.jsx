@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, CheckCircle, XCircle, Loader2, Image as ImageIcon, Video, FileText } from 'lucide-react';
+import { Upload, CheckCircle, XCircle, Loader2, Image as ImageIcon, Video, FileText, Bug } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { base44 } from '@/api/base44Client';
@@ -11,6 +11,8 @@ export default function TestR2Upload() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
+  const [debugging, setDebugging] = useState(false);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -70,6 +72,19 @@ export default function TestR2Upload() {
     }
   };
 
+  const runDebug = async () => {
+    setDebugging(true);
+    setDebugInfo(null);
+    try {
+      const result = await base44.functions.invoke('debugR2', {});
+      setDebugInfo(result);
+    } catch (err) {
+      setDebugInfo({ error: err.message });
+    } finally {
+      setDebugging(false);
+    }
+  };
+
   const getFileIcon = (type) => {
     if (type?.startsWith('image/')) return <ImageIcon className="w-8 h-8" />;
     if (type?.startsWith('video/')) return <Video className="w-8 h-8" />;
@@ -87,7 +102,106 @@ export default function TestR2Upload() {
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-purple-900 mb-2">Test R2 Upload</h1>
             <p className="text-purple-600">Upload file lên Cloudflare R2 (tối đa 1GB)</p>
+            <Button
+              onClick={runDebug}
+              disabled={debugging}
+              variant="outline"
+              size="sm"
+              className="mt-4 border-amber-300 text-amber-700 hover:bg-amber-50"
+            >
+              {debugging ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Đang kiểm tra...
+                </>
+              ) : (
+                <>
+                  <Bug className="w-4 h-4 mr-2" />
+                  🔍 Debug R2 Connection
+                </>
+              )}
+            </Button>
           </div>
+
+          {/* Debug Info */}
+          <AnimatePresence>
+            {debugInfo && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-gradient-to-r from-amber-100 to-yellow-100 border-2 border-amber-300 rounded-2xl p-6 mb-6"
+              >
+                <h3 className="font-bold text-amber-900 mb-4 text-lg flex items-center gap-2">
+                  <Bug className="w-5 h-5" />
+                  Debug Information
+                </h3>
+                
+                {debugInfo.secretsCheck && (
+                  <div className="space-y-3 mb-4">
+                    <p className="font-semibold text-amber-800">Secrets Status:</p>
+                    {Object.entries(debugInfo.secretsCheck).map(([key, value]) => (
+                      <div key={key} className="flex justify-between bg-white/60 rounded-xl p-3 border border-amber-200">
+                        <span className="text-slate-900 font-medium">{key}:</span>
+                        <span className="font-bold">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {debugInfo.secretsPreview && (
+                  <div className="space-y-3 mb-4">
+                    <p className="font-semibold text-amber-800">Preview:</p>
+                    {Object.entries(debugInfo.secretsPreview).map(([key, value]) => (
+                      <div key={key} className="bg-white/60 rounded-xl p-3 border border-amber-200">
+                        <span className="text-slate-700 font-medium text-sm">{key}:</span>
+                        <code className="block mt-1 text-xs text-slate-900 break-all">{value}</code>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {debugInfo.connectionTest && (
+                  <div className="bg-white/60 rounded-xl p-3 border border-amber-200 mb-3">
+                    <p className="font-semibold text-amber-800 mb-2">Connection Test:</p>
+                    <p className="text-slate-900 font-bold">{debugInfo.connectionTest.status}</p>
+                    {debugInfo.connectionTest.error && (
+                      <p className="text-red-600 text-sm mt-2">Error: {debugInfo.connectionTest.error}</p>
+                    )}
+                  </div>
+                )}
+
+                {debugInfo.uploadTest && (
+                  <div className="bg-white/60 rounded-xl p-3 border border-amber-200 mb-3">
+                    <p className="font-semibold text-amber-800 mb-2">Upload Test:</p>
+                    <p className="text-slate-900 font-bold">{debugInfo.uploadTest.status}</p>
+                    {debugInfo.uploadTest.error && (
+                      <p className="text-red-600 text-sm mt-2">Error: {debugInfo.uploadTest.error}</p>
+                    )}
+                    {debugInfo.uploadTest.testFile && (
+                      <a href={debugInfo.uploadTest.testFile} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-xs block mt-2 break-all">
+                        {debugInfo.uploadTest.testFile}
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {debugInfo.recommendations && (
+                  <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
+                    <p className="font-bold text-purple-900 mb-3">💡 Khuyến nghị:</p>
+                    <ul className="space-y-2">
+                      {debugInfo.recommendations.map((rec, idx) => (
+                        <li key={idx} className="text-sm text-purple-800 flex items-start gap-2">
+                          <span className="text-purple-400">•</span>
+                          <span>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Upload Area */}
           <div className="mb-6">
