@@ -16,6 +16,7 @@ import UserProfile from './pages/UserProfile';
 import GratitudeJournal from './pages/GratitudeJournal';
 import LightLaw from './pages/LightLaw';
 import Landing from './pages/Landing';
+import TestR2Upload from './pages/TestR2Upload';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "GratitudeJournal": GratitudeJournal,
     "LightLaw": LightLaw,
     "Landing": Landing,
+    "TestR2Upload": TestR2Upload,
 }
 
 export const pagesConfig = {
