@@ -41,7 +41,18 @@ export default function TestR2Upload() {
     }, 500);
 
     try {
-      const data = await base44.functions.invoke('uploadToR2', { file });
+      // Step 1: Upload to Base44 first
+      setUploadProgress(20);
+      const uploadResult = await base44.integrations.Core.UploadFile({ file });
+      
+      // Step 2: Call backend function with file URL
+      setUploadProgress(50);
+      const data = await base44.functions.invoke('uploadToR2', { 
+        file_url: uploadResult.file_url,
+        file_name: file.name,
+        file_type: file.type
+      });
+      
       clearInterval(progressInterval);
       setUploadProgress(100);
       

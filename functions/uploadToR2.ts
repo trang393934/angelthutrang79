@@ -19,22 +19,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formData = await req.formData();
-    const file = formData.get('file');
+    const { file_url, file_name, file_type } = await req.json();
 
-    if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+    if (!file_url) {
+      return Response.json({ error: 'No file URL provided' }, { status: 400 });
     }
 
-    const fileName = `${Date.now()}-${file.name}`;
-    const fileBuffer = await file.arrayBuffer();
+    // Download file from Base44
+    const fileResponse = await fetch(file_url);
+    if (!fileResponse.ok) {
+      throw new Error('Failed to download file');
+    }
 
+    const fileBuffer = await fileResponse.arrayBuffer();
+    const fileName = `${Date.now()}-${file_name}`;
+
+    // Upload to R2
     await s3Client.send(
       new PutObjectCommand({
         Bucket: Deno.env.get('R2_BUCKET_NAME'),
         Key: fileName,
         Body: new Uint8Array(fileBuffer),
-        ContentType: file.type,
+        ContentType: file_type,
       })
     );
 
@@ -44,8 +50,8 @@ Deno.serve(async (req) => {
       success: true,
       url: publicUrl,
       fileName: fileName,
-      size: file.size,
-      type: file.type,
+      size: fileBuffer.byteLength,
+      type: file_type,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
