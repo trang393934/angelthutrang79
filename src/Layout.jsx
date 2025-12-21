@@ -105,7 +105,13 @@ export default function Layout({ children, currentPageName }) {
       path: 'RewardsManagement',
       gradient: 'from-yellow-400 to-amber-400'
     },
-  ];
+    { 
+      name: 'Test R2 Upload', 
+      icon: Sparkles, 
+      path: 'TestR2Upload',
+      gradient: 'from-blue-400 to-cyan-400'
+    },
+    ];
 
   // Check for existing wallet connection
   useEffect(() => {
