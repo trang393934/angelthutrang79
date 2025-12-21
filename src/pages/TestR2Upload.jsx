@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, CheckCircle, XCircle, Loader2, Image as ImageIcon, Video, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { base44 } from '@/api/base44Client';
 
 export default function TestR2Upload() {
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
@@ -23,15 +25,35 @@ export default function TestR2Upload() {
     if (!file) return;
 
     setUploading(true);
+    setUploadProgress(0);
     setError(null);
     setResult(null);
 
+    // Simulate progress for large files
+    const progressInterval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
+      });
+    }, 500);
+
     try {
       const data = await base44.functions.invoke('uploadToR2', { file });
-      setResult(data);
-      setFile(null);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
+      setTimeout(() => {
+        setResult(data);
+        setFile(null);
+        setUploadProgress(0);
+      }, 500);
     } catch (err) {
+      clearInterval(progressInterval);
       setError(err.message);
+      setUploadProgress(0);
     } finally {
       setUploading(false);
     }
@@ -53,7 +75,7 @@ export default function TestR2Upload() {
         >
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-purple-900 mb-2">Test R2 Upload</h1>
-            <p className="text-purple-600">Upload file lên Cloudflare R2</p>
+            <p className="text-purple-600">Upload file lên Cloudflare R2 (tối đa 1GB)</p>
           </div>
 
           {/* Upload Area */}
@@ -67,7 +89,7 @@ export default function TestR2Upload() {
                 <p className="mb-2 text-sm text-purple-700 font-semibold">
                   <span className="font-bold">Click để chọn file</span> hoặc kéo thả
                 </p>
-                <p className="text-xs text-purple-500">Hỗ trợ: Ảnh, Video, Document</p>
+                <p className="text-xs text-purple-500">Hỗ trợ: Ảnh, Video (tối đa 1GB), Document</p>
               </div>
               <input
                 id="file-upload"
@@ -80,101 +102,167 @@ export default function TestR2Upload() {
           </div>
 
           {/* Selected File */}
-          {file && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-300 rounded-2xl p-4 mb-6"
-            >
-              <div className="flex items-center gap-4">
-                <div className="text-purple-600">
-                  {getFileIcon(file.type)}
+          <AnimatePresence>
+            {file && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-300 rounded-2xl p-4 mb-6"
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="text-purple-600">
+                    {getFileIcon(file.type)}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-slate-900">{file.name}</p>
+                    <p className="text-sm text-purple-600">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleUpload}
+                    disabled={uploading}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {uploading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload
+                      </>
+                    )}
+                  </Button>
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-slate-900">{file.name}</p>
-                  <p className="text-sm text-purple-600">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-                <Button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl shadow-lg hover:shadow-xl"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload
-                    </>
-                  )}
-                </Button>
-              </div>
-            </motion.div>
-          )}
+
+                {/* Progress Bar */}
+                {uploading && uploadProgress > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-2"
+                  >
+                    <div className="flex justify-between text-sm">
+                      <span className="text-purple-700 font-semibold">Đang upload...</span>
+                      <span className="text-purple-600 font-bold">{uploadProgress}%</span>
+                    </div>
+                    <Progress value={uploadProgress} className="h-3 bg-purple-200" />
+                  </motion.div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Success Result */}
-          {result && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 rounded-2xl p-6 mb-6"
-            >
-              <div className="flex items-start gap-4">
-                <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
-                <div className="flex-1">
-                  <h3 className="font-bold text-green-900 mb-2">Upload thành công! 🎉</h3>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="font-semibold text-green-800">File:</span>{' '}
-                      <span className="text-slate-900">{result.fileName}</span>
+          <AnimatePresence>
+            {result && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                className="bg-gradient-to-r from-green-100 to-emerald-100 border-2 border-green-300 rounded-2xl p-6 mb-6"
+              >
+                <div className="flex items-start gap-4">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", delay: 0.2 }}
+                  >
+                    <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0" />
+                  </motion.div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-green-900 mb-3 text-lg">✨ Upload thành công!</h3>
+                    <div className="space-y-3 text-sm">
+                      <div className="bg-white/60 rounded-xl p-3 border border-green-200">
+                        <span className="font-semibold text-green-800">File:</span>{' '}
+                        <span className="text-slate-900">{result.fileName}</span>
+                      </div>
+                      <div className="bg-white/60 rounded-xl p-3 border border-green-200">
+                        <span className="font-semibold text-green-800 block mb-1">URL:</span>
+                        <a
+                          href={result.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline break-all text-xs"
+                        >
+                          {result.url}
+                        </a>
+                      </div>
+                      <div className="bg-white/60 rounded-xl p-3 border border-green-200">
+                        <span className="font-semibold text-green-800">Kích thước:</span>{' '}
+                        <span className="text-slate-900">{(result.size / 1024 / 1024).toFixed(2)} MB</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-semibold text-green-800">URL:</span>{' '}
-                      <a
-                        href={result.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline break-all"
+                    {result.type?.startsWith('image/') && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="mt-4"
                       >
-                        {result.url}
-                      </a>
-                    </div>
+                        <img
+                          src={result.url}
+                          alt="Uploaded"
+                          className="max-w-full h-auto rounded-xl border-2 border-green-300 shadow-lg"
+                        />
+                      </motion.div>
+                    )}
+                    {result.type?.startsWith('video/') && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="mt-4"
+                      >
+                        <video
+                          src={result.url}
+                          controls
+                          className="max-w-full h-auto rounded-xl border-2 border-green-300 shadow-lg"
+                        />
+                      </motion.div>
+                    )}
                   </div>
-                  {result.type?.startsWith('image/') && (
-                    <div className="mt-4">
-                      <img
-                        src={result.url}
-                        alt="Uploaded"
-                        className="max-w-full h-auto rounded-xl border-2 border-green-300"
-                      />
-                    </div>
-                  )}
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Error */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-300 rounded-2xl p-6"
-            >
-              <div className="flex items-start gap-4">
-                <XCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
-                <div>
-                  <h3 className="font-bold text-red-900 mb-2">Upload thất bại</h3>
-                  <p className="text-red-800">{error}</p>
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                className="bg-gradient-to-r from-red-100 to-rose-100 border-2 border-red-300 rounded-2xl p-6"
+              >
+                <div className="flex items-start gap-4">
+                  <motion.div
+                    initial={{ scale: 0, rotate: 180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", delay: 0.1 }}
+                  >
+                    <XCircle className="w-8 h-8 text-red-600 flex-shrink-0" />
+                  </motion.div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-red-900 mb-2 text-lg">❌ Upload thất bại</h3>
+                    <p className="text-red-800 bg-white/60 rounded-xl p-3 border border-red-200">{error}</p>
+                    <Button
+                      onClick={() => setError(null)}
+                      variant="outline"
+                      className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
+                    >
+                      Thử lại
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     </div>
