@@ -27,23 +27,7 @@ export default function TestR2Upload() {
     setResult(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/functions/uploadToR2', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': `Bearer ${await base44.auth.getToken()}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
-      }
-
+      const data = await base44.functions.invoke('uploadToR2', { file });
       setResult(data);
       setFile(null);
     } catch (err) {
