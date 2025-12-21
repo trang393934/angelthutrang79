@@ -25,24 +25,37 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'No file URL provided' }, { status: 400 });
     }
 
+    // Log R2 config
+    console.log('R2 Config:', {
+      endpoint: Deno.env.get('R2_ENDPOINT'),
+      bucket: Deno.env.get('R2_BUCKET_NAME'),
+      publicUrl: Deno.env.get('R2_PUBLIC_URL'),
+      hasAccessKey: !!Deno.env.get('R2_ACCESS_KEY_ID'),
+      hasSecretKey: !!Deno.env.get('R2_SECRET_ACCESS_KEY'),
+    });
+
     // Download file from Base44
+    console.log('Downloading file from:', file_url);
     const fileResponse = await fetch(file_url);
     if (!fileResponse.ok) {
-      throw new Error('Failed to download file');
+      throw new Error(`Failed to download file: ${fileResponse.status} ${fileResponse.statusText}`);
     }
 
     const fileBuffer = await fileResponse.arrayBuffer();
     const fileName = `${Date.now()}-${file_name}`;
+    console.log('File downloaded, size:', fileBuffer.byteLength, 'bytes');
 
     // Upload to R2
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: Deno.env.get('R2_BUCKET_NAME'),
-        Key: fileName,
-        Body: new Uint8Array(fileBuffer),
-        ContentType: file_type,
-      })
-    );
+    console.log('Uploading to R2 as:', fileName);
+    const command = new PutObjectCommand({
+      Bucket: Deno.env.get('R2_BUCKET_NAME'),
+      Key: fileName,
+      Body: new Uint8Array(fileBuffer),
+      ContentType: file_type,
+    });
+
+    const uploadResult = await s3Client.send(command);
+    console.log('Upload result:', uploadResult);
 
     const publicUrl = `${Deno.env.get('R2_PUBLIC_URL')}/${fileName}`;
 
@@ -54,6 +67,11 @@ Deno.serve(async (req) => {
       type: file_type,
     });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('Upload error:', error);
+    return Response.json({ 
+      error: error.message,
+      details: error.toString(),
+      stack: error.stack
+    }, { status: 500 });
   }
 });
