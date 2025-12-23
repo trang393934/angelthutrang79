@@ -415,7 +415,6 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               )}
             </div>
           )}
-        </div>
       </div>
 
       {/* Upload Form Modal */}
