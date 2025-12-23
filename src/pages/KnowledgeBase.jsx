@@ -371,7 +371,6 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               </Button>
             )}
           </div>
-          </div>
           
           {/* Search & Filter Bar */}
           {knowledgeBase.length > 0 && (
@@ -415,7 +414,6 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               )}
             </div>
           )}
-          </div>
         </div>
       </div>
 
