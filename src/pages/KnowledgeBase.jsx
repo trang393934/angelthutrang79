@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy, Sparkles } from 'lucide-react';
+import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy, Sparkles, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +22,8 @@ export default function KnowledgeBase() {
   const [isGeneratingFAQ, setIsGeneratingFAQ] = useState(false);
   const [showFAQ, setShowFAQ] = useState(false);
   const [relatedDocs, setRelatedDocs] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTag, setSelectedTag] = useState('');
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -295,6 +297,21 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
     guideline: 'Hướng Dẫn',
   };
 
+  // Get all unique tags
+  const allTags = [...new Set(knowledgeBase.flatMap(doc => doc.tags || []))].filter(Boolean);
+
+  // Filter documents
+  const filteredDocs = knowledgeBase.filter(doc => {
+    const matchesSearch = !searchQuery || 
+      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.summary?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesTag = !selectedTag || doc.tags?.includes(selectedTag);
+    
+    return matchesSearch && matchesTag;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-indigo-50 to-purple-50 relative">
       {/* Background glow */}
@@ -354,6 +371,50 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               </Button>
             )}
           </div>
+          </div>
+          
+          {/* Search & Filter Bar */}
+          {knowledgeBase.length > 0 && (
+            <div className="mt-4 space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                <Input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Tìm kiếm theo tiêu đề, nội dung, từ khóa..."
+                  className="pl-10 bg-white border-2 border-indigo-200 text-slate-900 placeholder:text-purple-400 rounded-xl focus:border-indigo-400"
+                />
+              </div>
+              
+              {allTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={selectedTag === '' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedTag('')}
+                    className={selectedTag === '' 
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full' 
+                      : 'border-indigo-300 text-slate-900 hover:bg-indigo-50 rounded-full bg-white'}
+                  >
+                    Tất Cả
+                  </Button>
+                  {allTags.map((tag) => (
+                    <Button
+                      key={tag}
+                      variant={selectedTag === tag ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedTag(tag)}
+                      className={selectedTag === tag 
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full' 
+                        : 'border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full bg-white'}
+                    >
+                      {tag}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           </div>
         </div>
       </div>
@@ -812,10 +873,34 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               </Button>
             )}
           </motion.div>
+        ) : filteredDocs.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-400/20 to-purple-400/20 flex items-center justify-center mx-auto mb-6">
+              <Search className="w-10 h-10 text-indigo-300/40" />
+            </div>
+            <h3 className="text-slate-900 text-xl font-semibold mb-2">Không Tìm Thấy</h3>
+            <p className="text-purple-700 font-medium mb-6">
+              Không có tài liệu nào phù hợp với tìm kiếm của bạn
+            </p>
+            <Button
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedTag('');
+              }}
+              variant="outline"
+              className="border-2 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full"
+            >
+              Xóa Bộ Lọc
+            </Button>
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <AnimatePresence>
-              {knowledgeBase.map((doc, index) => (
+              {filteredDocs.map((doc, index) => (
                 <motion.div
                   key={doc.id}
                   initial={{ opacity: 0, y: 20 }}

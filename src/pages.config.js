@@ -1,45 +1,45 @@
-import Home from './pages/Home';
+import AITools from './pages/AITools';
+import Analytics from './pages/Analytics';
+import BuildAndBounty from './pages/BuildAndBounty';
+import CamlycoinHistory from './pages/CamlycoinHistory';
 import Chat from './pages/Chat';
 import DailyMessage from './pages/DailyMessage';
-import Library from './pages/Library';
-import PersonalVision from './pages/PersonalVision';
-import KnowledgeBase from './pages/KnowledgeBase';
-import Settings from './pages/Settings';
-import Imagine from './pages/Imagine';
-import AITools from './pages/AITools';
-import BuildAndBounty from './pages/BuildAndBounty';
-import RewardsManagement from './pages/RewardsManagement';
 import FUNUsers from './pages/FUNUsers';
-import CamlycoinHistory from './pages/CamlycoinHistory';
-import Analytics from './pages/Analytics';
-import UserProfile from './pages/UserProfile';
 import GratitudeJournal from './pages/GratitudeJournal';
-import LightLaw from './pages/LightLaw';
+import Home from './pages/Home';
+import Imagine from './pages/Imagine';
+import KnowledgeBase from './pages/KnowledgeBase';
 import Landing from './pages/Landing';
+import Library from './pages/Library';
+import LightLaw from './pages/LightLaw';
+import PersonalVision from './pages/PersonalVision';
+import RewardsManagement from './pages/RewardsManagement';
+import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
+import UserProfile from './pages/UserProfile';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
+    "AITools": AITools,
+    "Analytics": Analytics,
+    "BuildAndBounty": BuildAndBounty,
+    "CamlycoinHistory": CamlycoinHistory,
     "Chat": Chat,
     "DailyMessage": DailyMessage,
-    "Library": Library,
-    "PersonalVision": PersonalVision,
-    "KnowledgeBase": KnowledgeBase,
-    "Settings": Settings,
-    "Imagine": Imagine,
-    "AITools": AITools,
-    "BuildAndBounty": BuildAndBounty,
-    "RewardsManagement": RewardsManagement,
     "FUNUsers": FUNUsers,
-    "CamlycoinHistory": CamlycoinHistory,
-    "Analytics": Analytics,
-    "UserProfile": UserProfile,
     "GratitudeJournal": GratitudeJournal,
-    "LightLaw": LightLaw,
+    "Home": Home,
+    "Imagine": Imagine,
+    "KnowledgeBase": KnowledgeBase,
     "Landing": Landing,
+    "Library": Library,
+    "LightLaw": LightLaw,
+    "PersonalVision": PersonalVision,
+    "RewardsManagement": RewardsManagement,
+    "Settings": Settings,
     "TestR2Upload": TestR2Upload,
+    "UserProfile": UserProfile,
 }
 
 export const pagesConfig = {
