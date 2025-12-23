@@ -371,8 +371,9 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               </Button>
             )}
           </div>
+        </div>
           
-          {/* Search & Filter Bar */}
+        {/* Search & Filter Bar */}
           {knowledgeBase.length > 0 && (
             <div className="mt-4 space-y-3">
               <div className="relative">
