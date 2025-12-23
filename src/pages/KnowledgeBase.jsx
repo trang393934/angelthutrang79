@@ -371,11 +371,11 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               </Button>
             )}
           </div>
-        </div>
+          </div>
           
-        {/* Search & Filter Bar */}
-        {knowledgeBase.length > 0 && (
-          <div className="mt-4 space-y-3">
+          {/* Search & Filter Bar */}
+          {knowledgeBase.length > 0 && (
+            <div className="mt-4 px-4 pb-3 space-y-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                 <Input
@@ -415,6 +415,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               )}
             </div>
           )}
+        </div>
       </div>
 
       {/* Upload Form Modal */}
