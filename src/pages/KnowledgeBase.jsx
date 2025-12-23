@@ -373,9 +373,9 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           </div>
           </div>
           
-          {/* Search & Filter Bar */}
+          {/* Search Bar */}
           {knowledgeBase.length > 0 && (
-            <div className="mt-4 px-4 pb-3 space-y-3">
+            <div className="mt-4 px-4 pb-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
                 <Input
@@ -385,34 +385,6 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                   className="pl-10 bg-white border-2 border-indigo-200 text-slate-900 placeholder:text-purple-400 rounded-xl focus:border-indigo-400"
                 />
               </div>
-              
-              {allTags.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={selectedTag === '' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedTag('')}
-                    className={selectedTag === '' 
-                      ? 'bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full' 
-                      : 'border-indigo-300 text-slate-900 hover:bg-indigo-50 rounded-full bg-white'}
-                  >
-                    Tất Cả
-                  </Button>
-                  {allTags.map((tag) => (
-                    <Button
-                      key={tag}
-                      variant={selectedTag === tag ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedTag(tag)}
-                      className={selectedTag === tag 
-                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full' 
-                        : 'border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full bg-white'}
-                    >
-                      {tag}
-                    </Button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
         </div>
