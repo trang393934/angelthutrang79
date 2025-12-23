@@ -788,7 +788,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
       </AnimatePresence>
 
       {/* Content */}
-      <div className="pt-20 pb-40 px-4 max-w-6xl mx-auto">
+      <div className="pt-32 pb-40 px-4 max-w-6xl mx-auto">
         {!currentUser ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
