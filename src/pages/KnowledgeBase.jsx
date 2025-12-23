@@ -370,7 +370,6 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                 <span className="hidden lg:inline">Upload</span>
               </Button>
             )}
-            )}
           </div>
           
           {/* Search & Filter Bar */}
