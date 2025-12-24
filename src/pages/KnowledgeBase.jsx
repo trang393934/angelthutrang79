@@ -1019,74 +1019,57 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-6"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <Folder className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-slate-900 font-bold text-lg">Thư Mục</h2>
+            <div className="flex items-center gap-2 mb-3">
+              <Folder className="w-4 h-4 text-indigo-600" />
+              <h2 className="text-slate-900 font-bold text-sm">Thư Mục</h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="flex flex-wrap gap-2">
               {/* All documents */}
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedCategory(null)}
-                className={`relative p-4 rounded-2xl border-2 transition-all text-left ${
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${
                   !selectedCategory 
-                    ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-400 shadow-lg' 
+                    ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-400 shadow-md' 
                     : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-2xl`}>
-                    📚
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-slate-900 font-bold text-sm truncate">Tất Cả</h3>
-                    <p className="text-slate-600 text-xs">{knowledgeBase.length} tài liệu</p>
-                  </div>
-                </div>
+                <span className="text-lg">📚</span>
+                <span className="text-slate-900 font-bold text-sm">Tất Cả</span>
+                <span className="text-slate-600 text-xs">({knowledgeBase.length})</span>
               </motion.button>
 
               {/* Category folders */}
               {categories.map((cat) => (
                 <motion.div
                   key={cat.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="relative group"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative group inline-block"
                 >
                   <button
                     onClick={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
-                    className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${
+                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${
                       selectedCategory?.id === cat.id 
-                        ? `bg-gradient-to-br ${colorMap[cat.color]} border-transparent shadow-lg` 
+                        ? `bg-gradient-to-br ${colorMap[cat.color]} border-transparent shadow-md text-white` 
                         : 'bg-white border-indigo-200 hover:border-indigo-300'
                     }`}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[cat.color]} flex items-center justify-center text-2xl shadow-md`}>
-                        {selectedCategory?.id === cat.id ? '📂' : cat.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className={`font-bold text-sm truncate ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-900'}`}>
-                          {cat.name}
-                        </h3>
-                        <p className={`text-xs ${selectedCategory?.id === cat.id ? 'text-white/80' : 'text-slate-600'}`}>
-                          {knowledgeBase.filter(d => d.category_id === cat.id).length} tài liệu
-                        </p>
-                      </div>
-                    </div>
-                    {cat.description && (
-                      <p className={`text-xs line-clamp-2 ${selectedCategory?.id === cat.id ? 'text-white/70' : 'text-slate-500'}`}>
-                        {cat.description}
-                      </p>
-                    )}
+                    <span className="text-lg">{selectedCategory?.id === cat.id ? '📂' : cat.icon}</span>
+                    <span className={`font-bold text-sm ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-900'}`}>
+                      {cat.name}
+                    </span>
+                    <span className={`text-xs ${selectedCategory?.id === cat.id ? 'text-white/80' : 'text-slate-600'}`}>
+                      ({knowledgeBase.filter(d => d.category_id === cat.id).length})
+                    </span>
                   </button>
                   
                   {/* Admin actions */}
                   {isAdmin && (
-                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute -top-1 -right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -1097,18 +1080,18 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                           setCategoryColor(cat.color);
                           setShowCategoryForm(true);
                         }}
-                        className="w-7 h-7 rounded-lg bg-white/90 hover:bg-white border border-indigo-300 flex items-center justify-center transition-all"
+                        className="w-6 h-6 rounded-lg bg-white border border-indigo-300 flex items-center justify-center transition-all shadow-md"
                       >
                         <Edit2 className="w-3 h-3 text-indigo-600" />
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm(`Xóa thư mục "${cat.name}"? Các tài liệu sẽ trở thành chưa phân loại.`)) {
+                          if (confirm(`Xóa thư mục "${cat.name}"?`)) {
                             deleteCategoryMutation.mutate(cat.id);
                           }
                         }}
-                        className="w-7 h-7 rounded-lg bg-white/90 hover:bg-white border border-red-300 flex items-center justify-center transition-all"
+                        className="w-6 h-6 rounded-lg bg-white border border-red-300 flex items-center justify-center transition-all shadow-md"
                       >
                         <Trash2 className="w-3 h-3 text-red-600" />
                       </button>
