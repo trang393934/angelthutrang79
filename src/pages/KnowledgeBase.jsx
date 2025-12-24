@@ -976,6 +976,23 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           </div>
         )}
       </div>
+
+      {/* Floating Back Button - Fixed at bottom left */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.5 }}
+        className="fixed bottom-6 left-6 z-50"
+      >
+        <Link to={createPageUrl('Home')}>
+          <Button
+            size="lg"
+            className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 hover:scale-110 transition-all w-14 h-14 p-0"
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </Button>
+        </Link>
+      </motion.div>
     </div>
   );
 }
