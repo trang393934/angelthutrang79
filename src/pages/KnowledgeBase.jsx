@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy, Sparkles, Search } from 'lucide-react';
+import { ArrowLeft, BookOpen, Upload, File, Trash2, Eye, X, Plus, Loader2, CheckCircle2, Power, Download, Copy, Sparkles, Search, Folder, FolderOpen, Edit2, FolderPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +24,13 @@ export default function KnowledgeBase() {
   const [relatedDocs, setRelatedDocs] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showCategoryForm, setShowCategoryForm] = useState(false);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
+  const [categoryIcon, setCategoryIcon] = useState('📁');
+  const [categoryColor, setCategoryColor] = useState('blue');
+  const [editingCategory, setEditingCategory] = useState(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -38,14 +45,20 @@ export default function KnowledgeBase() {
 
   const isAdmin = currentUser?.role === 'admin';
 
+  const { data: categories = [], isLoading: loadingCategories } = useQuery({
+    queryKey: ['knowledge-categories'],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      return base44.entities.KnowledgeCategory.list('order', 100);
+    },
+    enabled: !!currentUser,
+  });
+
   const { data: knowledgeBase = [], isLoading } = useQuery({
     queryKey: ['knowledge-base-all', currentUser?.email],
     queryFn: async () => {
       if (!currentUser) return [];
-      return base44.entities.KnowledgeBase.filter(
-        { is_active: true },
-        '-created_date'
-      );
+      return base44.entities.KnowledgeBase.list('-created_date', 1000);
     },
     enabled: !!currentUser,
   });
@@ -141,6 +154,7 @@ Trả về JSON với format:
         content: content,
         file_url: file_url,
         type: type,
+        category_id: selectedCategory?.id || null,
         summary: analysis.summary,
         tags: analysis.tags,
         is_active: true
@@ -152,6 +166,46 @@ Trả về JSON với format:
       setTitle('');
       queryClient.invalidateQueries({ queryKey: ['knowledge-base'] });
     }
+  });
+
+  const createCategoryMutation = useMutation({
+    mutationFn: async () => {
+      if (editingCategory) {
+        return base44.entities.KnowledgeCategory.update(editingCategory.id, {
+          name: categoryName,
+          description: categoryDescription,
+          icon: categoryIcon,
+          color: categoryColor,
+        });
+      } else {
+        return base44.entities.KnowledgeCategory.create({
+          name: categoryName,
+          description: categoryDescription,
+          icon: categoryIcon,
+          color: categoryColor,
+          order: categories.length,
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['knowledge-categories'] });
+      setShowCategoryForm(false);
+      setCategoryName('');
+      setCategoryDescription('');
+      setCategoryIcon('📁');
+      setCategoryColor('blue');
+      setEditingCategory(null);
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (id) => base44.entities.KnowledgeCategory.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['knowledge-categories'] });
+      if (selectedCategory?.id === arguments[0]) {
+        setSelectedCategory(null);
+      }
+    },
   });
 
   const toggleActiveMutation = useMutation({
@@ -300,6 +354,18 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
   // Get all unique tags
   const allTags = [...new Set(knowledgeBase.flatMap(doc => doc.tags || []))].filter(Boolean);
 
+  // Color mapping
+  const colorMap = {
+    blue: 'from-blue-400 to-cyan-400',
+    purple: 'from-purple-400 to-pink-400',
+    amber: 'from-amber-400 to-orange-400',
+    rose: 'from-rose-400 to-pink-400',
+    green: 'from-green-400 to-emerald-400',
+    indigo: 'from-indigo-400 to-purple-400',
+    pink: 'from-pink-400 to-rose-400',
+    cyan: 'from-cyan-400 to-blue-400',
+  };
+
   // Filter documents
   const filteredDocs = knowledgeBase.filter(doc => {
     const matchesSearch = !searchQuery || 
@@ -309,8 +375,17 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
     
     const matchesTag = !selectedTag || doc.tags?.includes(selectedTag);
     
-    return matchesSearch && matchesTag;
+    const matchesCategory = !selectedCategory || doc.category_id === selectedCategory.id;
+    
+    return matchesSearch && matchesTag && matchesCategory;
   });
+
+  // Group docs by category
+  const uncategorizedDocs = knowledgeBase.filter(doc => !doc.category_id);
+  const categorizedDocs = categories.map(cat => ({
+    ...cat,
+    docs: knowledgeBase.filter(doc => doc.category_id === cat.id)
+  }));
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-indigo-50 to-purple-50 relative">
@@ -362,13 +437,24 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               </Button>
             )}
             {isAdmin && (
-              <Button
-                onClick={() => setShowUploadForm(true)}
-                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all h-10 w-10 lg:w-auto lg:px-4 p-0"
-              >
-                <Plus className="w-4 h-4 lg:mr-2" />
-                <span className="hidden lg:inline">Upload</span>
-              </Button>
+              <>
+                <Button
+                  onClick={() => setShowCategoryForm(true)}
+                  variant="outline"
+                  size="sm"
+                  className="border-2 border-indigo-300 text-indigo-700 hover:bg-indigo-50 rounded-full h-10 w-10 lg:w-auto lg:px-3 p-0"
+                >
+                  <FolderPlus className="w-4 h-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Thư Mục</span>
+                </Button>
+                <Button
+                  onClick={() => setShowUploadForm(true)}
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all h-10 w-10 lg:w-auto lg:px-4 p-0"
+                >
+                  <Plus className="w-4 h-4 lg:mr-2" />
+                  <span className="hidden lg:inline">Upload</span>
+                </Button>
+              </>
             )}
           </div>
           </div>
@@ -389,6 +475,118 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           )}
         </div>
       </div>
+
+      {/* Category Form Modal */}
+      <AnimatePresence>
+        {showCategoryForm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowCategoryForm(false);
+              setEditingCategory(null);
+              setCategoryName('');
+              setCategoryDescription('');
+              setCategoryIcon('📁');
+              setCategoryColor('blue');
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-lg w-full shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
+                  <FolderPlus className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-slate-900 text-xl font-semibold tracking-wide">
+                    {editingCategory ? 'Sửa Thư Mục' : 'Tạo Thư Mục Mới'}
+                  </h3>
+                  <p className="text-purple-700 text-sm font-medium">Tổ chức tri thức theo chủ đề</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Tên Thư Mục</label>
+                  <Input
+                    value={categoryName}
+                    onChange={(e) => setCategoryName(e.target.value)}
+                    placeholder="Giáo Lý Cơ Bản, Thiền Định, Luật Vũ Trụ..."
+                    className="bg-white border-2 border-indigo-300 text-slate-900 rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Mô Tả</label>
+                  <Textarea
+                    value={categoryDescription}
+                    onChange={(e) => setCategoryDescription(e.target.value)}
+                    placeholder="Mô tả ngắn về nội dung thư mục..."
+                    className="bg-white border-2 border-indigo-300 text-slate-900 rounded-xl h-20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Icon (Emoji)</label>
+                  <Input
+                    value={categoryIcon}
+                    onChange={(e) => setCategoryIcon(e.target.value)}
+                    placeholder="📁 🌟 ✨ 🙏 ❤️"
+                    className="bg-white border-2 border-indigo-300 text-slate-900 rounded-xl text-2xl"
+                    maxLength={2}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Màu Sắc</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {['blue', 'purple', 'amber', 'rose', 'green', 'indigo', 'pink', 'cyan'].map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setCategoryColor(color)}
+                        className={`h-12 rounded-xl bg-gradient-to-br ${colorMap[color]} transition-all ${
+                          categoryColor === color ? 'ring-4 ring-slate-900 scale-105' : 'opacity-60 hover:opacity-100'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCategoryForm(false);
+                    setEditingCategory(null);
+                    setCategoryName('');
+                    setCategoryDescription('');
+                    setCategoryIcon('📁');
+                    setCategoryColor('blue');
+                  }}
+                  className="bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full flex-1"
+                >
+                  Hủy
+                </Button>
+                <Button
+                  onClick={() => createCategoryMutation.mutate()}
+                  disabled={!categoryName.trim()}
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full flex-1 disabled:opacity-50"
+                >
+                  {editingCategory ? 'Cập Nhật' : 'Tạo Thư Mục'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Upload Form Modal */}
       <AnimatePresence>
@@ -426,6 +624,33 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                     placeholder="8 Divine Mantras, Luật Trả Lời, Tầm Nhìn FUN..."
                     className="bg-white border-2 border-indigo-300 text-slate-900 placeholder:text-purple-400 rounded-xl focus:border-indigo-500"
                   />
+                </div>
+
+                <div>
+                  <label className="text-slate-900 text-sm mb-2 block font-semibold">Thư Mục</label>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant={!selectedCategory ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedCategory(null)}
+                      className={!selectedCategory ? 'bg-slate-500 text-white' : 'border-purple-300 text-slate-900 hover:bg-purple-50 bg-white'}
+                    >
+                      Không có
+                    </Button>
+                    {categories.map((cat) => (
+                      <Button
+                        key={cat.id}
+                        variant={selectedCategory?.id === cat.id ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={selectedCategory?.id === cat.id 
+                          ? `bg-gradient-to-r ${colorMap[cat.color]} text-white border-0` 
+                          : 'border-purple-300 text-slate-900 hover:bg-purple-50 bg-white'}
+                      >
+                        {cat.icon} {cat.name}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
                 <div>
@@ -789,6 +1014,111 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
 
       {/* Content */}
       <div className="pt-32 pb-40 px-4 max-w-6xl mx-auto">
+        {/* Categories Navigation */}
+        {categories.length > 0 && currentUser && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <Folder className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-slate-900 font-bold text-lg">Thư Mục</h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              {/* All documents */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setSelectedCategory(null)}
+                className={`relative p-4 rounded-2xl border-2 transition-all text-left ${
+                  !selectedCategory 
+                    ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-400 shadow-lg' 
+                    : 'bg-white border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br from-slate-400 to-slate-500 flex items-center justify-center text-2xl`}>
+                    📚
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-slate-900 font-bold text-sm truncate">Tất Cả</h3>
+                    <p className="text-slate-600 text-xs">{knowledgeBase.length} tài liệu</p>
+                  </div>
+                </div>
+              </motion.button>
+
+              {/* Category folders */}
+              {categories.map((cat) => (
+                <motion.div
+                  key={cat.id}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="relative group"
+                >
+                  <button
+                    onClick={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
+                    className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${
+                      selectedCategory?.id === cat.id 
+                        ? `bg-gradient-to-br ${colorMap[cat.color]} border-transparent shadow-lg` 
+                        : 'bg-white border-indigo-200 hover:border-indigo-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${colorMap[cat.color]} flex items-center justify-center text-2xl shadow-md`}>
+                        {selectedCategory?.id === cat.id ? '📂' : cat.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`font-bold text-sm truncate ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-900'}`}>
+                          {cat.name}
+                        </h3>
+                        <p className={`text-xs ${selectedCategory?.id === cat.id ? 'text-white/80' : 'text-slate-600'}`}>
+                          {knowledgeBase.filter(d => d.category_id === cat.id).length} tài liệu
+                        </p>
+                      </div>
+                    </div>
+                    {cat.description && (
+                      <p className={`text-xs line-clamp-2 ${selectedCategory?.id === cat.id ? 'text-white/70' : 'text-slate-500'}`}>
+                        {cat.description}
+                      </p>
+                    )}
+                  </button>
+                  
+                  {/* Admin actions */}
+                  {isAdmin && (
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingCategory(cat);
+                          setCategoryName(cat.name);
+                          setCategoryDescription(cat.description || '');
+                          setCategoryIcon(cat.icon);
+                          setCategoryColor(cat.color);
+                          setShowCategoryForm(true);
+                        }}
+                        className="w-7 h-7 rounded-lg bg-white/90 hover:bg-white border border-indigo-300 flex items-center justify-center transition-all"
+                      >
+                        <Edit2 className="w-3 h-3 text-indigo-600" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Xóa thư mục "${cat.name}"? Các tài liệu sẽ trở thành chưa phân loại.`)) {
+                            deleteCategoryMutation.mutate(cat.id);
+                          }
+                        }}
+                        className="w-7 h-7 rounded-lg bg-white/90 hover:bg-white border border-red-300 flex items-center justify-center transition-all"
+                      >
+                        <Trash2 className="w-3 h-3 text-red-600" />
+                      </button>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
         {!currentUser ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
