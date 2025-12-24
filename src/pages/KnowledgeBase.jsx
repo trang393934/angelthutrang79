@@ -1021,11 +1021,27 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
             animate={{ opacity: 1, y: 0 }}
             className="mb-6"
           >
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <Folder className="w-4 h-4 text-indigo-600" />
               <h2 className="text-slate-900 font-bold text-sm">Thư Mục</h2>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-indigo-100">
+              <style>{`
+                .scrollbar-thin::-webkit-scrollbar {
+                  height: 6px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-track {
+                  background: rgba(199, 210, 254, 0.3);
+                  border-radius: 3px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb {
+                  background: rgba(129, 140, 248, 0.5);
+                  border-radius: 3px;
+                }
+                .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+                  background: rgba(129, 140, 248, 0.7);
+                }
+              `}</style>
               {/* All documents */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
