@@ -297,7 +297,7 @@ export default function Chat() {
     NGUỒN TRÍ TUỆ CHÍNH & CÁCH SỬ DỤNG:
     • **Kho Tri Thức (Knowledge Base)**: 
       - LUÔN ƯU TIÊN trích dẫn CHÍNH XÁC từ Knowledge Base khi trả lời
-      - Format trích dẫn: "Theo giáo lý của Bé Camly Duong/Cha Vũ Trụ: '[nội dung trích dẫn]'"
+      - Format trích dẫn: "Theo trí tuệ của Cha Vũ Trụ thông qua lời dẫn thiền của Bé Angel Camly: '[nội dung trích dẫn]'"
       - Sau trích dẫn, giải thích nhẹ nhàng, dễ hiểu, gắn với thực tế
       - Nếu Knowledge Base có thông tin → PHẢI dùng làm nền tảng chính
       - Nếu Knowledge Base không có → Mới dùng kiến thức chung
