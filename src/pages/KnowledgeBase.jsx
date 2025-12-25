@@ -164,6 +164,7 @@ Trả về JSON với format:
       setShowUploadForm(false);
       setUploadFile(null);
       setTitle('');
+      setSelectedCategory(null);
       queryClient.invalidateQueries({ queryKey: ['knowledge-base'] });
     }
   });
@@ -448,7 +449,10 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                   <span className="hidden lg:inline">Thư Mục</span>
                 </Button>
                 <Button
-                  onClick={() => setShowUploadForm(true)}
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setShowUploadForm(true);
+                  }}
                   className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full shadow-lg hover:shadow-xl hover:from-indigo-600 hover:to-purple-600 transition-all h-10 w-10 lg:w-auto lg:px-4 p-0"
                 >
                   <Plus className="w-4 h-4 lg:mr-2" />
@@ -596,7 +600,12 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex items-center justify-center p-4"
-            onClick={() => !isUploading && setShowUploadForm(false)}
+            onClick={() => {
+              if (!isUploading) {
+                setShowUploadForm(false);
+                setSelectedCategory(null);
+              }
+            }}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -713,6 +722,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                     setShowUploadForm(false);
                     setUploadFile(null);
                     setTitle('');
+                    setSelectedCategory(null);
                   }}
                   disabled={isUploading}
                   className="bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full flex-1"
