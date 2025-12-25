@@ -1089,6 +1089,17 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
+                          setSelectedCategory(cat);
+                          setShowUploadForm(true);
+                        }}
+                        className="w-6 h-6 rounded-lg bg-white border border-green-300 flex items-center justify-center transition-all shadow-md"
+                        title="Upload tài liệu"
+                      >
+                        <Upload className="w-3 h-3 text-green-600" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingCategory(cat);
                           setCategoryName(cat.name);
                           setCategoryDescription(cat.description || '');
