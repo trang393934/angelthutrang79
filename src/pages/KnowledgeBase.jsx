@@ -498,7 +498,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-lg w-full shadow-2xl"
+              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             >
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
