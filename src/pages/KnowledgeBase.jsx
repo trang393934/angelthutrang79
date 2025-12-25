@@ -376,10 +376,17 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
     
     const matchesTag = !selectedTag || doc.tags?.includes(selectedTag);
     
-    const matchesCategory = !selectedCategory || doc.category_id === selectedCategory.id;
+    // Khi không chọn category (Tổng Hợp) → chỉ hiển thị docs không có category
+    // Khi chọn category → chỉ hiển thị docs của category đó
+    const matchesCategory = selectedCategory === null 
+      ? !doc.category_id  // Tổng Hợp: chỉ docs không có category
+      : doc.category_id === selectedCategory.id;  // Category cụ thể
     
     return matchesSearch && matchesTag && matchesCategory;
   });
+  
+  // Count uncategorized documents
+  const uncategorizedCount = knowledgeBase.filter(doc => !doc.category_id).length;
 
   // Group docs by category
   const uncategorizedDocs = knowledgeBase.filter(doc => !doc.category_id);
@@ -1052,7 +1059,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                   background: rgba(129, 140, 248, 0.7);
                 }
               `}</style>
-              {/* All documents */}
+              {/* Uncategorized documents */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -1063,9 +1070,9 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                     : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <span className="text-lg">📚</span>
-                <span className="text-slate-900 font-bold text-sm">Tất Cả</span>
-                <span className="text-slate-600 text-xs">({knowledgeBase.length})</span>
+                <span className="text-lg">📦</span>
+                <span className="text-slate-900 font-bold text-sm">Tổng Hợp</span>
+                <span className="text-slate-600 text-xs">({uncategorizedCount})</span>
               </motion.button>
 
               {/* Category folders */}
