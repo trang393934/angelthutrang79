@@ -346,7 +346,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
 
   const typeLabels = {
     document: 'Tài Liệu',
-    teaching: 'Giáo Lý',
+    teaching: 'Lời dẫn thiền',
     article: 'Bài Viết',
     mantra: 'Thần Chú',
     guideline: 'Hướng Dẫn',
