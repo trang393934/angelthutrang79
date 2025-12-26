@@ -14,8 +14,14 @@ export default function Settings() {
   const [preferences, setPreferences] = useState({
     response_style: 'friendly',
     tone: 'gentle',
+    communication_style: '親密',
     topics_of_interest: [],
-    personal_notes: ''
+    personal_notes: '',
+    learning_preferences: {
+      prefer_examples: true,
+      prefer_metaphors: true,
+      prefer_step_by_step: true
+    }
   });
   const [personalInfo, setPersonalInfo] = useState({
     full_name: '',
@@ -54,8 +60,14 @@ export default function Settings() {
       setPreferences({
         response_style: userPrefs.response_style || 'friendly',
         tone: userPrefs.tone || 'gentle',
+        communication_style: userPrefs.communication_style || '親密',
         topics_of_interest: userPrefs.topics_of_interest || [],
-        personal_notes: userPrefs.personal_notes || ''
+        personal_notes: userPrefs.personal_notes || '',
+        learning_preferences: userPrefs.learning_preferences || {
+          prefer_examples: true,
+          prefer_metaphors: true,
+          prefer_step_by_step: true
+        }
       });
     }
   }, [userPrefs]);
@@ -100,17 +112,32 @@ export default function Settings() {
   };
 
   const styleOptions = [
-    { value: 'formal', label: 'Trang Trọng', desc: 'Chuyên nghiệp, trang trọng' },
-    { value: 'friendly', label: 'Thân Thiện', desc: 'Gần gũi, ấm áp' },
-    { value: 'concise', label: 'Ngắn Gọn', desc: 'Súc tích, đi thẳng vào vấn đề' },
-    { value: 'detailed', label: 'Chi Tiết', desc: 'Giải thích sâu, đầy đủ' },
+    { value: 'formal', label: 'Trang Trọng', desc: 'Chuyên nghiệp, trang trọng', icon: '🎩' },
+    { value: 'friendly', label: 'Thân Thiện', desc: 'Gần gũi, ấm áp', icon: '😊' },
+    { value: 'concise', label: 'Ngắn Gọn', desc: 'Súc tích, đi thẳng vào vấn đề', icon: '⚡' },
+    { value: 'detailed', label: 'Chi Tiết', desc: 'Giải thích sâu, đầy đủ', icon: '📚' },
+    { value: 'humorous', label: 'Hài Hước', desc: 'Vui vẻ, hóm hỉnh', icon: '😄' },
+    { value: 'poetic', label: 'Thơ Mộng', desc: 'Văn chương, giàu cảm xúc', icon: '🌸' },
   ];
 
   const toneOptions = [
-    { value: 'gentle', label: 'Nhẹ Nhàng', desc: 'Dịu dàng, êm ái' },
-    { value: 'energetic', label: 'Năng Động', desc: 'Tràn đầy năng lượng' },
-    { value: 'peaceful', label: 'Bình An', desc: 'Yên tĩnh, thanh thản' },
-    { value: 'motivational', label: 'Động Viên', desc: 'Khích lệ, truyền cảm hứng' },
+    { value: 'gentle', label: 'Nhẹ Nhàng', desc: 'Dịu dàng, êm ái', icon: '🕊️' },
+    { value: 'energetic', label: 'Năng Động', desc: 'Tràn đầy năng lượng', icon: '⚡' },
+    { value: 'peaceful', label: 'Bình An', desc: 'Yên tĩnh, thanh thản', icon: '🧘' },
+    { value: 'motivational', label: 'Động Viên', desc: 'Khích lệ, truyền cảm hứng', icon: '💪' },
+    { value: 'warm', label: 'Trầm Ấm', desc: 'Ấm áp, sâu lắng', icon: '🔥' },
+    { value: 'cheerful', label: 'Vui Tươi', desc: 'Rạng rỡ, tích cực', icon: '☀️' },
+    { value: 'serious', label: 'Nghiêm Túc', desc: 'Đáng tin cậy, chuyên sâu', icon: '🎯' },
+    { value: 'compassionate', label: 'Từ Bi', desc: 'Thấu hiểu, đồng cảm', icon: '💖' },
+  ];
+
+  const communicationOptions = [
+    { value: '親切', label: 'Thân Thiết', desc: 'Như bạn thân tâm giao', icon: '🤝' },
+    { value: '親密', label: 'Gần Gũi', desc: 'Như người thân trong gia đình', icon: '❤️' },
+    { value: '專業', label: 'Chuyên Nghiệp', desc: 'Như cố vấn tin cậy', icon: '💼' },
+    { value: '活潑', label: 'Sôi Nổi', desc: 'Như người bạn năng động', icon: '🎉' },
+    { value: '溫柔', label: 'Dịu Dàng', desc: 'Như người mẹ hiền', icon: '🌺' },
+    { value: '智慧', label: 'Trí Tuệ', desc: 'Như bậc thầy dẫn đường', icon: '🧙' },
   ];
 
   return (
@@ -219,18 +246,51 @@ export default function Settings() {
                 </div>
               </motion.div>
 
-              {/* Response Style */}
+              {/* Communication Style */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-3xl p-6 shadow-lg"
+              >
+                <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  Phong Cách Giao Tiếp
+                </h3>
+                <p className="text-slate-600 text-sm mb-4">AI sẽ giao tiếp với bạn như...</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {communicationOptions.map((option) => (
+                    <motion.div
+                      key={option.value}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setPreferences({ ...preferences, communication_style: option.value })}
+                      className={`p-4 rounded-2xl cursor-pointer transition-all ${
+                        preferences.communication_style === option.value
+                          ? 'bg-indigo-600 border-2 border-indigo-700 shadow-lg'
+                          : 'bg-white border-2 border-indigo-200 hover:border-indigo-400'
+                      }`}
+                    >
+                      <div className="text-2xl mb-2">{option.icon}</div>
+                      <p className={`font-bold text-sm mb-1 ${preferences.communication_style === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                      <p className={`text-xs ${preferences.communication_style === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Response Style */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
                 className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-3xl p-6 shadow-lg"
               >
               <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-violet-600" />
                 Phong Cách Trả Lời
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {styleOptions.map((option) => (
                   <motion.div
                     key={option.value}
@@ -243,7 +303,8 @@ export default function Settings() {
                         : 'bg-white border-2 border-violet-200 hover:border-violet-400'
                     }`}
                   >
-                    <p className={`font-bold mb-1 ${preferences.response_style === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                    <div className="text-2xl mb-2">{option.icon}</div>
+                    <p className={`font-bold text-sm mb-1 ${preferences.response_style === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
                     <p className={`text-xs ${preferences.response_style === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
                   </motion.div>
                 ))}
@@ -261,7 +322,7 @@ export default function Settings() {
                 <Sparkles className="w-5 h-5 text-purple-600" />
                 Giọng Điệu
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {toneOptions.map((option) => (
                   <motion.div
                     key={option.value}
@@ -274,10 +335,110 @@ export default function Settings() {
                         : 'bg-white border-2 border-purple-200 hover:border-purple-400'
                     }`}
                   >
-                    <p className={`font-bold mb-1 ${preferences.tone === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                    <div className="text-2xl mb-2">{option.icon}</div>
+                    <p className={`font-bold text-sm mb-1 ${preferences.tone === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
                     <p className={`text-xs ${preferences.tone === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
                   </motion.div>
                 ))}
+              </div>
+            </motion.div>
+
+            {/* Learning Preferences */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="bg-gradient-to-br from-cyan-50 to-teal-50 border-2 border-cyan-200 rounded-3xl p-6 shadow-lg"
+            >
+              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-cyan-600" />
+                Sở Thích Học Tập
+              </h3>
+              <p className="text-slate-600 text-sm mb-4">AI sẽ điều chỉnh cách giải thích dựa trên sở thích của bạn</p>
+              <div className="space-y-3">
+                <motion.div
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setPreferences({
+                    ...preferences,
+                    learning_preferences: {
+                      ...preferences.learning_preferences,
+                      prefer_examples: !preferences.learning_preferences.prefer_examples
+                    }
+                  })}
+                  className={`p-4 rounded-2xl cursor-pointer transition-all ${
+                    preferences.learning_preferences.prefer_examples
+                      ? 'bg-cyan-600 border-2 border-cyan-700 shadow-lg'
+                      : 'bg-white border-2 border-cyan-200 hover:border-cyan-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">💡</div>
+                    <div className="flex-1">
+                      <p className={`font-bold text-sm mb-1 ${preferences.learning_preferences.prefer_examples ? 'text-white' : 'text-slate-900'}`}>
+                        Ví dụ cụ thể
+                      </p>
+                      <p className={`text-xs ${preferences.learning_preferences.prefer_examples ? 'text-white/80' : 'text-slate-600'}`}>
+                        Sử dụng ví dụ thực tế để minh họa
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setPreferences({
+                    ...preferences,
+                    learning_preferences: {
+                      ...preferences.learning_preferences,
+                      prefer_metaphors: !preferences.learning_preferences.prefer_metaphors
+                    }
+                  })}
+                  className={`p-4 rounded-2xl cursor-pointer transition-all ${
+                    preferences.learning_preferences.prefer_metaphors
+                      ? 'bg-cyan-600 border-2 border-cyan-700 shadow-lg'
+                      : 'bg-white border-2 border-cyan-200 hover:border-cyan-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">🌊</div>
+                    <div className="flex-1">
+                      <p className={`font-bold text-sm mb-1 ${preferences.learning_preferences.prefer_metaphors ? 'text-white' : 'text-slate-900'}`}>
+                        Ẩn dụ & Hình ảnh
+                      </p>
+                      <p className={`text-xs ${preferences.learning_preferences.prefer_metaphors ? 'text-white/80' : 'text-slate-600'}`}>
+                        Giải thích qua ẩn dụ thiên nhiên, đời sống
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setPreferences({
+                    ...preferences,
+                    learning_preferences: {
+                      ...preferences.learning_preferences,
+                      prefer_step_by_step: !preferences.learning_preferences.prefer_step_by_step
+                    }
+                  })}
+                  className={`p-4 rounded-2xl cursor-pointer transition-all ${
+                    preferences.learning_preferences.prefer_step_by_step
+                      ? 'bg-cyan-600 border-2 border-cyan-700 shadow-lg'
+                      : 'bg-white border-2 border-cyan-200 hover:border-cyan-400'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">📋</div>
+                    <div className="flex-1">
+                      <p className={`font-bold text-sm mb-1 ${preferences.learning_preferences.prefer_step_by_step ? 'text-white' : 'text-slate-900'}`}>
+                        Hướng dẫn từng bước
+                      </p>
+                      <p className={`text-xs ${preferences.learning_preferences.prefer_step_by_step ? 'text-white/80' : 'text-slate-600'}`}>
+                        Chia nhỏ thành các bước rõ ràng
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
               </div>
             </motion.div>
 

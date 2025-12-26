@@ -269,9 +269,30 @@ export default function Chat() {
       }
     }
 
-    // 2. User preferences - compact
+    // 2. User preferences - expanded
     if (userPreferences) {
-      contextInfo += `Phong cách: ${userPreferences.response_style || 'friendly'} | Giọng: ${userPreferences.tone || 'gentle'}\n`;
+      const commStyleMap = {
+        '親切': 'thân thiết như bạn thân',
+        '親密': 'gần gũi như người thân',
+        '專業': 'chuyên nghiệp như cố vấn',
+        '活潑': 'sôi nổi năng động',
+        '溫柔': 'dịu dàng như người mẹ',
+        '智慧': 'khôn ngoan như bậc thầy'
+      };
+
+      contextInfo += `\n📝 PHONG CÁCH CỦA CON:\n`;
+      contextInfo += `- Giao tiếp: ${commStyleMap[userPreferences.communication_style] || 'gần gũi'}\n`;
+      contextInfo += `- Trả lời: ${userPreferences.response_style || 'friendly'} | Giọng: ${userPreferences.tone || 'gentle'}\n`;
+
+      if (userPreferences.learning_preferences) {
+        const prefs = [];
+        if (userPreferences.learning_preferences.prefer_examples) prefs.push('thích ví dụ cụ thể');
+        if (userPreferences.learning_preferences.prefer_metaphors) prefs.push('thích ẩn dụ');
+        if (userPreferences.learning_preferences.prefer_step_by_step) prefs.push('thích từng bước');
+        if (prefs.length > 0) {
+          contextInfo += `- Học tập: ${prefs.join(', ')}\n`;
+        }
+      }
     }
 
     // 3. History - chỉ 2 tin nhắn gần nhất
