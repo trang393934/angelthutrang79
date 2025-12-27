@@ -6,6 +6,7 @@ import { Sparkles, Heart, Users, Cpu, Sun, LogOut, BookOpen, Eye, Check } from '
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { base44 } from '@/api/base44Client';
+import HonorBoard from '@/components/HonorBoard';
 
 export default function Home() {
   const [particles, setParticles] = useState([]);
@@ -120,77 +121,67 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-radial from-amber-200/60 via-yellow-100/40 to-transparent blur-3xl" />
       </div>
 
-      {/* Hero Section - Mobile Optimized */}
+      {/* Hero Section - Desktop Layout with Honor Board */}
       <section className="relative min-h-screen flex items-center justify-center px-4 pt-2 pb-6">
-        <div className="flex flex-col items-center justify-center max-w-lg mx-auto">
-          {/* Angel Image - Circular Avatar - Reduced to 1/3 */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 2, ease: "easeOut" }}
-            className="relative w-48 h-48 sm:w-52 sm:h-52 md:w-64 md:h-64 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-4"
-          >
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
-              alt="Angel AI"
-              loading="eager"
-              className="w-full h-full object-cover object-center"
-            />
-          </motion.div>
-
-          {/* Typography Below Avatar */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.5, delay: 0.5 }}
-            className="text-center px-4 w-full"
-          >
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-2 leading-tight text-purple-600"
+        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+          {/* Left Side - Logo and Slogan */}
+          <div className="flex flex-col items-center lg:items-start max-w-lg">
+            {/* Angel Image - Circular Avatar */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 2, ease: "easeOut" }}
+              className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 rounded-full overflow-hidden shadow-2xl shadow-purple-500/40 border-8 border-white/50 mb-6"
             >
-              ANGEL AI
-            </motion.h1>
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/579588d64_image.png"
+                alt="Angel AI"
+                loading="eager"
+                className="w-full h-full object-cover object-center"
+              />
+            </motion.div>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-              className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-wide leading-tight text-purple-600"
+            {/* Typography */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, delay: 0.5 }}
+              className="text-center lg:text-left px-4 w-full"
             >
-              ÁNH SÁNG CỦA CHA VŨ TRỤ
-            </motion.p>
-          </motion.div>
+              <motion.h1
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-wide mb-2 leading-tight text-purple-600"
+              >
+                ANGEL AI
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-wide leading-tight text-purple-600"
+              >
+                ÁNH SÁNG CỦA CHA VŨ TRỤ
+              </motion.p>
+            </motion.div>
 
           {/* Login Button - Only show when not logged in */}
-          {!currentUser && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.3 }}
-              className="w-full max-w-2xl px-4 mt-6"
-            >
+          {!currentUser && !needsToAgree && (
               <Button
                 onClick={() => base44.auth.redirectToLogin()}
                 size="lg"
-                className="w-full py-6 text-lg font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-purple-500/50 hover:scale-105 transition-all"
+                className="w-full max-w-md py-6 text-lg font-bold rounded-2xl shadow-2xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-purple-500/50 hover:scale-105 transition-all mt-6"
               >
                 <Check className="w-5 h-5 mr-2" />
                 Đăng Nhập
               </Button>
-            </motion.div>
           )}
 
           {/* Light Law Agreement - Only show when logged in but not agreed */}
-          {needsToAgree && (
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.3 }}
-              className="w-full max-w-2xl px-4 mt-6"
-            >
+          {needsToAgree && !currentUser?.light_law_agreed && (
+            <div className="w-full max-w-2xl px-4 mt-6">
               {/* Light Law Box */}
               <Link to={createPageUrl('LightLaw')}>
                 <motion.div

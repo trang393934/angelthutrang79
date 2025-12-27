@@ -1,0 +1,234 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, TrendingUp, Coins, Crown, Star, Zap } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+import { Badge } from '@/components/ui/badge';
+
+export default function HonorBoard() {
+  const [activeTab, setActiveTab] = useState('camlycoin'); // 'camlycoin' or 'visits'
+
+  // Fetch top Camlycoin earners
+  const { data: topEarners = [], isLoading: loadingEarners } = useQuery({
+    queryKey: ['top-earners'],
+    queryFn: async () => {
+      const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10);
+      return balances.filter(b => b.total_earned > 0);
+    },
+  });
+
+  // Fetch top visitors (count activities per user)
+  const { data: topVisitors = [], isLoading: loadingVisitors } = useQuery({
+    queryKey: ['top-visitors'],
+    queryFn: async () => {
+      const activities = await base44.entities.UserActivity.list('-created_date', 1000);
+      
+      // Count activities per user
+      const userCounts = {};
+      activities.forEach(activity => {
+        const email = activity.user_email;
+        if (email) {
+          userCounts[email] = (userCounts[email] || 0) + 1;
+        }
+      });
+
+      // Convert to array and sort
+      const sorted = Object.entries(userCounts)
+        .map(([email, count]) => ({ user_email: email, visit_count: count }))
+        .sort((a, b) => b.visit_count - a.visit_count)
+        .slice(0, 10);
+
+      return sorted;
+    },
+  });
+
+  const getMedalIcon = (rank) => {
+    if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
+    if (rank === 2) return <Trophy className="w-5 h-5 text-gray-300" />;
+    if (rank === 3) return <Trophy className="w-5 h-5 text-amber-600" />;
+    return <Star className="w-4 h-4 text-purple-400" />;
+  };
+
+  const getRankGradient = (rank) => {
+    if (rank === 1) return 'from-yellow-400 to-amber-500';
+    if (rank === 2) return 'from-gray-300 to-slate-400';
+    if (rank === 3) return 'from-amber-600 to-orange-500';
+    return 'from-purple-400 to-pink-400';
+  };
+
+  const displayData = activeTab === 'camlycoin' ? topEarners : topVisitors;
+  const isLoading = activeTab === 'camlycoin' ? loadingEarners : loadingVisitors;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.8 }}
+      className="w-full max-w-md"
+    >
+      {/* Header */}
+      <div className="relative mb-6">
+        <motion.div
+          animate={{ 
+            boxShadow: [
+              '0 0 20px rgba(251,191,36,0.4)',
+              '0 0 40px rgba(251,191,36,0.6)',
+              '0 0 20px rgba(251,191,36,0.4)',
+            ]
+          }}
+          transition={{ duration: 3, repeat: Infinity }}
+          className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-rose-400/20 rounded-3xl blur-xl"
+        />
+        <div className="relative bg-gradient-to-br from-purple-500 via-pink-500 to-amber-500 rounded-3xl p-1">
+          <div className="bg-white rounded-3xl p-6">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Trophy className="w-8 h-8 text-amber-500" />
+              </motion.div>
+              <h2 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-amber-600 tracking-wide">
+                HONOR BOARD
+              </h2>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-2 bg-purple-50 p-1 rounded-2xl">
+              <button
+                onClick={() => setActiveTab('camlycoin')}
+                className={`flex-1 py-2 px-4 rounded-xl font-bold text-sm transition-all ${
+                  activeTab === 'camlycoin'
+                    ? 'bg-gradient-to-r from-amber-400 to-orange-400 text-white shadow-lg'
+                    : 'text-purple-600 hover:bg-white'
+                }`}
+              >
+                <Coins className="w-4 h-4 inline mr-1" />
+                Top Earners
+              </button>
+              <button
+                onClick={() => setActiveTab('visits')}
+                className={`flex-1 py-2 px-4 rounded-xl font-bold text-sm transition-all ${
+                  activeTab === 'visits'
+                    ? 'bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg'
+                    : 'text-purple-600 hover:bg-white'
+                }`}
+              >
+                <TrendingUp className="w-4 h-4 inline mr-1" />
+                Top Visitors
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Leaderboard */}
+      <div className="bg-white/80 backdrop-blur-sm border-2 border-purple-200 rounded-3xl p-4 shadow-xl">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+              className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center"
+            >
+              <Zap className="w-6 h-6 text-white" />
+            </motion.div>
+          </div>
+        ) : displayData.length === 0 ? (
+          <div className="text-center py-12">
+            <Trophy className="w-12 h-12 text-purple-300 mx-auto mb-2" />
+            <p className="text-purple-600 font-medium">Chưa có dữ liệu</p>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="space-y-2"
+            >
+              {displayData.map((item, idx) => {
+                const rank = idx + 1;
+                const name = item.user_email?.split('@')[0] || 'Anonymous';
+                const value = activeTab === 'camlycoin' ? item.total_earned : item.visit_count;
+                
+                return (
+                  <motion.div
+                    key={item.user_email || idx}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className={`relative rounded-2xl p-3 transition-all hover:scale-102 ${
+                      rank <= 3
+                        ? 'bg-gradient-to-r ' + getRankGradient(rank)
+                        : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Rank Badge */}
+                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                        rank <= 3 ? 'bg-white/30 backdrop-blur-sm' : 'bg-white'
+                      }`}>
+                        {getMedalIcon(rank)}
+                      </div>
+
+                      {/* User Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`font-bold text-sm truncate ${
+                            rank <= 3 ? 'text-white' : 'text-slate-900'
+                          }`}>
+                            {rank}. {name}
+                          </span>
+                          {rank === 1 && (
+                            <Badge className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0">
+                              👑 #1
+                            </Badge>
+                          )}
+                        </div>
+                        <p className={`text-xs font-medium ${
+                          rank <= 3 ? 'text-white/80' : 'text-purple-600'
+                        }`}>
+                          {activeTab === 'camlycoin' 
+                            ? `${value.toLocaleString()} Camlycoin`
+                            : `${value} lượt truy cập`
+                          }
+                        </p>
+                      </div>
+
+                      {/* Sparkle Effect for Top 3 */}
+                      {rank <= 3 && (
+                        <motion.div
+                          animate={{ 
+                            scale: [1, 1.2, 1],
+                            rotate: [0, 10, -10, 0]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Star className="w-5 h-5 text-white fill-white" />
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+
+      {/* Bottom Badge */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="mt-4 text-center"
+      >
+        <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-2 border-purple-300 text-xs font-bold px-4 py-1">
+          ✨ Cập nhật real-time
+        </Badge>
+      </motion.div>
+    </motion.div>
+  );
+}
