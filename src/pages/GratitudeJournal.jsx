@@ -142,18 +142,32 @@ Trả về JSON:
   };
 
   const handleTextChange = (index, value) => {
-    const newGratitudes = [...gratitudes];
-    newGratitudes[index] = value;
-    setGratitudes(newGratitudes);
+    if (activeTab === 'gratitude') {
+      const newGratitudes = [...gratitudes];
+      newGratitudes[index] = value;
+      setGratitudes(newGratitudes);
+    } else {
+      const newRepentances = [...repentances];
+      newRepentances[index] = value;
+      setRepentances(newRepentances);
+    }
   };
 
   const applySuggestion = (suggestion) => {
-    const newGratitudes = [...gratitudes];
-    newGratitudes[currentIndex] = suggestion;
-    setGratitudes(newGratitudes);
+    if (activeTab === 'gratitude') {
+      const newGratitudes = [...gratitudes];
+      newGratitudes[currentIndex] = suggestion;
+      setGratitudes(newGratitudes);
+    } else {
+      const newRepentances = [...repentances];
+      newRepentances[currentIndex] = suggestion;
+      setRepentances(newRepentances);
+    }
+    
+    setUsedSuggestions(true);
     
     // Auto move to next
-    if (currentIndex < 9) {
+    if (currentIndex < 19) {
       setCurrentIndex(currentIndex + 1);
     }
   };
