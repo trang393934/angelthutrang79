@@ -520,7 +520,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-8 lg:py-10 px-4 lg:px-8">
+      <section className="relative py-4 lg:py-6 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
