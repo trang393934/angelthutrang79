@@ -9,13 +9,16 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
 export default function GratitudeJournal() {
-  const [gratitudes, setGratitudes] = useState(Array(10).fill(''));
+  const [activeTab, setActiveTab] = useState('gratitude'); // 'gratitude' or 'repentance'
+  const [gratitudes, setGratitudes] = useState(Array(20).fill(''));
+  const [repentances, setRepentances] = useState(Array(20).fill(''));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isListening, setIsListening] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
+  const [usedSuggestions, setUsedSuggestions] = useState(false);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
