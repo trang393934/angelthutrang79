@@ -24,6 +24,20 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     base44.auth.me().then(user => {
       setCurrentUser(user);
+      
+      // Track page visit
+      if (user && user.light_law_agreed) {
+        base44.entities.UserActivity.create({
+          user_email: user.email,
+          activity_type: 'page_view',
+          activity_details: {
+            page: currentPageName,
+            timestamp: new Date().toISOString()
+          },
+          timestamp: new Date().toISOString()
+        }).catch(err => console.log('Activity tracking failed:', err));
+      }
+      
       // Redirect to Home if not agreed to Light Law (except Home and LightLaw pages)
       if (user && !user.light_law_agreed && currentPageName !== 'Home' && currentPageName !== 'LightLaw') {
         window.location.href = createPageUrl('Home');
