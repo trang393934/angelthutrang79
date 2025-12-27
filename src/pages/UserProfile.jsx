@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 
 export default function UserProfile() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [targetUser, setTargetUser] = useState(null);
   const [targetEmail, setTargetEmail] = useState('');
   const [copiedWallet, setCopiedWallet] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
@@ -23,6 +24,12 @@ export default function UserProfile() {
     const email = urlParams.get('email');
     if (email) {
       setTargetEmail(email);
+      // Fetch target user info
+      base44.entities.User.filter({ email: email }).then(users => {
+        if (users.length > 0) {
+          setTargetUser(users[0]);
+        }
+      });
     }
   }, []);
 
@@ -179,9 +186,9 @@ export default function UserProfile() {
         >
           <div className="flex items-center gap-4 mb-6">
             <div className="relative">
-              {currentUser?.avatar_url ? (
+              {targetUser?.avatar_url ? (
                 <img
-                  src={currentUser.avatar_url}
+                  src={targetUser.avatar_url}
                   alt="Avatar"
                   className="w-16 h-16 rounded-full object-cover border-2 border-amber-400"
                 />
