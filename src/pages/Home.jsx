@@ -48,12 +48,12 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
-      {/* Auth Button - Top Left */}
+      {/* Auth Button - Top Left, below menu */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="absolute top-4 left-4 z-50"
+        className="absolute top-16 left-4 z-50"
       >
         {currentUser ? (
           <Button
