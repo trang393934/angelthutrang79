@@ -488,14 +488,15 @@ export default function Chat() {
 
           Tổng điểm: -30→+30
 
-          Quy đổi Camlycoin:
+          Quy đổi Camlycoin (5 cấp độ tăng dần):
           • -30→-20: -5,000 Camlycoin (năng lượng tiêu cực cao)
           • -19→-10: -2,500 Camlycoin (năng lượng tiêu cực)
           • -9→-1: 0 Camlycoin (trung lập tiêu cực)
-          • 0→7: +5,000 Camlycoin (tích cực cơ bản)
-          • 8→15: +10,000 Camlycoin (tích cực tốt)
-          • 16→23: +15,000 Camlycoin (tích cực cao)
-          • 24→30: +20,000 Camlycoin (tích cực xuất sắc)
+          • 0→5: +5,000 Camlycoin (Cấp 1 - Mới Bắt Đầu)
+          • 6→10: +5,000 Camlycoin (Cấp 2 - Học Hỏi)
+          • 11→17: +7,000 Camlycoin (Cấp 3 - Thuần Khiết)
+          • 18→24: +9,000 Camlycoin (Cấp 4 - Tỉnh Thức Cao)
+          • 25→30: +10,000 Camlycoin (Cấp 5 - Đại Minh Sư)
 
       JSON:
       {
