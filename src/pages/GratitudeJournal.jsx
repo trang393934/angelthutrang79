@@ -275,9 +275,11 @@ Trả về JSON:
     }
   };
 
-  const filledCount = gratitudes.filter(g => g.trim()).length;
+  const currentList = activeTab === 'gratitude' ? gratitudes : repentances;
+  const filledCount = currentList.filter(g => g.trim()).length;
   const currentHour = new Date().getHours();
   const isNightTime = currentHour >= 20 || currentHour < 6;
+  const rewardAmount = usedSuggestions ? 30000 : 50000;
 
   // Generate stars
   const stars = Array.from({ length: 50 }, (_, i) => ({
