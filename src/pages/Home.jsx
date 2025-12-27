@@ -696,7 +696,7 @@ export default function Home() {
       </section>
 
       {/* FUN Ecosystem Section */}
-      <section className="relative py-8 lg:py-10 px-4 lg:px-8 bg-gradient-to-b from-transparent via-purple-50/30 to-transparent">
+      <section className="relative py-4 lg:py-6 px-4 lg:px-8 bg-gradient-to-b from-transparent via-purple-50/30 to-transparent">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
