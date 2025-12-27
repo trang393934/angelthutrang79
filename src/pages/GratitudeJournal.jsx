@@ -487,14 +487,14 @@ Trả về JSON:
               </motion.div>
             )}
 
-            {/* Gratitude Inputs */}
+            {/* Inputs */}
             <div className="space-y-4">
-              {gratitudes.map((gratitude, index) => (
+              {currentList.map((item, index) => (
                 <motion.div
-                  key={index}
+                  key={`${activeTab}-${index}`}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  transition={{ delay: index * 0.02 }}
                   className={`relative ${currentIndex === index ? 'ring-2 ring-yellow-400' : ''}`}
                 >
                   <div className="flex items-start gap-3">
@@ -502,10 +502,10 @@ Trả về JSON:
                       <span className="text-yellow-300 font-bold text-sm">{index + 1}</span>
                     </div>
                     <Textarea
-                      value={gratitude}
+                      value={item}
                       onChange={(e) => handleTextChange(index, e.target.value)}
                       onFocus={() => setCurrentIndex(index)}
-                      placeholder={`Điều biết ơn thứ ${index + 1}...`}
+                      placeholder={`Điều ${activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} thứ ${index + 1}...`}
                       className="flex-1 bg-white/5 border-2 border-yellow-400/30 text-yellow-100 placeholder:text-yellow-400/40 rounded-xl min-h-[80px] focus:border-yellow-400 focus:ring-yellow-400/20 backdrop-blur-sm"
                     />
                     {currentIndex === index && (
