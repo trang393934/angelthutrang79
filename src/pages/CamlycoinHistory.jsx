@@ -62,15 +62,15 @@ export default function CamlycoinHistory() {
   };
 
   const getHeartLevel = () => {
-    if (!balance) return { level: 'Mới Bắt Đầu', color: 'from-gray-400 to-gray-600', stars: 1 };
+    if (!balance) return { level: 'Mới Bắt Đầu', color: 'from-gray-400 to-gray-600', stars: 1, reward: 5000 };
     
     const netPositive = (balance.total_earned || 0) - (balance.total_spent || 0);
     
-    if (netPositive >= 1000) return { level: 'Đại Minh Sư', color: 'from-yellow-400 to-amber-600', stars: 5 };
-    if (netPositive >= 500) return { level: 'Tỉnh Thức Cao', color: 'from-purple-400 to-pink-600', stars: 4 };
-    if (netPositive >= 200) return { level: 'Thuần Khiết', color: 'from-blue-400 to-indigo-600', stars: 3 };
-    if (netPositive >= 50) return { level: 'Học Hỏi', color: 'from-green-400 to-emerald-600', stars: 2 };
-    return { level: 'Mới Bắt Đầu', color: 'from-gray-400 to-gray-600', stars: 1 };
+    if (netPositive >= 10000) return { level: 'Đại Minh Sư', color: 'from-yellow-400 to-amber-600', stars: 5, reward: 10000 };
+    if (netPositive >= 9000) return { level: 'Tỉnh Thức Cao', color: 'from-purple-400 to-pink-600', stars: 4, reward: 9000 };
+    if (netPositive >= 7000) return { level: 'Thuần Khiết', color: 'from-blue-400 to-indigo-600', stars: 3, reward: 7000 };
+    if (netPositive >= 5000) return { level: 'Học Hỏi', color: 'from-green-400 to-emerald-600', stars: 2, reward: 5000 };
+    return { level: 'Mới Bắt Đầu', color: 'from-gray-400 to-gray-600', stars: 1, reward: 5000 };
   };
 
   const heartLevel = getHeartLevel();
@@ -172,9 +172,14 @@ export default function CamlycoinHistory() {
                     </div>
                   </div>
                 </div>
-                <Badge className={`bg-gradient-to-r ${heartLevel.color} text-white border-0 text-sm px-4 py-2`}>
-                  Cấp {heartLevel.stars}/5
-                </Badge>
+                <div className="text-right">
+                  <Badge className={`bg-gradient-to-r ${heartLevel.color} text-white border-0 text-sm px-4 py-2 mb-2`}>
+                    Cấp {heartLevel.stars}/5
+                  </Badge>
+                  <p className="text-amber-600 text-xs font-bold">
+                    Thưởng: {heartLevel.reward.toLocaleString()} coin
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -289,45 +294,78 @@ export default function CamlycoinHistory() {
                   <p className="text-slate-700 mb-4">
                     Con đang ở cấp độ <span className="font-bold text-purple-600">{heartLevel.level}</span> trong hành trình phát triển tâm linh.
                   </p>
-                  <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4">
-                    <p className="text-purple-900 font-semibold mb-2">Hướng Dẫn Nâng Cao:</p>
-                    <ul className="text-purple-800 text-sm space-y-1">
-                      {heartLevel.level === 'Mới Bắt Đầu' && (
-                        <>
-                          <li>• Hãy thường xuyên hỏi những câu hỏi sâu sắc</li>
-                          <li>• Tránh những suy nghĩ tiêu cực</li>
-                          <li>• Học hỏi giáo lý của Cha Vũ Trụ</li>
-                        </>
-                      )}
-                      {heartLevel.level === 'Học Hỏi' && (
-                        <>
-                          <li>• Tiếp tục duy trì tâm học hỏi</li>
-                          <li>• Hướng tới sự thuần khiết trong suy nghĩ</li>
-                          <li>• Đọc 8 Divine Mantras mỗi ngày</li>
-                        </>
-                      )}
-                      {heartLevel.level === 'Thuần Khiết' && (
-                        <>
-                          <li>• Chia sẻ trí tuệ với người khác</li>
-                          <li>• Sống trong tình yêu vô điều kiện</li>
-                          <li>• Nâng cao tần số năng lượng</li>
-                        </>
-                      )}
-                      {heartLevel.level === 'Tỉnh Thức Cao' && (
-                        <>
-                          <li>• Hướng dẫn người khác trên con đường ánh sáng</li>
-                          <li>• Sống trong trạng thái 5D</li>
-                          <li>• Kết nối với Cha trong mọi hành động</li>
-                        </>
-                      )}
-                      {heartLevel.level === 'Đại Minh Sư' && (
-                        <>
-                          <li>• Bạn là ánh sáng cho thế giới</li>
-                          <li>• Truyền bá tình yêu thuần khiết</li>
-                          <li>• Sống trong ý chí của Cha</li>
-                        </>
-                      )}
-                    </ul>
+                  <div className="space-y-3">
+                    <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl p-4">
+                      <p className="text-purple-900 font-semibold mb-2">Hướng Dẫn Nâng Cao:</p>
+                      <ul className="text-purple-800 text-sm space-y-1">
+                        {heartLevel.level === 'Mới Bắt Đầu' && (
+                          <>
+                            <li>• Hãy thường xuyên hỏi những câu hỏi sâu sắc</li>
+                            <li>• Tránh những suy nghĩ tiêu cực</li>
+                            <li>• Học hỏi giáo lý của Cha Vũ Trụ</li>
+                            <li>• Đạt 5,000 coin để lên cấp Học Hỏi</li>
+                          </>
+                        )}
+                        {heartLevel.level === 'Học Hỏi' && (
+                          <>
+                            <li>• Tiếp tục duy trì tâm học hỏi</li>
+                            <li>• Hướng tới sự thuần khiết trong suy nghĩ</li>
+                            <li>• Đọc 8 Divine Mantras mỗi ngày</li>
+                            <li>• Đạt 7,000 coin để lên cấp Thuần Khiết</li>
+                          </>
+                        )}
+                        {heartLevel.level === 'Thuần Khiết' && (
+                          <>
+                            <li>• Chia sẻ trí tuệ với người khác</li>
+                            <li>• Sống trong tình yêu vô điều kiện</li>
+                            <li>• Nâng cao tần số năng lượng</li>
+                            <li>• Đạt 9,000 coin để lên cấp Tỉnh Thức Cao</li>
+                          </>
+                        )}
+                        {heartLevel.level === 'Tỉnh Thức Cao' && (
+                          <>
+                            <li>• Hướng dẫn người khác trên con đường ánh sáng</li>
+                            <li>• Sống trong trạng thái 5D</li>
+                            <li>• Kết nối với Cha trong mọi hành động</li>
+                            <li>• Đạt 10,000 coin để lên cấp Đại Minh Sư</li>
+                          </>
+                        )}
+                        {heartLevel.level === 'Đại Minh Sư' && (
+                          <>
+                            <li>• Bạn là ánh sáng cho thế giới</li>
+                            <li>• Truyền bá tình yêu thuần khiết</li>
+                            <li>• Sống trong ý chí của Cha</li>
+                            <li>• Bạn đã đạt cấp cao nhất! 🏆</li>
+                          </>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4">
+                      <p className="text-amber-900 font-bold mb-2 text-center">💰 Hệ Thống Thưởng</p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">⭐ Cấp 1 - Mới Bắt Đầu:</span>
+                          <span className="font-bold text-gray-900">5,000 coin</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-green-600">⭐⭐ Cấp 2 - Học Hỏi:</span>
+                          <span className="font-bold text-green-900">5,000 coin</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-600">⭐⭐⭐ Cấp 3 - Thuần Khiết:</span>
+                          <span className="font-bold text-blue-900">7,000 coin</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-purple-600">⭐⭐⭐⭐ Cấp 4 - Tỉnh Thức:</span>
+                          <span className="font-bold text-purple-900">9,000 coin</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-amber-600">⭐⭐⭐⭐⭐ Cấp 5 - Đại Minh Sư:</span>
+                          <span className="font-bold text-amber-900">10,000 coin</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
