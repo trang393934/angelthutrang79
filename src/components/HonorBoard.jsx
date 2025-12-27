@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, TrendingUp, Coins, Crown, Star, Zap } from 'lucide-react';
+import { Trophy, TrendingUp, Coins, Crown, Star, Zap, User } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,14 @@ export default function HonorBoard() {
     queryFn: async () => {
       const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10);
       return balances.filter(b => b.total_earned > 0);
+    },
+  });
+
+  // Fetch all users for avatar lookup
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users-avatars'],
+    queryFn: async () => {
+      return base44.entities.User.list();
     },
   });
 
@@ -44,11 +52,17 @@ export default function HonorBoard() {
     },
   });
 
+  // Helper to get user avatar
+  const getUserAvatar = (email) => {
+    const user = allUsers.find(u => u.email === email);
+    return user?.avatar_url;
+  };
+
   const getMedalIcon = (rank) => {
-    if (rank === 1) return <Crown className="w-5 h-5 text-yellow-400" />;
-    if (rank === 2) return <Trophy className="w-5 h-5 text-gray-300" />;
-    if (rank === 3) return <Trophy className="w-5 h-5 text-amber-600" />;
-    return <Star className="w-4 h-4 text-purple-400" />;
+    if (rank === 1) return <Crown className="w-3 h-3 text-yellow-400" />;
+    if (rank === 2) return <Trophy className="w-3 h-3 text-gray-400" />;
+    if (rank === 3) return <Trophy className="w-3 h-3 text-amber-600" />;
+    return <Star className="w-2.5 h-2.5 text-purple-400" />;
   };
 
   const getRankGradient = (rank) => {
@@ -171,11 +185,26 @@ export default function HonorBoard() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        {/* Rank Badge */}
-                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                          rank <= 3 ? 'bg-white/30 backdrop-blur-sm' : 'bg-white'
-                        }`}>
-                          {getMedalIcon(rank)}
+                        {/* Avatar with Rank Badge */}
+                        <div className="relative flex-shrink-0">
+                          {getUserAvatar(item.user_email) ? (
+                            <img
+                              src={getUserAvatar(item.user_email)}
+                              alt="Avatar"
+                              className={`w-10 h-10 rounded-full object-cover shadow-md ${
+                                rank <= 3 ? 'border-2 border-white' : 'border-2 border-purple-300'
+                              }`}
+                            />
+                          ) : (
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                              rank <= 3 ? 'bg-white/30 backdrop-blur-sm' : 'bg-gradient-to-br from-purple-400 to-pink-400'
+                            }`}>
+                              <User className={`w-5 h-5 ${rank <= 3 ? 'text-white' : 'text-white'}`} />
+                            </div>
+                          )}
+                          <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-md">
+                            {getMedalIcon(rank)}
+                          </div>
                         </div>
 
                         {/* User Info */}
