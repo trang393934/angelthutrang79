@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -12,6 +12,8 @@ export default function UserProfile() {
   const [currentUser, setCurrentUser] = useState(null);
   const [targetEmail, setTargetEmail] = useState('');
   const [copiedWallet, setCopiedWallet] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
@@ -66,6 +68,36 @@ export default function UserProfile() {
       setCopiedWallet(true);
       setTimeout(() => setCopiedWallet(false), 2000);
     }
+  };
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file ảnh!');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Kích thước ảnh tối đa 5MB!');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ avatar_url: file_url });
+      
+      // Refresh user data
+      const updatedUser = await base44.auth.me();
+      setCurrentUser(updatedUser);
+    } catch (error) {
+      alert('Lỗi khi upload ảnh. Vui lòng thử lại!');
+    }
+    setIsUploadingAvatar(false);
   };
 
   if (!isAdmin) {
@@ -146,8 +178,42 @@ export default function UserProfile() {
           className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl mb-6"
         >
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center">
-              <User className="w-8 h-8 text-white" />
+            <div className="relative">
+              {currentUser?.avatar_url ? (
+                <img
+                  src={currentUser.avatar_url}
+                  alt="Avatar"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-amber-400"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+              )}
+              
+              {/* Upload button - only show for own profile */}
+              {currentUser?.email === targetEmail && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                  >
+                    {isUploadingAvatar ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Camera className="w-4 h-4" />
+                    )}
+                  </button>
+                </>
+              )}
             </div>
             <div className="flex-1">
               <h2 className="text-slate-900 font-bold text-2xl break-all">{targetEmail}</h2>
