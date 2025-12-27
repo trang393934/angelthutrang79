@@ -123,8 +123,9 @@ Trả về JSON:
   useEffect(() => {
     if (currentUser) {
       generateSuggestions();
+      setUsedSuggestions(false);
     }
-  }, [currentUser]);
+  }, [currentUser, activeTab]);
 
   const startListening = () => {
     if (recognitionRef.current && !isListening) {
