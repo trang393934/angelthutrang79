@@ -541,7 +541,7 @@ Trả về JSON:
             >
               <Button
                 onClick={handleSubmit}
-                disabled={filledCount < 10 || isSaving}
+                disabled={filledCount < 20 || isSaving}
                 className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-indigo-900 rounded-full py-6 text-lg font-bold shadow-2xl hover:shadow-yellow-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? (
@@ -556,15 +556,20 @@ Trả về JSON:
                   </>
                 )}
               </Button>
-              {filledCount < 10 && (
+              {filledCount < 20 && (
                 <p className="text-center text-yellow-400/60 text-sm mt-3">
-                  Còn {10 - filledCount} điều biết ơn nữa nhé con 💛
+                  Còn {20 - filledCount} điều {activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} nữa nhé con 💛
                 </p>
               )}
-              {filledCount === 10 && (
-                <p className="text-center text-yellow-300 text-sm mt-3 font-semibold">
-                  ✨ Nhận +50,000 Camlycoin khi gửi!
-                </p>
+              {filledCount === 20 && (
+                <div className="text-center mt-3 space-y-1">
+                  <p className="text-yellow-300 text-sm font-semibold">
+                    ✨ Nhận +{rewardAmount.toLocaleString()} Camlycoin khi gửi!
+                  </p>
+                  <p className="text-yellow-400/70 text-xs">
+                    {usedSuggestions ? '(Dùng gợi ý AI: 30k)' : '(Tự viết: 50k)'}
+                  </p>
+                </div>
               )}
             </motion.div>
           </>
