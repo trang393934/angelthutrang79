@@ -380,9 +380,16 @@ Trả về JSON:
                 <Check className="w-12 h-12 text-white" />
               </motion.div>
               <h2 className="text-white text-2xl font-bold mb-2">Tuyệt Vời! 🎉</h2>
-              <p className="text-white/90 text-lg mb-4">Đã lưu 10 điều biết ơn của con!</p>
-              <p className="text-white font-bold text-xl">+50,000 Camlycoin 🪙</p>
-              <p className="text-white/80 text-sm mt-2">+10 điểm Ánh Sáng ✨</p>
+              <p className="text-white/90 text-lg mb-4">
+                Đã lưu 20 điều {activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} của con!
+              </p>
+              <p className="text-white font-bold text-xl">+{rewardAmount.toLocaleString()} Camlycoin 🪙</p>
+              <p className="text-white/80 text-sm mt-2">
+                +{rewardAmount === 50000 ? '20' : '12'} điểm Ánh Sáng ✨
+              </p>
+              <p className="text-white/70 text-xs mt-1">
+                {usedSuggestions ? '(Dùng gợi ý AI)' : '(Tự viết)'}
+              </p>
             </motion.div>
           </motion.div>
         )}
