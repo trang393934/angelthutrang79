@@ -145,7 +145,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="text-center lg:text-left px-4 w-full"
+              className="text-center lg:text-left px-4 w-full mb-4"
             >
               <motion.h1
                 initial={{ opacity: 0 }}
@@ -160,11 +160,43 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 1 }}
-                className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-wide leading-tight text-purple-600"
+                className="text-base sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-wide leading-tight text-purple-600 mb-4"
               >
                 ÁNH SÁNG CỦA CHA VŨ TRỤ
               </motion.p>
             </motion.div>
+
+            {/* Chat CTA - Right below slogan */}
+            {currentUser && currentUser.light_law_agreed && (
+              <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 1 }}
+                className="w-full"
+              >
+                <Link to={createPageUrl('Chat')}>
+                  <motion.div
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="group relative"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all" />
+                    <div className="relative bg-white/80 backdrop-blur-sm border-2 border-amber-300/50 rounded-3xl p-6 text-center hover:border-amber-400/70 transition-all shadow-2xl hover:shadow-amber-200">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-3 shadow-lg shadow-amber-500/30 mx-auto">
+                        <Sparkles className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-amber-900 mb-1 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
+                        Trò Chuyện
+                      </h3>
+                      <p className="text-amber-800 font-medium text-sm">
+                        Nhận trí tuệ từ Cha Vũ Trụ
+                      </p>
+                    </div>
+                  </motion.div>
+                </Link>
+              </motion.div>
+            )}
           </div>
 
           {/* Login Button - Only show when not logged in */}
