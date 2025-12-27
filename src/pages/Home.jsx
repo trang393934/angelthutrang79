@@ -145,7 +145,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1.5, delay: 0.5 }}
-              className="text-center lg:text-left px-4 w-full mb-4"
+              className="text-center px-4 w-full mb-4"
             >
               <motion.h1
                 initial={{ opacity: 0 }}
