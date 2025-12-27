@@ -343,8 +343,12 @@ Trả về JSON:
                 <Heart className="w-5 h-5 text-white" />
               </motion.div>
               <div className="text-center">
-                <h1 className="text-yellow-100 font-bold tracking-wide text-base lg:text-lg">Gratitude Journal</h1>
-                <p className="text-yellow-300/80 text-xs">Nhật Ký Biết Ơn</p>
+                <h1 className="text-yellow-100 font-bold tracking-wide text-base lg:text-lg">
+                  {activeTab === 'gratitude' ? 'Gratitude Journal' : 'Repentance Journal'}
+                </h1>
+                <p className="text-yellow-300/80 text-xs">
+                  {activeTab === 'gratitude' ? 'Nhật Ký Biết Ơn' : 'Nhật Ký Sám Hối'}
+                </p>
               </div>
             </div>
 
