@@ -282,8 +282,13 @@ export default function Home() {
                     'Vui lòng đồng ý để tiếp tục'
                   )}
                 </Button>
-              </motion.div>
-            </motion.div>
+              </div>
+            </div>
+          )}
+
+          {/* Right Side - Honor Board (only show when user agreed to light law) */}
+          {currentUser && currentUser.light_law_agreed && (
+            <HonorBoard />
           )}
         </div>
 
