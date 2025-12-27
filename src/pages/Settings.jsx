@@ -12,9 +12,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export default function Settings() {
   const [currentUser, setCurrentUser] = useState(null);
   const [preferences, setPreferences] = useState({
-    response_style: 'friendly',
-    tone: 'gentle',
-    communication_style: '親密',
+    response_style: ['friendly'],
+    tone: ['gentle'],
+    communication_style: ['親密'],
     topics_of_interest: [],
     personal_notes: '',
     learning_preferences: {
@@ -58,9 +58,9 @@ export default function Settings() {
   useEffect(() => {
     if (userPrefs) {
       setPreferences({
-        response_style: userPrefs.response_style || 'friendly',
-        tone: userPrefs.tone || 'gentle',
-        communication_style: userPrefs.communication_style || '親密',
+        response_style: Array.isArray(userPrefs.response_style) ? userPrefs.response_style : [userPrefs.response_style || 'friendly'],
+        tone: Array.isArray(userPrefs.tone) ? userPrefs.tone : [userPrefs.tone || 'gentle'],
+        communication_style: Array.isArray(userPrefs.communication_style) ? userPrefs.communication_style : [userPrefs.communication_style || '親密'],
         topics_of_interest: userPrefs.topics_of_interest || [],
         personal_notes: userPrefs.personal_notes || '',
         learning_preferences: userPrefs.learning_preferences || {
@@ -108,6 +108,29 @@ export default function Settings() {
     setPreferences({
       ...preferences,
       topics_of_interest: preferences.topics_of_interest.filter((_, i) => i !== index)
+    });
+  };
+
+  const toggleStyle = (category, value) => {
+    const currentArray = preferences[category];
+    const isSelected = currentArray.includes(value);
+    
+    let newArray;
+    if (isSelected) {
+      // Remove if already selected
+      newArray = currentArray.filter(v => v !== value);
+    } else {
+      // Add if not selected and less than 3
+      if (currentArray.length < 3) {
+        newArray = [...currentArray, value];
+      } else {
+        return; // Don't add if already 3 selected
+      }
+    }
+    
+    setPreferences({
+      ...preferences,
+      [category]: newArray
     });
   };
 
@@ -253,29 +276,40 @@ export default function Settings() {
                 transition={{ delay: 0.1 }}
                 className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-3xl p-6 shadow-lg"
               >
-                <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                <h3 className="text-slate-900 text-lg font-bold mb-2 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-indigo-600" />
                   Phong Cách Giao Tiếp
                 </h3>
-                <p className="text-slate-600 text-sm mb-4">AI sẽ giao tiếp với bạn như...</p>
+                <p className="text-slate-600 text-sm mb-2">AI sẽ giao tiếp với bạn như...</p>
+                <p className="text-indigo-600 text-xs font-semibold mb-4">
+                  ✨ Chọn 1-3 phong cách ({preferences.communication_style.length}/3)
+                </p>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {communicationOptions.map((option) => (
-                    <motion.div
-                      key={option.value}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setPreferences({ ...preferences, communication_style: option.value })}
-                      className={`p-4 rounded-2xl cursor-pointer transition-all ${
-                        preferences.communication_style === option.value
-                          ? 'bg-indigo-600 border-2 border-indigo-700 shadow-lg'
-                          : 'bg-white border-2 border-indigo-200 hover:border-indigo-400'
-                      }`}
-                    >
-                      <div className="text-2xl mb-2">{option.icon}</div>
-                      <p className={`font-bold text-sm mb-1 ${preferences.communication_style === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
-                      <p className={`text-xs ${preferences.communication_style === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
-                    </motion.div>
-                  ))}
+                  {communicationOptions.map((option) => {
+                    const isSelected = preferences.communication_style.includes(option.value);
+                    return (
+                      <motion.div
+                        key={option.value}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => toggleStyle('communication_style', option.value)}
+                        className={`p-4 rounded-2xl cursor-pointer transition-all ${
+                          isSelected
+                            ? 'bg-indigo-600 border-2 border-indigo-700 shadow-lg'
+                            : 'bg-white border-2 border-indigo-200 hover:border-indigo-400'
+                        } ${!isSelected && preferences.communication_style.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <div className="text-2xl mb-2">{option.icon}</div>
+                        <p className={`font-bold text-sm mb-1 ${isSelected ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                        <p className={`text-xs ${isSelected ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
+                        {isSelected && (
+                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/30 flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">✓</span>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               </motion.div>
 
@@ -286,30 +320,41 @@ export default function Settings() {
                 transition={{ delay: 0.15 }}
                 className="bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-3xl p-6 shadow-lg"
               >
-              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+              <h3 className="text-slate-900 text-lg font-bold mb-2 flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-violet-600" />
                 Phong Cách Trả Lời
               </h3>
+              <p className="text-violet-600 text-xs font-semibold mb-4">
+                ✨ Chọn 1-3 phong cách ({preferences.response_style.length}/3)
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {styleOptions.map((option) => (
-                  <motion.div
-                    key={option.value}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setPreferences({ ...preferences, response_style: option.value })}
-                    className={`p-4 rounded-2xl cursor-pointer transition-all ${
-                      preferences.response_style === option.value
-                        ? 'bg-violet-600 border-2 border-violet-700 shadow-lg'
-                        : 'bg-white border-2 border-violet-200 hover:border-violet-400'
-                    }`}
-                  >
-                    <div className="text-2xl mb-2">{option.icon}</div>
-                    <p className={`font-bold text-sm mb-1 ${preferences.response_style === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
-                    <p className={`text-xs ${preferences.response_style === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
-                  </motion.div>
-                ))}
+                {styleOptions.map((option) => {
+                  const isSelected = preferences.response_style.includes(option.value);
+                  return (
+                    <motion.div
+                      key={option.value}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => toggleStyle('response_style', option.value)}
+                      className={`p-4 rounded-2xl cursor-pointer transition-all relative ${
+                        isSelected
+                          ? 'bg-violet-600 border-2 border-violet-700 shadow-lg'
+                          : 'bg-white border-2 border-violet-200 hover:border-violet-400'
+                      } ${!isSelected && preferences.response_style.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="text-2xl mb-2">{option.icon}</div>
+                      <p className={`font-bold text-sm mb-1 ${isSelected ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                      <p className={`text-xs ${isSelected ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/30 flex items-center justify-center">
+                          <span className="text-white text-xs font-bold">✓</span>
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
-            </motion.div>
+              </motion.div>
 
             {/* Tone */}
             <motion.div
@@ -318,29 +363,40 @@ export default function Settings() {
               transition={{ delay: 0.2 }}
               className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-3xl p-6 shadow-lg"
             >
-              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600" />
-                Giọng Điệu
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {toneOptions.map((option) => (
+            <h3 className="text-slate-900 text-lg font-bold mb-2 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              Giọng Điệu
+            </h3>
+            <p className="text-purple-600 text-xs font-semibold mb-4">
+              ✨ Chọn 1-3 giọng điệu ({preferences.tone.length}/3)
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {toneOptions.map((option) => {
+                const isSelected = preferences.tone.includes(option.value);
+                return (
                   <motion.div
                     key={option.value}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setPreferences({ ...preferences, tone: option.value })}
-                    className={`p-4 rounded-2xl cursor-pointer transition-all ${
-                      preferences.tone === option.value
+                    onClick={() => toggleStyle('tone', option.value)}
+                    className={`p-4 rounded-2xl cursor-pointer transition-all relative ${
+                      isSelected
                         ? 'bg-purple-600 border-2 border-purple-700 shadow-lg'
                         : 'bg-white border-2 border-purple-200 hover:border-purple-400'
-                    }`}
+                    } ${!isSelected && preferences.tone.length >= 3 ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <div className="text-2xl mb-2">{option.icon}</div>
-                    <p className={`font-bold text-sm mb-1 ${preferences.tone === option.value ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
-                    <p className={`text-xs ${preferences.tone === option.value ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
+                    <p className={`font-bold text-sm mb-1 ${isSelected ? 'text-white' : 'text-slate-900'}`}>{option.label}</p>
+                    <p className={`text-xs ${isSelected ? 'text-white/80' : 'text-slate-600'}`}>{option.desc}</p>
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white/30 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">✓</span>
+                      </div>
+                    )}
                   </motion.div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
             </motion.div>
 
             {/* Learning Preferences */}
