@@ -204,29 +204,32 @@ Return only the enhanced prompt, nothing else.`,
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-indigo-200 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center justify-between">
             <Link to={createPageUrl('Home')}>
               <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
-            <motion.div
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(99,102,241,0.4)',
-                  '0 0 40px rgba(99,102,241,0.6)',
-                  '0 0 20px rgba(99,102,241,0.4)',
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-cyan-400 flex items-center justify-center"
-            >
-              <Wand2 className="w-5 h-5 text-white" />
-            </motion.div>
-            <div className="flex-1">
-              <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Imagine Studio</h1>
-              <p className="text-purple-600 text-xs font-medium">Tạo & Chỉnh Sửa Hình Ảnh Bằng AI</p>
+            <div className="flex items-center gap-3 absolute left-1/2 -translate-x-1/2">
+              <motion.div
+                animate={{ 
+                  boxShadow: [
+                    '0 0 20px rgba(99,102,241,0.4)',
+                    '0 0 40px rgba(99,102,241,0.6)',
+                    '0 0 20px rgba(99,102,241,0.4)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-cyan-400 flex items-center justify-center"
+              >
+                <Wand2 className="w-5 h-5 text-white" />
+              </motion.div>
+              <div className="text-center">
+                <h1 className="text-slate-900 font-semibold tracking-wide text-xl">Imagine Studio</h1>
+                <p className="text-purple-600 text-xs font-medium">Sửa Hình Ảnh Bằng AI</p>
+              </div>
             </div>
+            <div className="w-10" />
           </div>
         </div>
       </div>
@@ -818,49 +821,125 @@ Return only the enhanced prompt, nothing else.`,
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto">
-                      {generatedImages.map((img, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="group relative bg-purple-50 border-2 border-purple-300 rounded-2xl overflow-hidden"
-                        >
-                          <img 
-                            src={img.url} 
-                            alt={img.prompt} 
-                            className="w-full h-auto"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent opacity-0 group-hover:opacity-100 transition-all p-4 flex flex-col justify-end">
-                            <p className="text-white text-sm font-medium mb-3 line-clamp-2">
-                              {img.prompt}
-                            </p>
-                            <div className="flex gap-2">
-                              <a
-                                href={img.url}
-                                download
-                                className="flex-1"
-                              >
-                                <Button className="w-full bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 rounded-full">
-                                  <Download className="w-4 h-4 mr-2" />
-                                  Tải Về
-                                </Button>
-                              </a>
-                              {img.isEdit && (
-                                <Button
-                                  onClick={() => {
-                                    setImageUrl(img.url);
-                                    setActiveTab('edit');
-                                  }}
-                                  className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white border border-white/30 rounded-full"
-                                >
-                                  <RefreshCw className="w-4 h-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
+                    <div className="space-y-6 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
+                     {generatedImages.map((img, index) => (
+                       <motion.div
+                         key={index}
+                         initial={{ opacity: 0, y: 20 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         className="space-y-4"
+                       >
+                         {/* Image Display */}
+                         <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-300 rounded-2xl overflow-hidden shadow-lg">
+                           <img 
+                             src={img.url} 
+                             alt={img.prompt} 
+                             className="w-full h-auto object-contain max-h-[600px]"
+                           />
+                         </div>
+
+                         {/* Prompt Display */}
+                         <div className="bg-white border-2 border-purple-200 rounded-2xl p-4">
+                           <p className="text-slate-700 text-sm font-medium leading-relaxed">
+                             💭 {img.prompt}
+                           </p>
+                         </div>
+
+                         {/* Action Buttons */}
+                         <div className="flex gap-2">
+                           <a
+                             href={img.url}
+                             download
+                             className="flex-1"
+                           >
+                             <Button className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full shadow-lg hover:shadow-xl">
+                               <Download className="w-4 h-4 mr-2" />
+                               Tải Về
+                             </Button>
+                           </a>
+                           {img.isEdit && (
+                             <Button
+                               onClick={() => {
+                                 setImageUrl(img.url);
+                                 setActiveTab('edit');
+                               }}
+                               className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full shadow-lg hover:shadow-xl"
+                             >
+                               <RefreshCw className="w-4 h-4 mr-2" />
+                               Sửa Lại
+                             </Button>
+                           )}
+                         </div>
+
+                         {/* Suggestion Links */}
+                         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-2xl p-4">
+                           <p className="text-slate-900 text-sm font-bold mb-3">✨ Tạo Biến Thể:</p>
+                           <div className="flex flex-wrap gap-2">
+                             <Button
+                               onClick={() => {
+                                 setPrompt(`${img.prompt}, phong cách anime chi tiết`);
+                                 setActiveTab('generate');
+                               }}
+                               size="sm"
+                               className="bg-white hover:bg-purple-50 text-purple-700 border-2 border-purple-300 rounded-full"
+                             >
+                               🎨 Phong cách Anime
+                             </Button>
+                             <Button
+                               onClick={() => {
+                                 setPrompt(`${img.prompt}, chất lượng 8K, siêu thực tế`);
+                                 setActiveTab('generate');
+                               }}
+                               size="sm"
+                               className="bg-white hover:bg-purple-50 text-purple-700 border-2 border-purple-300 rounded-full"
+                             >
+                               📸 Siêu Thực Tế
+                             </Button>
+                             <Button
+                               onClick={() => {
+                                 setPrompt(`${img.prompt}, phong cách tranh sơn dầu cổ điển`);
+                                 setActiveTab('generate');
+                               }}
+                               size="sm"
+                               className="bg-white hover:bg-purple-50 text-purple-700 border-2 border-purple-300 rounded-full"
+                             >
+                               🖼️ Tranh Sơn Dầu
+                             </Button>
+                             <Button
+                               onClick={() => {
+                                 setPrompt(`${img.prompt}, ánh sáng neon cyberpunk`);
+                                 setActiveTab('generate');
+                               }}
+                               size="sm"
+                               className="bg-white hover:bg-purple-50 text-purple-700 border-2 border-purple-300 rounded-full"
+                             >
+                               🌃 Cyberpunk
+                             </Button>
+                             <Button
+                               onClick={() => {
+                                 setPrompt(`${img.prompt}, phong cách Disney Pixar dễ thương`);
+                                 setActiveTab('generate');
+                               }}
+                               size="sm"
+                               className="bg-white hover:bg-purple-50 text-purple-700 border-2 border-purple-300 rounded-full"
+                             >
+                               🎬 Disney Style
+                             </Button>
+                             <Button
+                               onClick={() => {
+                                 setImageUrl(img.url);
+                                 setEditPrompt('Thêm ánh sáng ma thuật và hiệu ứng lấp lánh');
+                                 setActiveTab('edit');
+                               }}
+                               size="sm"
+                               className="bg-white hover:bg-purple-50 text-purple-700 border-2 border-purple-300 rounded-full"
+                             >
+                               ✨ Thêm Hiệu Ứng
+                             </Button>
+                           </div>
+                         </div>
+                       </motion.div>
+                     ))}
                     </div>
                   )}
                 </>
