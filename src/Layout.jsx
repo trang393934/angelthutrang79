@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import AngelMascot from '@/components/AngelMascot';
+import SupportChatWidget from '@/components/SupportChatWidget';
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -614,6 +615,9 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
       {/* Angel Mascot */}
       <AngelMascot />
+
+      {/* Support Chat Widget */}
+      {currentUser && currentUser.light_law_agreed && <SupportChatWidget />}
       </div>
       );
       }
