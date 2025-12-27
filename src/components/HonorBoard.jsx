@@ -4,6 +4,8 @@ import { Trophy, TrendingUp, Coins, Crown, Star, Zap } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 
 export default function HonorBoard() {
   const [activeTab, setActiveTab] = useState('camlycoin'); // 'camlycoin' or 'visits'
@@ -154,63 +156,67 @@ export default function HonorBoard() {
                 const value = activeTab === 'camlycoin' ? item.total_earned : item.visit_count;
                 
                 return (
-                  <motion.div
+                  <Link
                     key={item.user_email || idx}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    className={`relative rounded-2xl p-3 transition-all hover:scale-102 ${
-                      rank <= 3
-                        ? 'bg-gradient-to-r ' + getRankGradient(rank)
-                        : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200'
-                    }`}
+                    to={createPageUrl('UserProfile') + `?email=${encodeURIComponent(item.user_email)}`}
                   >
-                    <div className="flex items-center gap-3">
-                      {/* Rank Badge */}
-                      <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-                        rank <= 3 ? 'bg-white/30 backdrop-blur-sm' : 'bg-white'
-                      }`}>
-                        {getMedalIcon(rank)}
-                      </div>
-
-                      {/* User Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-bold text-sm truncate ${
-                            rank <= 3 ? 'text-white' : 'text-slate-900'
-                          }`}>
-                            {rank}. {name}
-                          </span>
-                          {rank === 1 && (
-                            <Badge className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0">
-                              👑 #1
-                            </Badge>
-                          )}
-                        </div>
-                        <p className={`text-xs font-medium ${
-                          rank <= 3 ? 'text-white/80' : 'text-purple-600'
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className={`relative rounded-2xl p-3 transition-all hover:scale-105 cursor-pointer ${
+                        rank <= 3
+                          ? 'bg-gradient-to-r ' + getRankGradient(rank)
+                          : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        {/* Rank Badge */}
+                        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
+                          rank <= 3 ? 'bg-white/30 backdrop-blur-sm' : 'bg-white'
                         }`}>
-                          {activeTab === 'camlycoin' 
-                            ? `${value.toLocaleString()} Camlycoin`
-                            : `${value} lượt truy cập`
-                          }
-                        </p>
-                      </div>
+                          {getMedalIcon(rank)}
+                        </div>
 
-                      {/* Sparkle Effect for Top 3 */}
-                      {rank <= 3 && (
-                        <motion.div
-                          animate={{ 
-                            scale: [1, 1.2, 1],
-                            rotate: [0, 10, -10, 0]
-                          }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
-                          <Star className="w-5 h-5 text-white fill-white" />
-                        </motion.div>
-                      )}
-                    </div>
-                  </motion.div>
+                        {/* User Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`font-bold text-sm truncate ${
+                              rank <= 3 ? 'text-white' : 'text-slate-900'
+                            }`}>
+                              {rank}. {name}
+                            </span>
+                            {rank === 1 && (
+                              <Badge className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0">
+                                👑 #1
+                              </Badge>
+                            )}
+                          </div>
+                          <p className={`text-xs font-medium ${
+                            rank <= 3 ? 'text-white/80' : 'text-purple-600'
+                          }`}>
+                            {activeTab === 'camlycoin' 
+                              ? `${value.toLocaleString()} Camlycoin`
+                              : `${value} lượt truy cập`
+                            }
+                          </p>
+                        </div>
+
+                        {/* Sparkle Effect for Top 3 */}
+                        {rank <= 3 && (
+                          <motion.div
+                            animate={{ 
+                              scale: [1, 1.2, 1],
+                              rotate: [0, 10, -10, 0]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                          >
+                            <Star className="w-5 h-5 text-white fill-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                    </motion.div>
+                  </Link>
                 );
               })}
             </motion.div>
