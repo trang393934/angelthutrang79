@@ -112,7 +112,7 @@ Trả lời bằng tiếng Việt:`,
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center"
+            className="fixed bottom-6 right-6 z-[100] w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center"
           >
             <MessageCircle className="w-8 h-8" />
             <motion.div
@@ -136,7 +136,7 @@ Trả lời bằng tiếng Việt:`,
               height: isMinimized ? 60 : 600 
             }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-50 w-96 bg-white rounded-3xl shadow-2xl border-2 border-purple-300 overflow-hidden flex flex-col"
+            className="fixed bottom-6 right-6 z-[100] w-96 bg-white rounded-3xl shadow-2xl border-2 border-purple-300 overflow-hidden flex flex-col"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 flex items-center justify-between">
