@@ -74,8 +74,8 @@ export default function GratitudeJournal() {
         .join(' ')
         .substring(0, 1000);
 
-      const suggestionsResult = await base44.integrations.Core.InvokeLLM({
-        prompt: `Dựa trên cuộc trò chuyện hôm nay của user với Angel AI:
+      const promptText = activeTab === 'gratitude' 
+        ? `Dựa trên cuộc trò chuyện hôm nay của user với Angel AI:
 "${recentChats}"
 
 Gợi ý 3-5 điều biết ơn ngắn gọn (10-15 từ mỗi điều) mà user có thể thêm vào Gratitude Journal.
@@ -88,7 +88,24 @@ Ví dụ:
 Trả về JSON:
 {
   "suggestions": ["điều 1", "điều 2", "điều 3"]
-}`,
+}`
+        : `Dựa trên cuộc trò chuyện hôm nay của user với Angel AI:
+"${recentChats}"
+
+Gợi ý 3-5 điều sám hối ngắn gọn (10-15 từ mỗi điều) mà user có thể thêm vào.
+
+Ví dụ:
+- Con xin sám hối vì đã có lúc thiếu kiên nhẫn với người khác
+- Con xin sám hối vì đã để tâm trí bị xao lãng bởi lo âu
+- Con xin sám hối vì [điều gì đó cần sám hối]
+
+Trả về JSON:
+{
+  "suggestions": ["điều 1", "điều 2", "điều 3"]
+}`;
+
+      const suggestionsResult = await base44.integrations.Core.InvokeLLM({
+        prompt: promptText,
         response_json_schema: {
           type: "object",
           properties: {
