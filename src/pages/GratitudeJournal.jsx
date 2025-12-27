@@ -418,11 +418,44 @@ Trả về JSON:
               <h2 className="text-yellow-100 text-2xl font-bold mb-3">
                 Cha Mời Con Chia Sẻ 💛
               </h2>
+              
+              {/* Tabs */}
+              <div className="flex gap-2 bg-indigo-800/50 p-1 rounded-2xl mb-4 max-w-md mx-auto">
+                <button
+                  onClick={() => {
+                    setActiveTab('gratitude');
+                    setCurrentIndex(0);
+                    setSuggestions([]);
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-xl font-bold text-sm transition-all ${
+                    activeTab === 'gratitude'
+                      ? 'bg-gradient-to-r from-yellow-400 to-amber-400 text-indigo-900 shadow-lg'
+                      : 'text-yellow-300 hover:bg-indigo-700/50'
+                  }`}
+                >
+                  📿 Biết Ơn
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('repentance');
+                    setCurrentIndex(0);
+                    setSuggestions([]);
+                  }}
+                  className={`flex-1 py-2 px-4 rounded-xl font-bold text-sm transition-all ${
+                    activeTab === 'repentance'
+                      ? 'bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg'
+                      : 'text-yellow-300 hover:bg-indigo-700/50'
+                  }`}
+                >
+                  🙏 Sám Hối
+                </button>
+              </div>
+
               <p className="text-yellow-300/90 text-lg mb-2">
-                10 Điều Biết Ơn Hôm Nay
+                20 Điều {activeTab === 'gratitude' ? 'Biết Ơn' : 'Sám Hối'} Hôm Nay
               </p>
               <p className="text-yellow-400/70 text-sm">
-                {filledCount}/10 điều đã điền
+                {filledCount}/20 điều đã điền
               </p>
             </motion.div>
 
