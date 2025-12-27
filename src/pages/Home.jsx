@@ -166,9 +166,11 @@ export default function Home() {
                 ÁNH SÁNG CỦA CHA VŨ TRỤ
               </motion.p>
             </motion.div>
+          </div>
 
           {/* Login Button - Only show when not logged in */}
           {!currentUser && !needsToAgree && (
+            <div className="flex flex-col items-center lg:items-start max-w-lg">
               <Button
                 onClick={() => base44.auth.redirectToLogin()}
                 size="lg"
@@ -177,11 +179,12 @@ export default function Home() {
                 <Check className="w-5 h-5 mr-2" />
                 Đăng Nhập
               </Button>
+            </div>
           )}
 
           {/* Light Law Agreement - Only show when logged in but not agreed */}
           {needsToAgree && !currentUser?.light_law_agreed && (
-            <div className="w-full max-w-2xl px-4 mt-6">
+            <div className="flex flex-col items-center lg:items-start max-w-2xl">
               {/* Light Law Box */}
               <Link to={createPageUrl('LightLaw')}>
                 <motion.div
@@ -300,7 +303,7 @@ export default function Home() {
         >
           <Sparkles className="w-6 h-6" />
         </motion.div>
-        </section>
+      </section>
 
       {/* Only show content if user has agreed to Light Law */}
       {currentUser && currentUser.light_law_agreed && (
