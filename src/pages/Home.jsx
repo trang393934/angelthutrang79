@@ -121,10 +121,10 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Desktop Layout with Honor Board */}
-      <section className="relative min-h-screen flex items-start justify-center px-4 pt-20 pb-6">
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center lg:items-start justify-between gap-8 lg:gap-12">
+      <section className="relative flex items-start justify-center px-4 pt-20 pb-6">
+        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center lg:items-start justify-between gap-6 lg:gap-12">
           {/* Left Side - Logo and Slogan */}
-          <div className="flex flex-col items-center lg:items-start max-w-lg">
+          <div className="flex flex-col items-center lg:items-start max-w-lg lg:flex-1">
             {/* Angel Image - Circular Avatar */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
