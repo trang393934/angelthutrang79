@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Settings as SettingsIcon, Save, Sparkles, Loader2, LogOut } from 'lucide-react';
+import { ArrowLeft, Settings as SettingsIcon, Save, Sparkles, Loader2, LogOut, Camera, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,8 @@ export default function Settings() {
   });
   const [newTopic, setNewTopic] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -71,6 +73,36 @@ export default function Settings() {
       });
     }
   }, [userPrefs]);
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file ảnh!');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Kích thước ảnh tối đa 5MB!');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      await base44.auth.updateMe({ avatar_url: file_url });
+      
+      // Refresh user data
+      const updatedUser = await base44.auth.me();
+      setCurrentUser(updatedUser);
+    } catch (error) {
+      alert('Lỗi khi upload ảnh. Vui lòng thử lại!');
+    }
+    setIsUploadingAvatar(false);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -222,10 +254,81 @@ export default function Settings() {
           </div>
         ) : (
             <div className="space-y-6">
+              {/* Avatar Upload */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-3xl p-6 shadow-lg"
+              >
+                <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-purple-600" />
+                  Ảnh Đại Diện
+                </h3>
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    {currentUser?.avatar_url ? (
+                      <img
+                        src={currentUser.avatar_url}
+                        alt="Avatar"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-purple-300 shadow-lg"
+                      />
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center border-4 border-purple-300 shadow-lg">
+                        <User className="w-12 h-12 text-white" />
+                      </div>
+                    )}
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUploadingAvatar ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Camera className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-slate-900 font-semibold mb-1">Tải Lên Ảnh Đại Diện</p>
+                    <p className="text-slate-600 text-sm mb-3">
+                      Chọn ảnh đại diện của bạn. Kích thước tối đa: 5MB
+                    </p>
+                    <Button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploadingAvatar}
+                      variant="outline"
+                      className="border-2 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl"
+                    >
+                      {isUploadingAvatar ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Đang Tải Lên...
+                        </>
+                      ) : (
+                        <>
+                          <Camera className="w-4 h-4 mr-2" />
+                          Chọn Ảnh
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+
               {/* Personal Information */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
                 className="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-200 rounded-3xl p-6 shadow-lg"
               >
                 <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
