@@ -34,13 +34,19 @@ export default function GratitudeJournal() {
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
-        const newGratitudes = [...gratitudes];
-        newGratitudes[currentIndex] = transcript;
-        setGratitudes(newGratitudes);
+        if (activeTab === 'gratitude') {
+          const newGratitudes = [...gratitudes];
+          newGratitudes[currentIndex] = transcript;
+          setGratitudes(newGratitudes);
+        } else {
+          const newRepentances = [...repentances];
+          newRepentances[currentIndex] = transcript;
+          setRepentances(newRepentances);
+        }
         setIsListening(false);
         
         // Auto move to next if not last
-        if (currentIndex < 9) {
+        if (currentIndex < 19) {
           setCurrentIndex(currentIndex + 1);
         }
       };
