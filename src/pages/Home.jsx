@@ -48,22 +48,21 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-rose-50 relative overflow-hidden">
-      {/* Auth Button - Top Right */}
+      {/* Auth Button - Top Left */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="absolute top-4 right-4 z-50"
+        className="absolute top-4 left-4 z-50"
       >
         {currentUser ? (
           <Button
             onClick={() => base44.auth.logout()}
             variant="outline"
-            size="sm"
-            className="border border-red-300 text-red-700 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-semibold hover:bg-red-50 hover:scale-105 transition-all shadow-lg"
+            size="icon"
+            className="border border-red-300 text-red-700 bg-white/90 backdrop-blur-sm rounded-full hover:bg-red-50 hover:scale-105 transition-all shadow-lg w-10 h-10"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Đăng Xuất
+            <LogOut className="w-4 h-4" />
           </Button>
         ) : (
           <Button
@@ -122,8 +121,8 @@ export default function Home() {
       </div>
 
       {/* Hero Section - Desktop Layout with Honor Board */}
-      <section className="relative min-h-screen flex items-center justify-center px-4 pt-2 pb-6">
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-12">
+      <section className="relative min-h-screen flex items-start justify-center px-4 pt-20 pb-6">
+        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-12">
           {/* Left Side - Logo and Slogan */}
           <div className="flex flex-col items-center lg:items-start max-w-lg">
             {/* Angel Image - Circular Avatar */}
