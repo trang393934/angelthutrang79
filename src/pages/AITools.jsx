@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music, PenTool, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,6 +26,8 @@ export default function AITools() {
   const [chatInput, setChatInput] = useState('');
 
   const tabs = [
+    { id: 'create', label: 'Tạo Nội Dung', icon: PenTool, gradient: 'from-indigo-400 to-purple-400' },
+    { id: 'ideas', label: 'Gợi Ý Ý Tưởng', icon: Lightbulb, gradient: 'from-yellow-400 to-amber-400' },
     { id: 'summarize', label: 'Tóm Tắt Văn Bản', icon: FileText, gradient: 'from-blue-400 to-cyan-400' },
     { id: 'translate', label: 'Dịch Thuật', icon: Languages, gradient: 'from-purple-400 to-pink-400' },
     { id: 'analyze', label: 'Phân Tích Dữ Liệu', icon: BarChart3, gradient: 'from-green-400 to-emerald-400' },
@@ -47,6 +49,112 @@ export default function AITools() {
     { code: 'ar', name: 'العربية (Arabic)' },
     { code: 'hi', name: 'हिन्दी (Hindi)' },
   ];
+
+  const handleCreate = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    setIsLoading(true);
+    setResult('');
+    
+    try {
+      const content = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là một writer chuyên nghiệp với khả năng sáng tạo nội dung xuất sắc. Hãy tạo một bài viết/nội dung hoàn chỉnh, chất lượng cao dựa trên chủ đề sau:
+
+**Chủ đề:** ${input}
+
+**Yêu cầu nội dung:**
+
+1. **Cấu trúc hoàn chỉnh:**
+   - Tiêu đề hấp dẫn và SEO-friendly
+   - Phần mở đầu thu hút (hook)
+   - Nội dung chính có cấu trúc rõ ràng
+   - Kết luận mạnh mẽ với call-to-action
+
+2. **Chất lượng nội dung:**
+   - Thông tin chính xác, đáng tin cậy
+   - Ngôn ngữ phù hợp với đối tượng độc giả
+   - Sử dụng ví dụ cụ thể, số liệu (nếu phù hợp)
+   - Hình ảnh nghệ thuật, giàu cảm xúc
+   - Giọng văn tự nhiên, dễ đọc
+
+3. **Định dạng:**
+   - Chia thành các phần với heading rõ ràng
+   - Bullet points cho thông tin quan trọng
+   - Đoạn văn ngắn gọn (3-5 câu)
+   - Highlight các ý chính
+
+4. **Tối ưu SEO (nếu là bài blog):**
+   - Keywords tự nhiên
+   - Meta description gợi ý
+   - Subheadings với từ khóa
+
+Hãy tạo nội dung HOÀN CHỈNH, sẵn sàng để xuất bản!`,
+      });
+      
+      setResult(content);
+    } catch (error) {
+      setResult('❌ Có lỗi xảy ra khi tạo nội dung. Vui lòng thử lại.');
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleIdeas = async () => {
+    if (!input.trim() || isLoading) return;
+    
+    setIsLoading(true);
+    setResult('');
+    
+    try {
+      const ideas = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là một content strategist sáng tạo. Dựa trên chủ đề/từ khóa sau, hãy đề xuất các ý tưởng nội dung phong phú và đa dạng:
+
+**Chủ đề/Từ khóa:** ${input}
+
+**Hãy đề xuất 15-20 ý tưởng nội dung theo format sau:**
+
+## 🎯 Bài Viết Blog/Article
+1. [Tiêu đề hấp dẫn] - [Mô tả ngắn gọn về nội dung]
+2. [Tiêu đề hấp dẫn] - [Mô tả ngắn gọn về nội dung]
+... (5-7 ý tưởng)
+
+## 📱 Social Media Content
+1. [Concept] - [Platform phù hợp] - [Format: Video/Image/Carousel]
+2. [Concept] - [Platform phù hợp] - [Format]
+... (3-5 ý tưởng)
+
+## 🎬 Video Content
+1. [Tiêu đề video] - [Góc độ độc đáo]
+2. [Tiêu đề video] - [Góc độ độc đáo]
+... (3-4 ý tưởng)
+
+## 📧 Email Marketing
+1. [Subject line] - [Nội dung chính]
+2. [Subject line] - [Nội dung chính]
+... (2-3 ý tưởng)
+
+## 💡 Content Series
+1. [Tên series] - [Các tập đề xuất]
+2. [Tên series] - [Các tập đề xuất]
+... (2-3 series)
+
+**Lưu ý:**
+- Ý tưởng phải sáng tạo, độc đáo
+- Phù hợp với xu hướng hiện tại
+- Có tính thực tiễn cao
+- Đa dạng về format và platform
+- Có tiềm năng viral/engagement cao
+
+Trình bày rõ ràng, dễ hiểu bằng tiếng Việt!`,
+      });
+      
+      setResult(ideas);
+    } catch (error) {
+      setResult('❌ Có lỗi xảy ra khi tạo ý tưởng. Vui lòng thử lại.');
+    }
+    
+    setIsLoading(false);
+  };
 
   const handleSummarize = async () => {
     if (!input.trim() || isLoading) return;
@@ -318,6 +426,12 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
 
   const handleProcess = () => {
     switch (activeTab) {
+      case 'create':
+        handleCreate();
+        break;
+      case 'ideas':
+        handleIdeas();
+        break;
       case 'summarize':
         handleSummarize();
         break;
@@ -393,7 +507,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
         {/* Tabs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-8">
           {tabs.map((tab) => {
             const TabIcon = tab.icon;
             return (
@@ -442,6 +556,8 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             <div>
               <h3 className="text-slate-900 font-bold text-lg">{currentTab?.label}</h3>
               <p className="text-purple-700 text-sm font-medium">
+                {activeTab === 'create' && 'Nhập chủ đề để AI tạo nội dung hoàn chỉnh'}
+                {activeTab === 'ideas' && 'Nhập chủ đề để AI gợi ý các ý tưởng nội dung sáng tạo'}
                 {activeTab === 'summarize' && 'Nhập văn bản dài để AI tóm tắt ngắn gọn'}
                 {activeTab === 'translate' && 'Nhập văn bản để AI dịch sang ngôn ngữ khác'}
                 {activeTab === 'analyze' && 'Nhập dữ liệu để AI phân tích và đưa ra insight'}
@@ -566,6 +682,8 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={
+              activeTab === 'create' ? 'Nhập chủ đề bạn muốn tạo nội dung...\n\nVí dụ:\n- Bài blog về lợi ích của thiền định\n- Bài viết giới thiệu sản phẩm công nghệ mới\n- Bài đăng mạng xã hội về du lịch\n- Email marketing cho khóa học online' :
+              activeTab === 'ideas' ? 'Nhập chủ đề/từ khóa để AI gợi ý ý tưởng...\n\nVí dụ:\n- Phát triển bản thân\n- Marketing số\n- Sức khỏe tinh thần\n- Khởi nghiệp' :
               activeTab === 'summarize' ? 'Paste văn bản dài cần tóm tắt...' :
               activeTab === 'translate' ? 'Paste văn bản cần dịch...' :
               activeTab === 'analyze' ? 'Paste dữ liệu cần phân tích (text, số liệu, thống kê...)' :
@@ -588,6 +706,8 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
+                {activeTab === 'create' && 'Tạo Nội Dung Ngay'}
+                {activeTab === 'ideas' && 'Gợi Ý Ý Tưởng Ngay'}
                 {activeTab === 'summarize' && 'Tóm Tắt Ngay'}
                 {activeTab === 'translate' && 'Dịch Ngay'}
                 {activeTab === 'analyze' && 'Phân Tích Ngay'}
