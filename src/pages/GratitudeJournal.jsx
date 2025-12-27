@@ -175,28 +175,32 @@ Trả về JSON:
   const handleSubmit = async () => {
     if (!currentUser) return;
 
-    const filledGratitudes = gratitudes.filter(g => g.trim());
-    if (filledGratitudes.length < 10) {
-      alert('Hãy điền đủ 10 điều biết ơn nhé con! 💛');
+    const currentList = activeTab === 'gratitude' ? gratitudes : repentances;
+    const filledItems = currentList.filter(g => g.trim());
+    
+    if (filledItems.length < 20) {
+      alert(`Hãy điền đủ 20 điều ${activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} nhé con! 💛`);
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const gratitudeText = gratitudes.map((g, i) => `${i + 1}. ${g}`).join('\n');
+      const itemsText = currentList.filter(g => g.trim()).map((g, i) => `${i + 1}. ${g}`).join('\n');
+      const isGratitude = activeTab === 'gratitude';
+      const rewardAmount = usedSuggestions ? 30000 : 50000;
 
       // AI summarize and tag
       const analysis = await base44.integrations.Core.InvokeLLM({
-        prompt: `Tóm tắt và phân tích 10 điều biết ơn sau:
+        prompt: `Tóm tắt và phân tích 20 điều ${isGratitude ? 'biết ơn' : 'sám hối'} sau:
 
-${gratitudeText}
+${itemsText}
 
 Trả về JSON:
 {
   "summary": "Tóm tắt ngắn gọn (2-3 câu)",
   "tags": ["tag1", "tag2", "tag3"],
-  "daily_message": "Lời chúc sáng mai từ Cha Vũ Trụ dựa trên những điều biết ơn này (3-4 câu)"
+  "daily_message": "Lời chúc từ Cha Vũ Trụ dựa trên những điều ${isGratitude ? 'biết ơn' : 'sám hối'} này (3-4 câu)"
 }`,
         response_json_schema: {
           type: "object",
@@ -210,46 +214,42 @@ Trả về JSON:
 
       // Save to Library
       await base44.entities.LightMessage.create({
-        content: `📿 **Gratitude Journal - ${new Date().toLocaleDateString('vi-VN')}**\n\n${gratitudeText}\n\n**Tóm tắt:** ${analysis.summary}`,
+        content: `${isGratitude ? '📿 **Gratitude Journal**' : '🙏 **Repentance Journal**'} - ${new Date().toLocaleDateString('vi-VN')}\n\n${itemsText}\n\n**Tóm tắt:** ${analysis.summary}`,
         type: 'daily_message',
         summary: analysis.summary,
-        tags: ['gratitude', ...analysis.tags],
+        tags: [isGratitude ? 'gratitude' : 'repentance', ...analysis.tags],
         is_favorite: false
       });
 
-      // Schedule Daily Message for tomorrow (save for now, will be sent in morning)
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(7, 0, 0, 0);
-
+      // Save blessing message
       await base44.entities.LightMessage.create({
-        content: `🌅 **Morning Blessing - ${tomorrow.toLocaleDateString('vi-VN')}**\n\n${analysis.daily_message}\n\n💫 Cha tiếp tục ban phước cho con trong ngày mới!`,
+        content: `🌅 **${isGratitude ? 'Gratitude' : 'Repentance'} Blessing - ${new Date().toLocaleDateString('vi-VN')}**\n\n${analysis.daily_message}\n\n💫 Cha tiếp tục ban phước cho con!`,
         type: 'daily_message',
-        summary: 'Morning blessing based on gratitude',
-        tags: ['morning', 'blessing', 'gratitude'],
+        summary: `Blessing based on ${isGratitude ? 'gratitude' : 'repentance'}`,
+        tags: ['blessing', isGratitude ? 'gratitude' : 'repentance'],
         is_favorite: false
       });
 
       // Award Camlycoin
       await base44.entities.CamlycoinTransaction.create({
         user_email: currentUser.email,
-        amount: 50000,
+        amount: rewardAmount,
         type: 'manual_add',
-        description: '📿 Gratitude Journal hoàn thành!\n✨ +10 điểm Ánh Sáng\n🙏 Cảm ơn con đã thực hành lòng biết ơn mỗi ngày'
+        description: `${isGratitude ? '📿 Gratitude' : '🙏 Repentance'} Journal hoàn thành!\n✨ +${rewardAmount === 50000 ? '20' : '12'} điểm Ánh Sáng\n${usedSuggestions ? '(Dùng gợi ý AI)' : '(Tự viết)'}`
       });
 
       const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
       if (balances.length > 0) {
         const balance = balances[0];
         await base44.entities.CamlycoinBalance.update(balance.id, {
-          balance: (balance.balance || 0) + 50000,
-          total_earned: (balance.total_earned || 0) + 50000
+          balance: (balance.balance || 0) + rewardAmount,
+          total_earned: (balance.total_earned || 0) + rewardAmount
         });
       } else {
         await base44.entities.CamlycoinBalance.create({
           user_email: currentUser.email,
-          balance: 50000,
-          total_earned: 50000,
+          balance: rewardAmount,
+          total_earned: rewardAmount,
           total_spent: 0
         });
       }
@@ -259,12 +259,17 @@ Trả về JSON:
 
       // Reset after 3 seconds
       setTimeout(() => {
-        setGratitudes(Array(10).fill(''));
+        if (isGratitude) {
+          setGratitudes(Array(20).fill(''));
+        } else {
+          setRepentances(Array(20).fill(''));
+        }
         setCurrentIndex(0);
         setShowSuccess(false);
+        setUsedSuggestions(false);
       }, 3000);
     } catch (error) {
-      console.error('Error saving gratitude journal:', error);
+      console.error('Error saving journal:', error);
       setIsSaving(false);
       alert('Có lỗi xảy ra. Vui lòng thử lại!');
     }
