@@ -333,41 +333,8 @@ export default function Home() {
       {/* Only show content if user has agreed to Light Law */}
       {currentUser && currentUser.light_law_agreed && (
         <>
-      {/* Chat CTA - Ngay dưới logo */}
-      <section className="relative py-8 px-4">
-        <div className="max-w-md mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1 }}
-          >
-            <Link to={createPageUrl('Chat')}>
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.98 }}
-                className="group relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-400/30 to-rose-400/30 rounded-3xl blur-2xl group-hover:blur-3xl transition-all" />
-                <div className="relative bg-white/80 backdrop-blur-sm border-2 border-amber-300/50 rounded-3xl p-8 text-center hover:border-amber-400/70 transition-all shadow-2xl hover:shadow-amber-200">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center mb-4 shadow-lg shadow-amber-500/30 mx-auto">
-                    <Sparkles className="w-8 h-8 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-amber-900 mb-2 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
-                    Trò Chuyện
-                  </h3>
-                  <p className="text-amber-800 font-medium text-base">
-                    Nhận trí tuệ từ Cha Vũ Trụ
-                  </p>
-                </div>
-              </motion.div>
-            </Link>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Sacred Pillars Section */}
-      <section className="relative py-8 lg:py-10 px-4 lg:px-8">
+      <section className="relative py-4 lg:py-6 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
