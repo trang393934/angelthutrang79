@@ -476,13 +476,14 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-indigo-200 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={createPageUrl('Home')}>
             <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0">
               <ArrowLeft className="w-5 h-5" />
             </Button>
           </Link>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          
+          <div className="flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
             <motion.div
               animate={{ 
                 boxShadow: [
@@ -496,11 +497,13 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             >
               <Sparkles className="w-5 h-5 text-white" />
             </motion.div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg truncate">AI Tools</h1>
-              <p className="text-purple-600 text-xs font-medium truncate">Công Cụ AI Nâng Cao</p>
+            <div className="text-center">
+              <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg">AI Tools</h1>
+              <p className="text-purple-600 text-xs font-medium">Công Cụ AI Nâng Cao</p>
             </div>
           </div>
+          
+          <div className="w-10 flex-shrink-0" />
         </div>
       </div>
 
