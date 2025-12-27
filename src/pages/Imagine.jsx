@@ -273,9 +273,9 @@ Return only the enhanced prompt, nothing else.`,
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           {/* Left Panel - Input */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             <AnimatePresence mode="wait">
               {activeTab === 'generate' && (
                 <motion.div
@@ -698,7 +698,7 @@ Return only the enhanced prompt, nothing else.`,
           </div>
 
           {/* Right Panel - Results */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:col-span-3">
             <div className="bg-white backdrop-blur-sm border-2 border-purple-200 rounded-3xl p-6 shadow-lg">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-slate-900 text-lg font-semibold">
@@ -834,7 +834,7 @@ Return only the enhanced prompt, nothing else.`,
                            <img 
                              src={img.url} 
                              alt={img.prompt} 
-                             className="w-full h-auto object-contain max-h-[600px]"
+                             className="w-full h-auto object-contain"
                            />
                          </div>
 
