@@ -667,7 +667,7 @@ Trả về JSON với format:
       </AnimatePresence>
 
       {/* Content */}
-      <div className={`px-2 sm:px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-36 sm:pt-44 lg:pt-56' : 'pt-16 sm:pt-20 lg:pt-24'}`}>
+      <div className={`px-2 sm:px-4 max-w-6xl mx-auto pb-40 ${showFilters ? 'pt-44 sm:pt-52 lg:pt-64' : 'pt-24 sm:pt-28 lg:pt-32'}`}>
         {!currentUser ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
