@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Search, Sparkles, Sun, Heart, Filter, Tag, Calendar, Plus, Loader2, Send, SortAsc, X, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,11 +38,12 @@ export default function Library() {
     queryFn: async () => {
       if (!currentUser) return [];
       if (currentUser.role === 'admin') {
-        return base44.entities.LightMessage.list('-created_date');
+        return base44.entities.LightMessage.list('-created_date', 100);
       }
-      return base44.entities.LightMessage.filter({ created_by: currentUser.email }, '-created_date');
+      return base44.entities.LightMessage.filter({ created_by: currentUser.email }, '-created_date', 100);
     },
     enabled: !!currentUser,
+    staleTime: 30000,
   });
 
   const toggleFavoriteMutation = useMutation({
@@ -721,14 +722,9 @@ Trả về JSON với format:
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatePresence>
-              {filteredMessages.map((message, index) => (
-                <motion.div
+              {filteredMessages.slice(0, 50).map((message) => (
+                <div
                   key={message.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.05 }}
                   onClick={() => setSelectedMessage(message)}
                   className="group relative bg-white backdrop-blur-sm border-2 border-purple-200 rounded-3xl p-6 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-200 transition-all cursor-pointer"
                 >
@@ -817,7 +813,7 @@ Trả về JSON với format:
                   </div>
                   </div>
                   ))}
-                  </div>
+              </div>
           </div>
         )}
       </div>
