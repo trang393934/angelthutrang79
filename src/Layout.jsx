@@ -25,9 +25,9 @@ export default function Layout({ children, currentPageName }) {
   useEffect(() => {
     base44.auth.me().then(user => {
       setCurrentUser(user);
-      
-      // Track page visit
-      if (user && user.light_law_agreed) {
+
+      // Track page visit - only once per page load
+      if (user && user.light_law_agreed && currentPageName !== 'Home') {
         base44.entities.UserActivity.create({
           user_email: user.email,
           activity_type: 'page_view',
