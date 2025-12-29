@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { AnimatePresence } from 'framer-motion';
 
 export default function UserProfile() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -14,7 +16,10 @@ export default function UserProfile() {
   const [targetEmail, setTargetEmail] = useState('');
   const [copiedWallet, setCopiedWallet] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
   const fileInputRef = useRef(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
@@ -76,6 +81,41 @@ export default function UserProfile() {
       setTimeout(() => setCopiedWallet(false), 2000);
     }
   };
+
+  // Mark as paid mutation
+  const markAsPaidMutation = useMutation({
+    mutationFn: async (amount) => {
+      if (!userBalance) return;
+      
+      const paidAmount = parseFloat(amount);
+      const currentUnpaid = userBalance.unpaid_amount || 0;
+      const currentPaid = userBalance.paid_amount || 0;
+      
+      if (paidAmount > currentUnpaid) {
+        alert('Số tiền thanh toán không được lớn hơn số chưa thanh toán!');
+        return;
+      }
+      
+      await base44.entities.CamlycoinBalance.update(userBalance.id, {
+        paid_amount: currentPaid + paidAmount,
+        unpaid_amount: currentUnpaid - paidAmount
+      });
+      
+      // Create transaction record
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0, // Không thay đổi balance
+        type: 'admin_adjustment',
+        description: `Admin đánh dấu đã thanh toán ${paidAmount.toLocaleString()} Camlycoin`,
+        processed_by: currentUser.email
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      setShowPaymentModal(false);
+      setPaymentAmount('');
+    }
+  });
 
   const handleAvatarUpload = async (event) => {
     const file = event.target.files[0];
@@ -312,6 +352,112 @@ export default function UserProfile() {
             <p className="text-orange-600 text-xs mt-1">Camlycoin</p>
           </div>
         </motion.div>
+
+        {/* Payment Action - Only for Admin */}
+        {userBalance && (userBalance.unpaid_amount || 0) > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
+          >
+            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+              <DollarSign className="w-6 h-6" />
+              Đánh Dấu Thanh Toán
+            </h3>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
+              <p className="text-white/90 text-sm mb-2">Số Camlycoin chưa thanh toán:</p>
+              <p className="text-white text-3xl font-bold">
+                {(userBalance.unpaid_amount || 0).toLocaleString()} Camlycoin
+              </p>
+            </div>
+            <Button
+              onClick={() => setShowPaymentModal(true)}
+              className="w-full bg-white text-blue-600 rounded-2xl font-bold py-6 text-lg hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all"
+            >
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Đánh Dấu Đã Thanh Toán
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Payment Modal */}
+        <AnimatePresence>
+          {showPaymentModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowPaymentModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-slate-900 text-xl font-bold">Xác Nhận Thanh Toán</h3>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPaymentModal(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6">
+                  <p className="text-blue-900 text-sm font-medium mb-2">Số tiền chưa thanh toán:</p>
+                  <p className="text-blue-600 text-3xl font-bold">
+                    {(userBalance?.unpaid_amount || 0).toLocaleString()} Camlycoin
+                  </p>
+                </div>
+
+                <div className="mb-6">
+                  <label className="text-slate-700 text-sm font-semibold mb-2 block">
+                    Số tiền thanh toán
+                  </label>
+                  <Input
+                    type="number"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    placeholder="Nhập số Camlycoin đã thanh toán..."
+                    className="bg-white border-2 border-blue-300 text-slate-900 rounded-xl text-lg"
+                    max={userBalance?.unpaid_amount || 0}
+                  />
+                  <p className="text-xs text-slate-600 mt-2">
+                    💡 Nhập số tiền bạn đã thanh toán cho người dùng này
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowPaymentModal(false);
+                      setPaymentAmount('');
+                    }}
+                    className="flex-1 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl py-6"
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    onClick={() => markAsPaidMutation.mutate(paymentAmount)}
+                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > (userBalance?.unpaid_amount || 0)}
+                    className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl py-6 font-bold disabled:opacity-50 shadow-lg hover:shadow-xl"
+                  >
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                    Xác Nhận
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Transaction History */}
         <motion.div
