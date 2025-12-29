@@ -514,8 +514,8 @@ export default function Chat() {
             setDailyLimit(currentLimit);
           }
 
-          // Check if reached daily limit (20 questions)
-          if (currentLimit.questions_rewarded >= 20) {
+          // Check if reached daily limit (10 questions)
+          if (currentLimit.questions_rewarded >= 10) {
             setShowLimitReached(true);
             setTimeout(() => setShowLimitReached(false), 5000);
             return; // Don't reward, but still continue chat
@@ -533,11 +533,11 @@ export default function Chat() {
 
           Quy đổi Camlycoin (5 cấp độ - CHỈ DƯƠNG):
           • -30→-1: 0 Camlycoin (không thưởng với năng lượng tiêu cực/trung lập)
-          • 0→9: +5,000 Camlycoin (Cấp 1 - Thuần Khiết Cơ Bản)
-          • 10→15: +6,000 Camlycoin (Cấp 2 - Học Hỏi Tỉnh Thức)
-          • 16→21: +7,000 Camlycoin (Cấp 3 - Thuần Khiết Cao)
-          • 22→26: +8,000 Camlycoin (Cấp 4 - Minh Giác)
-          • 27→30: +9,000 Camlycoin (Cấp 5 - Đại Minh Sư)
+          • 0→9: +1,000 Camlycoin (Cấp 1 - Thuần Khiết Cơ Bản)
+          • 10→15: +2,000 Camlycoin (Cấp 2 - Học Hỏi Tỉnh Thức)
+          • 16→21: +3,000 Camlycoin (Cấp 3 - Thuần Khiết Cao)
+          • 22→26: +4,000 Camlycoin (Cấp 4 - Minh Giác)
+          • 27→30: +5,000 Camlycoin (Cấp 5 - Đại Minh Sư)
 
       JSON:
       {
@@ -598,7 +598,7 @@ export default function Chat() {
             });
             refetchLimit();
 
-            const remainingQuestions = 20 - (currentLimit.questions_rewarded || 0) - 1;
+            const remainingQuestions = 10 - (currentLimit.questions_rewarded || 0) - 1;
             const rewardMessage = {
               role: 'assistant',
               content: `✨ Nhận Camlycoin 🪙\n\n💰 +${actualReward} Camlycoin\n📊 Điểm: ${energyAnalysis.total_score}/30\n💡 ${energyAnalysis.reason}\n\n🎯 Còn ${remainingQuestions} lượt thưởng hôm nay`,
@@ -1108,14 +1108,14 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${
-                      (dailyLimit.questions_rewarded || 0) >= 20
+                      (dailyLimit.questions_rewarded || 0) >= 10
                         ? 'bg-red-100 border-red-400 text-red-700'
-                        : (dailyLimit.questions_rewarded || 0) >= 15
+                        : (dailyLimit.questions_rewarded || 0) >= 7
                         ? 'bg-orange-100 border-orange-400 text-orange-700'
                         : 'bg-green-100 border-green-400 text-green-700'
                     }`}
                   >
-                    🎯 {Math.max(0, 20 - (dailyLimit.questions_rewarded || 0))}/{20}
+                    🎯 {Math.max(0, 10 - (dailyLimit.questions_rewarded || 0))}/{10}
                   </motion.div>
                 )}
                 
