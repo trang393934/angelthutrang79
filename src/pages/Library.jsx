@@ -814,7 +814,6 @@ Trả về JSON với format:
                   </div>
                   ))}
               </div>
-          </div>
         )}
       </div>
     </div>
