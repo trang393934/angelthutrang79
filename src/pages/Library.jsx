@@ -119,7 +119,10 @@ Trả về JSON với format:
   };
 
   // Extract all unique tags
-  const allTags = [...new Set(messages.flatMap(m => m.tags || []))];
+  const allTags = useMemo(() => 
+    [...new Set(messages.flatMap(m => m.tags || []))], 
+    [messages]
+  );
 
   // Filter and sort messages
   const filteredMessages = messages
@@ -812,9 +815,9 @@ Trả về JSON với format:
                       Xem chi tiết
                     </Button>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  </div>
+                  ))}
+                  </div>
           </div>
         )}
       </div>
