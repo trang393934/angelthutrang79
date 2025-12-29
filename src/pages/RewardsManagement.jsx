@@ -79,12 +79,15 @@ export default function RewardsManagement() {
           user_email: submission.created_by,
           balance: submission.reward_amount,
           total_earned: submission.reward_amount,
-          total_spent: 0
+          total_spent: 0,
+          paid_amount: 0,
+          unpaid_amount: submission.reward_amount
         });
       } else {
         await base44.entities.CamlycoinBalance.update(userBalance.id, {
           balance: userBalance.balance + submission.reward_amount,
-          total_earned: userBalance.total_earned + submission.reward_amount
+          total_earned: userBalance.total_earned + submission.reward_amount,
+          unpaid_amount: (userBalance.unpaid_amount || 0) + submission.reward_amount
         });
       }
 
@@ -214,6 +217,48 @@ export default function RewardsManagement() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
+        {/* Admin: Total Summary */}
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+          >
+            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+              <Users className="w-6 h-6" />
+              TỔNG HỢP HỆ THỐNG
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Tổng Đã Kiếm</p>
+                <p className="text-white text-3xl font-bold">
+                  {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Tổng Đã Thanh Toán</p>
+                <p className="text-white text-3xl font-bold">
+                  {allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Tổng Chưa Thanh Toán</p>
+                <p className="text-white text-3xl font-bold">
+                  {allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
+                <p className="text-white text-3xl font-bold">{allBalances.length}</p>
+                <p className="text-white/80 text-xs mt-1">Users</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* User Balance Overview */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -233,24 +278,24 @@ export default function RewardsManagement() {
 
           <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-8 h-8 text-green-500" />
-              <span className="text-slate-700 text-sm font-medium">Tổng Kiếm Được</span>
+              <CheckCircle2 className="w-8 h-8 text-green-500" />
+              <span className="text-slate-700 text-sm font-medium">Đã Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-4xl font-bold">
-              {(userBalance?.total_earned || 0).toLocaleString()}
+              {(userBalance?.paid_amount || 0).toLocaleString()}
             </p>
             <p className="text-green-600 text-xs mt-1">Camlycoin</p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-red-200 rounded-3xl p-6 shadow-lg">
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingDown className="w-8 h-8 text-red-500" />
-              <span className="text-slate-700 text-sm font-medium">Tổng Đã Tiêu</span>
+              <Clock className="w-8 h-8 text-orange-500" />
+              <span className="text-slate-700 text-sm font-medium">Chưa Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-4xl font-bold">
-              {(userBalance?.total_spent || 0).toLocaleString()}
+              {(userBalance?.unpaid_amount || 0).toLocaleString()}
             </p>
-            <p className="text-red-600 text-xs mt-1">Camlycoin</p>
+            <p className="text-orange-600 text-xs mt-1">Camlycoin</p>
           </div>
         </motion.div>
 
@@ -547,18 +592,22 @@ export default function RewardsManagement() {
                       onClick={() => window.location.href = createPageUrl('UserProfile') + `?email=${encodeURIComponent(balance.user_email)}`}
                     >
                       <div className="flex items-center justify-between">
-                        <div>
+                        <div className="flex-1">
                           <p className="text-slate-900 font-semibold hover:text-amber-600 transition-colors">{balance.user_email}</p>
-                          <div className="flex gap-4 mt-1 text-xs text-slate-600">
-                            <span>Kiếm: {balance.total_earned.toLocaleString()}</span>
-                            <span>Tiêu: {balance.total_spent.toLocaleString()}</span>
+                          <div className="flex gap-3 mt-2">
+                            <Badge className="bg-green-100 text-green-800 text-xs">
+                              ✅ Đã TT: {(balance.paid_amount || 0).toLocaleString()}
+                            </Badge>
+                            <Badge className="bg-orange-100 text-orange-800 text-xs">
+                              ⏳ Chưa TT: {(balance.unpaid_amount || 0).toLocaleString()}
+                            </Badge>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="text-2xl font-bold text-amber-600">
                             {balance.balance.toLocaleString()}
                           </p>
-                          <p className="text-xs text-slate-600">Camlycoin</p>
+                          <p className="text-xs text-slate-600">Số dư</p>
                         </div>
                       </div>
                     </motion.div>
