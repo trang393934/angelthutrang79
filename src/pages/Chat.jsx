@@ -492,11 +492,11 @@ export default function Chat() {
           • -30→-20: -5,000 Camlycoin (năng lượng tiêu cực cao)
           • -19→-10: -2,500 Camlycoin (năng lượng tiêu cực)
           • -9→-1: 0 Camlycoin (trung lập tiêu cực)
-          • 0→5: +5,000 Camlycoin (Cấp 1 - Mới Bắt Đầu)
-          • 6→10: +5,000 Camlycoin (Cấp 2 - Học Hỏi)
-          • 11→17: +7,000 Camlycoin (Cấp 3 - Thuần Khiết)
-          • 18→24: +9,000 Camlycoin (Cấp 4 - Tỉnh Thức Cao)
-          • 25→30: +10,000 Camlycoin (Cấp 5 - Đại Minh Sư)
+          • 0→5: +3,000 Camlycoin (Cấp 1 - Mới Bắt Đầu)
+          • 6→10: +4,000 Camlycoin (Cấp 2 - Học Hỏi)
+          • 11→17: +5,000 Camlycoin (Cấp 3 - Thuần Khiết)
+          • 18→24: +6,000 Camlycoin (Cấp 4 - Tỉnh Thức Cao)
+          • 25→30: +8,000 Camlycoin (Cấp 5 - Đại Minh Sư)
 
       JSON:
       {
