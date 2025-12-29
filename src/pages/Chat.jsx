@@ -35,6 +35,8 @@ export default function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
   const [copiedMessageIndex, setCopiedMessageIndex] = useState(null);
   const [messageReadTimes, setMessageReadTimes] = useState({});
+  const [dailyLimit, setDailyLimit] = useState(null);
+  const [showLimitReached, setShowLimitReached] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const recognitionRef = useRef(null);
@@ -50,6 +52,25 @@ export default function Chat() {
     },
     enabled: !!currentUser,
   });
+
+  // Fetch daily limit
+  const { data: todayLimit, refetch: refetchLimit } = useQuery({
+    queryKey: ['daily-limit', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return null;
+      const today = new Date().toISOString().split('T')[0];
+      const limits = await base44.entities.DailyRewardLimit.filter({ 
+        user_email: currentUser.email, 
+        date: today 
+      });
+      return limits[0] || null;
+    },
+    enabled: !!currentUser,
+  });
+
+  useEffect(() => {
+    setDailyLimit(todayLimit);
+  }, [todayLimit]);
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
@@ -473,10 +494,32 @@ export default function Chat() {
         }
       }).then(result => setSuggestedQuestions(result.questions || [])).catch(err => console.error('Suggestions error:', err)),
 
-      // 2. Energy analysis + Camlycoin (simplified - no reading time tracking)
+      // 2. Energy analysis + Camlycoin with daily limit check
       (async () => {
         try {
           const messageIndex = finalMessages.length - 1;
+
+          // Check daily limit
+          const today = new Date().toISOString().split('T')[0];
+          let currentLimit = dailyLimit;
+          
+          if (!currentLimit) {
+            // Create new limit record for today
+            currentLimit = await base44.entities.DailyRewardLimit.create({
+              user_email: currentUser.email,
+              date: today,
+              questions_rewarded: 0,
+              total_coins_earned_today: 0
+            });
+            setDailyLimit(currentLimit);
+          }
+
+          // Check if reached daily limit (20 questions)
+          if (currentLimit.questions_rewarded >= 20) {
+            setShowLimitReached(true);
+            setTimeout(() => setShowLimitReached(false), 5000);
+            return; // Don't reward, but still continue chat
+          }
 
           const energyAnalysis = await base44.integrations.Core.InvokeLLM({
             prompt: `Phân tích tâm và năng lượng của câu hỏi: "${userInput.substring(0, 200)}"
@@ -488,15 +531,13 @@ export default function Chat() {
 
           Tổng điểm: -30→+30
 
-          Quy đổi Camlycoin (5 cấp độ tăng dần):
-          • -30→-20: -5,000 Camlycoin (năng lượng tiêu cực cao)
-          • -19→-10: -2,500 Camlycoin (năng lượng tiêu cực)
-          • -9→-1: 0 Camlycoin (trung lập tiêu cực)
-          • 0→5: +3,000 Camlycoin (Cấp 1 - Mới Bắt Đầu)
-          • 6→10: +4,000 Camlycoin (Cấp 2 - Học Hỏi)
-          • 11→17: +5,000 Camlycoin (Cấp 3 - Thuần Khiết)
-          • 18→24: +6,000 Camlycoin (Cấp 4 - Tỉnh Thức Cao)
-          • 25→30: +8,000 Camlycoin (Cấp 5 - Đại Minh Sư)
+          Quy đổi Camlycoin (5 cấp độ - CHỈ DƯƠNG):
+          • -30→-1: 0 Camlycoin (không thưởng với năng lượng tiêu cực/trung lập)
+          • 0→9: +5,000 Camlycoin (Cấp 1 - Thuần Khiết Cơ Bản)
+          • 10→15: +6,000 Camlycoin (Cấp 2 - Học Hỏi Tỉnh Thức)
+          • 16→21: +7,000 Camlycoin (Cấp 3 - Thuần Khiết Cao)
+          • 22→26: +8,000 Camlycoin (Cấp 4 - Minh Giác)
+          • 27→30: +9,000 Camlycoin (Cấp 5 - Đại Minh Sư)
 
       JSON:
       {
@@ -520,15 +561,14 @@ export default function Chat() {
             }
           });
 
-          if (currentUser && energyAnalysis.reward_amount !== 0) {
+          if (currentUser && energyAnalysis.reward_amount > 0) {
             const actualReward = energyAnalysis.reward_amount;
-            const transactionType = actualReward > 0 ? 'manual_add' : 'manual_deduct';
 
             await base44.entities.CamlycoinTransaction.create({
               user_email: currentUser.email,
               amount: actualReward,
-              type: transactionType,
-              description: `${actualReward < 0 ? '⚠️ Cảnh báo' : '✨ Thưởng'} (${energyAnalysis.total_score}/30)\n💰 ${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin\n💡 ${energyAnalysis.reason}`,
+              type: 'manual_add',
+              description: `✨ Thưởng (${energyAnalysis.total_score}/30)\n💰 +${actualReward} Camlycoin\n💡 ${energyAnalysis.reason}`,
               reference_id: currentConversationId
             });
 
@@ -537,21 +577,31 @@ export default function Chat() {
               const balance = balances[0];
               await base44.entities.CamlycoinBalance.update(balance.id, {
                 balance: (balance.balance || 0) + actualReward,
-                total_earned: actualReward > 0 ? (balance.total_earned || 0) + actualReward : balance.total_earned,
-                total_spent: actualReward < 0 ? (balance.total_spent || 0) + Math.abs(actualReward) : balance.total_spent
+                total_earned: (balance.total_earned || 0) + actualReward,
+                unpaid_amount: (balance.unpaid_amount || 0) + actualReward
               });
             } else {
               await base44.entities.CamlycoinBalance.create({
                 user_email: currentUser.email,
                 balance: actualReward,
-                total_earned: actualReward > 0 ? actualReward : 0,
-                total_spent: actualReward < 0 ? Math.abs(actualReward) : 0
+                total_earned: actualReward,
+                total_spent: 0,
+                paid_amount: 0,
+                unpaid_amount: actualReward
               });
             }
 
+            // Update daily limit
+            await base44.entities.DailyRewardLimit.update(currentLimit.id, {
+              questions_rewarded: (currentLimit.questions_rewarded || 0) + 1,
+              total_coins_earned_today: (currentLimit.total_coins_earned_today || 0) + actualReward
+            });
+            refetchLimit();
+
+            const remainingQuestions = 20 - (currentLimit.questions_rewarded || 0) - 1;
             const rewardMessage = {
               role: 'assistant',
-              content: `${actualReward < 0 ? '⚠️' : '✨'} Nhận Camlycoin 🪙\n\n💰 **${actualReward > 0 ? '+' : ''}${actualReward} Camlycoin**\n📊 Điểm: ${energyAnalysis.total_score}/30\n💡 ${energyAnalysis.reason}`,
+              content: `✨ Nhận Camlycoin 🪙\n\n💰 +${actualReward} Camlycoin\n📊 Điểm: ${energyAnalysis.total_score}/30\n💡 ${energyAnalysis.reason}\n\n🎯 Còn ${remainingQuestions} lượt thưởng hôm nay`,
               isReward: true
             };
 
@@ -1052,6 +1102,23 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               </div>
               
               <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Daily Reward Counter */}
+                {dailyLimit && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${
+                      (dailyLimit.questions_rewarded || 0) >= 20
+                        ? 'bg-red-100 border-red-400 text-red-700'
+                        : (dailyLimit.questions_rewarded || 0) >= 15
+                        ? 'bg-orange-100 border-orange-400 text-orange-700'
+                        : 'bg-green-100 border-green-400 text-green-700'
+                    }`}
+                  >
+                    🎯 {Math.max(0, 20 - (dailyLimit.questions_rewarded || 0))}/{20}
+                  </motion.div>
+                )}
+                
                 <Button
                   variant="outline"
                   size="icon"
@@ -1083,6 +1150,30 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
             </div>
           </div>
         </div>
+
+        {/* Limit Reached Notification */}
+        <AnimatePresence>
+          {showLimitReached && (
+            <motion.div
+              initial={{ opacity: 0, y: -50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              className="fixed top-20 left-1/2 -translate-x-1/2 z-30 max-w-md"
+            >
+              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-2xl p-4 shadow-2xl border-2 border-white">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/30 flex items-center justify-center">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold">Đã Hết Lượt Thưởng Hôm Nay! 🎯</p>
+                    <p className="text-sm text-white/90">Bạn vẫn có thể chat, nhưng không nhận Camlycoin. Quay lại vào ngày mai nhé!</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Messages */}
         <div className="flex-1 pt-24 pb-32 px-4 max-w-4xl mx-auto w-full overflow-y-auto">
