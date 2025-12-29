@@ -9,15 +9,18 @@ import { createPageUrl } from '@/utils';
 
 export default function HonorBoard() {
   const [activeTab, setActiveTab] = useState('camlycoin'); // 'camlycoin' or 'visits'
+  const [showAllRankings, setShowAllRankings] = useState(false);
 
-  // Fetch top Camlycoin earners
-  const { data: topEarners = [], isLoading: loadingEarners } = useQuery({
-    queryKey: ['top-earners'],
+  // Fetch ALL Camlycoin earners
+  const { data: allEarners = [], isLoading: loadingEarners } = useQuery({
+    queryKey: ['all-earners'],
     queryFn: async () => {
-      const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10);
+      const balances = await base44.entities.CamlycoinBalance.list('-total_earned');
       return balances.filter(b => b.total_earned > 0);
     },
   });
+
+  const topEarners = allEarners.slice(0, 10);
 
   // Fetch all users for avatar lookup
   const { data: allUsers = [] } = useQuery({
@@ -27,11 +30,11 @@ export default function HonorBoard() {
     },
   });
 
-  // Fetch top visitors (count activities per user)
-  const { data: topVisitors = [], isLoading: loadingVisitors } = useQuery({
-    queryKey: ['top-visitors'],
+  // Fetch ALL visitors (count activities per user)
+  const { data: allVisitors = [], isLoading: loadingVisitors } = useQuery({
+    queryKey: ['all-visitors'],
     queryFn: async () => {
-      const activities = await base44.entities.UserActivity.list('-created_date', 1000);
+      const activities = await base44.entities.UserActivity.list('-created_date', 5000);
       
       // Count activities per user
       const userCounts = {};
@@ -45,12 +48,13 @@ export default function HonorBoard() {
       // Convert to array and sort
       const sorted = Object.entries(userCounts)
         .map(([email, count]) => ({ user_email: email, visit_count: count }))
-        .sort((a, b) => b.visit_count - a.visit_count)
-        .slice(0, 10);
+        .sort((a, b) => b.visit_count - a.visit_count);
 
       return sorted;
     },
   });
+
+  const topVisitors = allVisitors.slice(0, 10);
 
   // Helper to get user avatar
   const getUserAvatar = (email) => {
@@ -72,8 +76,14 @@ export default function HonorBoard() {
     return 'from-purple-400 to-pink-400';
   };
 
-  const displayData = activeTab === 'camlycoin' ? topEarners : topVisitors;
+  const displayData = showAllRankings 
+    ? (activeTab === 'camlycoin' ? allEarners : allVisitors)
+    : (activeTab === 'camlycoin' ? topEarners : topVisitors);
   const isLoading = activeTab === 'camlycoin' ? loadingEarners : loadingVisitors;
+
+  // Calculate total stats
+  const totalCamlycoin = allEarners.reduce((sum, item) => sum + (item.total_earned || 0), 0);
+  const totalUsers = allEarners.length;
 
   return (
     <motion.div
@@ -253,11 +263,100 @@ export default function HonorBoard() {
         )}
       </div>
 
+      {/* Show All Rankings Button */}
+      {!showAllRankings && displayData.length >= 10 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-4"
+        >
+          <button
+            onClick={() => setShowAllRankings(true)}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl py-3 font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          >
+            📊 Xem Toàn Bộ Bảng Xếp Hạng
+          </button>
+        </motion.div>
+      )}
+
+      {/* Show Top 10 Button (when showing all) */}
+      {showAllRankings && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-4"
+        >
+          <button
+            onClick={() => setShowAllRankings(false)}
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-3 font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          >
+            🏆 Chỉ Xem Top 10
+          </button>
+        </motion.div>
+      )}
+
+      {/* Total Summary Board */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="mt-6"
+      >
+        <div className="relative">
+          <motion.div
+            animate={{ 
+              boxShadow: [
+                '0 0 20px rgba(251,191,36,0.3)',
+                '0 0 40px rgba(251,191,36,0.5)',
+                '0 0 20px rgba(251,191,36,0.3)',
+              ]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute inset-0 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-3xl blur-xl"
+          />
+          <div className="relative bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 rounded-3xl p-1">
+            <div className="bg-white rounded-3xl p-6">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Coins className="w-6 h-6 text-amber-500" />
+                <h3 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600 tracking-wide">
+                  TỔNG HỢP HỆ THỐNG
+                </h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 border-2 border-amber-200">
+                  <p className="text-amber-700 text-xs font-bold mb-1">Tổng Camlycoin</p>
+                  <p className="text-amber-900 text-2xl font-black break-words">
+                    {totalCamlycoin.toLocaleString()}
+                  </p>
+                  <p className="text-amber-600 text-xs mt-1">💰 Đã kiếm được</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-4 border-2 border-purple-200">
+                  <p className="text-purple-700 text-xs font-bold mb-1">Tổng Người Dùng</p>
+                  <p className="text-purple-900 text-2xl font-black">
+                    {totalUsers}
+                  </p>
+                  <p className="text-purple-600 text-xs mt-1">👥 Users</p>
+                </div>
+              </div>
+
+              <div className="mt-4 bg-gradient-to-r from-amber-100 to-orange-100 rounded-xl p-3 border-2 border-amber-300">
+                <p className="text-amber-900 text-xs font-bold text-center">
+                  🌟 Trung bình: {totalUsers > 0 ? Math.round(totalCamlycoin / totalUsers).toLocaleString() : 0} Camlycoin/người
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Bottom Badge */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        transition={{ delay: 0.8 }}
         className="mt-4 text-center"
       >
         <Badge className="bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-2 border-purple-300 text-xs font-bold px-4 py-1">
