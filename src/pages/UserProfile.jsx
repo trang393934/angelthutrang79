@@ -310,10 +310,10 @@ export default function UserProfile() {
         >
           <div className="bg-gradient-to-br from-amber-400 to-orange-400 rounded-3xl p-6 shadow-xl border-2 border-white">
             <div className="flex items-center gap-3 mb-2">
-              <Coins className="w-8 h-8 text-white" />
-              <span className="text-white/90 text-sm font-medium">Số Dư Hiện Tại</span>
+              <Coins className="w-6 h-6 text-white" />
+              <span className="text-white/90 text-xs font-medium">Số Dư Hiện Tại</span>
             </div>
-            <p className="text-white text-4xl font-bold">
+            <p className="text-white text-2xl font-bold break-words">
               {(userBalance?.balance || 0).toLocaleString()}
             </p>
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
@@ -321,10 +321,10 @@ export default function UserProfile() {
 
           <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-8 h-8 text-green-500" />
-              <span className="text-slate-700 text-sm font-medium">Tổng Kiếm Được</span>
+              <TrendingUp className="w-6 h-6 text-green-500" />
+              <span className="text-slate-700 text-xs font-medium">Tổng Kiếm Được</span>
             </div>
-            <p className="text-slate-900 text-4xl font-bold">
+            <p className="text-slate-900 text-2xl font-bold break-words">
               {(userBalance?.total_earned || 0).toLocaleString()}
             </p>
             <p className="text-green-600 text-xs mt-1">Camlycoin</p>
@@ -332,10 +332,10 @@ export default function UserProfile() {
 
           <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <CheckCircle2 className="w-8 h-8 text-blue-500" />
-              <span className="text-slate-700 text-sm font-medium">Đã Thanh Toán</span>
+              <CheckCircle2 className="w-6 h-6 text-blue-500" />
+              <span className="text-slate-700 text-xs font-medium">Đã Thanh Toán</span>
             </div>
-            <p className="text-slate-900 text-4xl font-bold">
+            <p className="text-slate-900 text-2xl font-bold break-words">
               {(userBalance?.paid_amount || 0).toLocaleString()}
             </p>
             <p className="text-blue-600 text-xs mt-1">Camlycoin</p>
@@ -343,10 +343,10 @@ export default function UserProfile() {
 
           <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <Clock className="w-8 h-8 text-orange-500" />
-              <span className="text-slate-700 text-sm font-medium">Chưa Thanh Toán</span>
+              <Clock className="w-6 h-6 text-orange-500" />
+              <span className="text-slate-700 text-xs font-medium">Chưa Thanh Toán</span>
             </div>
-            <p className="text-slate-900 text-4xl font-bold">
+            <p className="text-slate-900 text-2xl font-bold break-words">
               {(userBalance?.unpaid_amount || 0).toLocaleString()}
             </p>
             <p className="text-orange-600 text-xs mt-1">Camlycoin</p>
