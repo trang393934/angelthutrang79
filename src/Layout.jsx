@@ -146,6 +146,12 @@ export default function Layout({ children, currentPageName }) {
         gradient: 'from-indigo-500 to-purple-600'
       },
       { 
+        name: 'Review Pending', 
+        icon: Shield, 
+        path: 'ReviewPendingActions',
+        gradient: 'from-purple-400 to-indigo-500'
+      },
+      { 
         name: 'Withdrawals', 
         icon: Wallet, 
         path: 'WithdrawalManagement',
