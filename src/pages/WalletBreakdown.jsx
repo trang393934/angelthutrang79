@@ -65,13 +65,13 @@ export default function WalletBreakdown() {
   const categories = [
     {
       id: 'valid',
-      title: 'Sẵn Sàng Rút',
+      title: 'Sẵn Sàng Thanh Toán',
       icon: CheckCircle,
-      amount: userBalance?.pending_withdrawal_balance || 0,
+      amount: userBalance?.available_balance || 0,
       color: 'from-green-400 to-emerald-500',
       borderColor: 'border-green-300',
       logs: validLogs,
-      description: 'Coins hợp lệ, đã được xác minh qua audit'
+      description: 'Coins hợp lệ, admin sẽ chuyển khoản'
     },
     {
       id: 'pending',
@@ -343,7 +343,7 @@ export default function WalletBreakdown() {
             <div>
               <h4 className="text-purple-900 font-bold mb-2">Giải Thích Phân Loại</h4>
               <ul className="text-sm text-purple-800 space-y-2">
-                <li><strong>✅ Sẵn Sàng Rút:</strong> Câu hỏi hợp lệ, có giá trị tri thức, được audit xác nhận</li>
+                <li><strong>✅ Sẵn Sàng Thanh Toán:</strong> Câu hỏi hợp lệ, có giá trị tri thức, admin sẽ chuyển khoản ngày 1/10/20 hàng tháng</li>
                 <li><strong>⏳ Chờ Review:</strong> Câu hỏi từ lượt 11 trở đi mỗi ngày (giới hạn 10 câu/ngày được thưởng)</li>
                 <li><strong>❄️ Đóng Băng:</strong> Câu hỏi trùng lặp hoặc chỉ chào hỏi (không có ý định học hỏi)</li>
               </ul>

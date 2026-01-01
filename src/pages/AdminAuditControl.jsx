@@ -52,7 +52,6 @@ export default function AdminAuditControl() {
         const pendingAmount = balance.pending_review_balance || 0;
         
         await base44.entities.CamlycoinBalance.update(balance.id, {
-          pending_withdrawal_balance: (balance.pending_withdrawal_balance || 0) + pendingAmount,
           available_balance: (balance.available_balance || 0) + pendingAmount,
           pending_review_balance: 0
         });

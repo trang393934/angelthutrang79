@@ -190,8 +190,7 @@ async function auditSingleUser(userEmail, base44) {
       balance: totalBalance, // CRITICAL: Update total balance
       frozen_balance: result.frozen_coins,
       pending_review_balance: result.pending_review_coins,
-      pending_withdrawal_balance: result.valid_coins,
-      available_balance: result.valid_coins, // Available = ready to withdraw
+      available_balance: result.valid_coins, // Available = ready for admin payment
       last_audit_date: new Date().toISOString(),
       audit_status: result.frozen_coins > 0 || result.pending_review_coins > 0 ? 'under_review' : 'clean'
     });
@@ -201,7 +200,6 @@ async function auditSingleUser(userEmail, base44) {
       balance: totalBalance,
       frozen_balance: result.frozen_coins,
       pending_review_balance: result.pending_review_coins,
-      pending_withdrawal_balance: result.valid_coins,
       available_balance: result.valid_coins,
       total_earned: totalBalance,
       last_audit_date: new Date().toISOString(),
