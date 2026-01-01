@@ -439,10 +439,6 @@ export default function UserProfile() {
                 <p className="text-yellow-900 font-bold">{(userBalance.frozen_balance || 0).toLocaleString()}</p>
               </div>
               <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">pending_withdrawal_balance:</p>
-                <p className="text-yellow-900 font-bold">{(userBalance.pending_withdrawal_balance || 0).toLocaleString()}</p>
-              </div>
-              <div className="bg-white rounded-xl p-3 border border-yellow-200">
                 <p className="text-yellow-700 text-xs mb-1">unpaid_amount:</p>
                 <p className="text-yellow-900 font-bold">{(userBalance.unpaid_amount || 0).toLocaleString()}</p>
               </div>
@@ -457,6 +453,13 @@ export default function UserProfile() {
               <div className="bg-white rounded-xl p-3 border border-yellow-200">
                 <p className="text-yellow-700 text-xs mb-1">total_spent:</p>
                 <p className="text-yellow-900 font-bold">{(userBalance.total_spent || 0).toLocaleString()}</p>
+              </div>
+
+              {/* NEW: Coins bị loại bỏ sau audit */}
+              <div className="bg-red-50 rounded-xl p-3 border-2 border-red-400">
+                <p className="text-red-700 text-xs mb-1 font-semibold">❌ Đã Loại Bỏ Sau Audit:</p>
+                <p className="text-red-900 font-bold">{((userBalance.total_earned || 0) - (userBalance.balance || 0) - (userBalance.paid_amount || 0)).toLocaleString()}</p>
+                <p className="text-red-600 text-[10px] mt-1">Không bao gồm frozen (frozen vẫn trong balance)</p>
               </div>
             </div>
             <div className="mt-4 bg-white rounded-xl p-3 border border-yellow-300">
