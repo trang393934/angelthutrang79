@@ -91,16 +91,7 @@ Hãy đánh giá:
 1. Category (code/content/idea/community/design/marketing)
 2. Impact level (low/medium/high)
 3. Feasibility (low/medium/high)
-4. Reward Camlycoin:
-   • Low impact + Low feasibility: 10,000 Camlycoin
-   • Low impact + Medium feasibility: 15,000 Camlycoin
-   • Low impact + High feasibility: 20,000 Camlycoin
-   • Medium impact + Low feasibility: 20,000 Camlycoin
-   • Medium impact + Medium feasibility: 30,000 Camlycoin
-   • Medium impact + High feasibility: 40,000 Camlycoin
-   • High impact + Low feasibility: 30,000 Camlycoin
-   • High impact + Medium feasibility: 40,000 Camlycoin
-   • High impact + High feasibility: 50,000 Camlycoin
+4. Reward Camlycoin: Tất cả các ý tưởng đóng góp đều nhận 30,000 Camlycoin (mức thưởng cố định)
 
 Trả về JSON:`,
         response_json_schema: {
@@ -121,7 +112,7 @@ Trả về JSON:`,
         status: 'pending',
         impact: analysis.impact,
         feasibility: analysis.feasibility,
-        reward_points: analysis.reward_points,
+        reward_points: 30000,
         votes: 0
       });
 
