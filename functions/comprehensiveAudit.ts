@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin only' }, { status: 403 });
     }
 
-    const { target_user_email, batch_size = 50 } = await req.json();
+    const { target_user_email, batch_size = 50, audit_all = false } = await req.json();
 
     // Get eligible users (có transaction = đã hỏi câu hỏi)
     const allTransactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 10000);
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
       : [...new Set(allTransactions
           .filter(tx => tx.amount > 0 && tx.type === 'manual_add')
           .map(tx => tx.user_email)
-        )].slice(0, batch_size);
+        )].slice(0, audit_all ? undefined : batch_size);
 
     const results = [];
 
