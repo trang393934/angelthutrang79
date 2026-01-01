@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp, Heart } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp, Heart, Award, Activity, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -73,6 +73,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-purple-400 to-pink-400'
     },
     { 
+      name: 'Tâm Điểm Thưởng', 
+      icon: Award, 
+      path: 'PuritySpotlight',
+      gradient: 'from-amber-400 to-rose-400'
+    },
+    { 
       name: 'Chế độ thoại', 
       icon: Mic, 
       path: 'Chat',
@@ -120,12 +126,26 @@ export default function Layout({ children, currentPageName }) {
       path: 'RewardsManagement',
       gradient: 'from-yellow-400 to-amber-400'
     },
-    ...(currentUser?.role === 'admin' ? [{ 
-      name: 'Test R2 Upload', 
-      icon: Sparkles, 
-      path: 'TestR2Upload',
-      gradient: 'from-blue-400 to-cyan-400'
-    }] : []),
+    ...(currentUser?.role === 'admin' ? [
+      { 
+        name: 'Monitoring', 
+        icon: Activity, 
+        path: 'MonitoringDashboard',
+        gradient: 'from-blue-400 to-indigo-500'
+      },
+      { 
+        name: 'Audit Dashboard', 
+        icon: Shield, 
+        path: 'AuditDashboard',
+        gradient: 'from-purple-500 to-pink-600'
+      },
+      { 
+        name: 'Test R2 Upload', 
+        icon: Sparkles, 
+        path: 'TestR2Upload',
+        gradient: 'from-blue-400 to-cyan-400'
+      }
+    ] : []),
     ];
 
   // Check for existing wallet connection
