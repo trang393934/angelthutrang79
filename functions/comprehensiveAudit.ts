@@ -64,13 +64,40 @@ async function auditSingleUser(userEmail, base44) {
     excess_count: 0
   };
 
+  // Fetch all conversations to get questions
+  const conversations = await base44.asServiceRole.entities.Conversation.filter(
+    { created_by: userEmail },
+    'created_date',
+    1000
+  );
+
+  // Extract all user questions from conversations with timestamps
+  const userQuestions = [];
+  conversations.forEach(conv => {
+    if (conv.messages && Array.isArray(conv.messages)) {
+      conv.messages.forEach((msg, idx) => {
+        if (msg.role === 'user' && msg.content && msg.content.trim().length > 0) {
+          // Estimate timestamp based on conversation created_date + message index
+          const msgDate = new Date(conv.created_date);
+          msgDate.setSeconds(msgDate.getSeconds() + idx * 30); // Assume 30s between messages
+          
+          userQuestions.push({
+            text: msg.content,
+            date: msgDate,
+            conversation_id: conv.id
+          });
+        }
+      });
+    }
+  });
+
   // Fetch all reward transactions for this user
   const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
     { 
       user_email: userEmail,
       type: 'manual_add'
     },
-    'created_date', // Oldest first
+    'created_date',
     5000
   );
 
@@ -78,16 +105,26 @@ async function auditSingleUser(userEmail, base44) {
     return result;
   }
 
-  // Extract questions from transaction descriptions
+  // Match questions with transactions by timestamp (within 2 minutes)
   const questions = transactions
     .filter(tx => tx.amount > 0 && tx.description && tx.description.includes('Thưởng'))
-    .map(tx => ({
-      id: tx.id,
-      text: extractQuestionFromDescription(tx.description),
-      date: new Date(tx.created_date),
-      coins: tx.amount,
-      transaction: tx
-    }));
+    .map(tx => {
+      const txDate = new Date(tx.created_date);
+      
+      // Find closest user question within 2 minutes
+      const matchedQuestion = userQuestions.find(q => {
+        const timeDiff = Math.abs(q.date.getTime() - txDate.getTime());
+        return timeDiff < 120000; // 2 minutes
+      });
+
+      return {
+        id: tx.id,
+        text: matchedQuestion ? matchedQuestion.text : extractQuestionFromDescription(tx.description),
+        date: txDate,
+        coins: tx.amount,
+        transaction: tx
+      };
+    });
 
   result.total_questions = questions.length;
 
