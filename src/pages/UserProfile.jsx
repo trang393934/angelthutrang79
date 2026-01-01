@@ -88,25 +88,30 @@ export default function UserProfile() {
       if (!userBalance) return;
       
       const paidAmount = parseFloat(amount);
+      const currentPendingWithdrawal = userBalance.pending_withdrawal_balance || userBalance.available_balance || 0;
       const currentUnpaid = userBalance.unpaid_amount || 0;
+      const totalAvailable = currentPendingWithdrawal + currentUnpaid;
       const currentPaid = userBalance.paid_amount || 0;
       
-      if (paidAmount > currentUnpaid) {
-        alert('Số tiền thanh toán không được lớn hơn số chưa thanh toán!');
+      if (paidAmount > totalAvailable) {
+        alert('Số tiền thanh toán không được lớn hơn số Sẵn Sàng Thanh Toán!');
         return;
       }
       
+      // Reset về 0 sau khi thanh toán
       await base44.entities.CamlycoinBalance.update(userBalance.id, {
         paid_amount: currentPaid + paidAmount,
-        unpaid_amount: currentUnpaid - paidAmount
+        unpaid_amount: 0,
+        pending_withdrawal_balance: 0,
+        available_balance: 0
       });
       
       // Create transaction record
       await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
-        amount: 0, // Không thay đổi balance
+        amount: 0,
         type: 'admin_adjustment',
-        description: `Admin đánh dấu đã thanh toán ${paidAmount.toLocaleString()} Camlycoin`,
+        description: `✅ Admin đã chuyển khoản ${paidAmount.toLocaleString()} Camlycoin (Ngày ${new Date().getDate()}/${new Date().getMonth() + 1})`,
         processed_by: currentUser.email
       });
       
