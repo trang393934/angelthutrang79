@@ -30,11 +30,12 @@ export default function AdminAuditControl() {
   });
 
   const runAuditMutation = useMutation({
-    mutationFn: async ({ target_email, batch_size }) => {
+    mutationFn: async ({ target_email, batch_size, audit_all }) => {
       setIsRunning(true);
       const response = await base44.functions.invoke('comprehensiveAudit', {
         target_user_email: target_email || null,
-        batch_size: batch_size || 50
+        batch_size: batch_size || 50,
+        audit_all: audit_all || false
       });
       setAuditResults(response.data);
       setIsRunning(false);
@@ -142,26 +143,50 @@ export default function AdminAuditControl() {
             className="bg-white border-2 border-indigo-300 mb-4 rounded-xl"
           />
 
-          <Button
-            onClick={() => runAuditMutation.mutate({ 
-              target_email: targetEmail || null,
-              batch_size: 50
-            })}
-            disabled={isRunning}
-            className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl py-6 text-lg font-bold shadow-2xl disabled:opacity-50"
-          >
-            {isRunning ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Running Audit...
-              </>
-            ) : (
-              <>
-                <Play className="w-5 h-5 mr-2" />
-                Run Audit
-              </>
-            )}
-          </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Button
+              onClick={() => runAuditMutation.mutate({ 
+                target_email: targetEmail || null,
+                batch_size: 50
+              })}
+              disabled={isRunning}
+              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl py-6 text-lg font-bold shadow-2xl disabled:opacity-50"
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Running Audit...
+                </>
+              ) : (
+                <>
+                  <Play className="w-5 h-5 mr-2" />
+                  Audit 50 Users
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={() => runAuditMutation.mutate({ 
+                target_email: null,
+                batch_size: null,
+                audit_all: true
+              })}
+              disabled={isRunning}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-6 text-lg font-bold shadow-2xl disabled:opacity-50"
+            >
+              {isRunning ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Running Full Audit...
+                </>
+              ) : (
+                <>
+                  <Users className="w-5 h-5 mr-2" />
+                  Audit ALL Users
+                </>
+              )}
+            </Button>
+          </div>
         </motion.div>
 
         {/* Audit Results */}
