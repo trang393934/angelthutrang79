@@ -103,22 +103,20 @@ export default function UserProfile() {
       if (!userBalance) return;
       
       const paidAmount = parseFloat(amount);
-      const currentPendingWithdrawal = userBalance.pending_withdrawal_balance || userBalance.available_balance || 0;
-      const currentUnpaid = userBalance.unpaid_amount || 0;
-      const totalAvailable = currentPendingWithdrawal + currentUnpaid;
+      const currentAvailable = userBalance.available_balance || 0;
       const currentPaid = userBalance.paid_amount || 0;
+      const currentBalance = userBalance.balance || 0;
       
-      if (paidAmount > totalAvailable) {
+      if (paidAmount > currentAvailable) {
         alert('Số tiền thanh toán không được lớn hơn số Sẵn Sàng Thanh Toán!');
         return;
       }
       
-      // Reset về 0 sau khi thanh toán
+      // Reset available về 0 sau khi thanh toán, trừ balance
       await base44.entities.CamlycoinBalance.update(userBalance.id, {
         paid_amount: currentPaid + paidAmount,
-        unpaid_amount: 0,
-        pending_withdrawal_balance: 0,
-        available_balance: 0
+        available_balance: 0,
+        balance: currentBalance - paidAmount
       });
       
       // Create transaction record
@@ -356,14 +354,14 @@ export default function UserProfile() {
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          {/* Sẵn Sàng Thanh Toán - GỘP CHUNG */}
+          {/* Sẵn Sàng Thanh Toán */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <CheckCircle2 className="w-6 h-6 text-green-500" />
               <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {((userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0)).toLocaleString()}
+              {(userBalance?.available_balance || 0).toLocaleString()}
             </p>
             <p className="text-green-600 text-xs mt-1">✅ Admin Chuyển Khoản</p>
           </div>
@@ -392,6 +390,67 @@ export default function UserProfile() {
             <p className="text-red-600 text-xs mt-1">❄️ Trùng/Chào</p>
           </div>
         </motion.div>
+
+        {/* Debug Info - Admin Only */}
+        {userBalance && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-yellow-50 border-2 border-yellow-300 rounded-3xl p-6 shadow-lg mb-8"
+          >
+            <h3 className="text-yellow-900 font-bold mb-3 flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Chi Tiết Balance (Debug)
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">balance:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.balance || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">available_balance:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.available_balance || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">pending_review_balance:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.pending_review_balance || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">frozen_balance:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.frozen_balance || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">pending_withdrawal_balance:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.pending_withdrawal_balance || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">unpaid_amount:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.unpaid_amount || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">paid_amount:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.paid_amount || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">total_earned:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.total_earned || 0).toLocaleString()}</p>
+              </div>
+              <div className="bg-white rounded-xl p-3 border border-yellow-200">
+                <p className="text-yellow-700 text-xs mb-1">total_spent:</p>
+                <p className="text-yellow-900 font-bold">{(userBalance.total_spent || 0).toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="mt-4 bg-white rounded-xl p-3 border border-yellow-300">
+              <p className="text-yellow-800 text-xs font-semibold">
+                📊 Công thức: balance = available_balance + pending_review_balance + frozen_balance + pending_withdrawal_balance
+              </p>
+              <p className="text-yellow-900 font-bold mt-2">
+                Tính toán: {(userBalance.available_balance || 0).toLocaleString()} + {(userBalance.pending_review_balance || 0).toLocaleString()} + {(userBalance.frozen_balance || 0).toLocaleString()} + {(userBalance.pending_withdrawal_balance || 0).toLocaleString()} = {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0) + (userBalance.pending_withdrawal_balance || 0)).toLocaleString()}
+              </p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Admin Payment Section */}
         <motion.div
@@ -458,7 +517,7 @@ export default function UserProfile() {
         </motion.div>
 
         {/* Payment Action - Only for Admin */}
-        {userBalance && ((userBalance.pending_withdrawal_balance || userBalance.available_balance || 0) + (userBalance.unpaid_amount || 0)) > 0 && (
+        {userBalance && (userBalance.available_balance || 0) > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -472,7 +531,7 @@ export default function UserProfile() {
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
               <p className="text-white/90 text-sm mb-2">Tổng Sẵn Sàng Thanh Toán:</p>
               <p className="text-white text-3xl font-bold">
-                {((userBalance.pending_withdrawal_balance || userBalance.available_balance || 0) + (userBalance.unpaid_amount || 0)).toLocaleString()} Camlycoin
+                {(userBalance.available_balance || 0).toLocaleString()} Camlycoin
               </p>
             </div>
             <Button
@@ -517,7 +576,7 @@ export default function UserProfile() {
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6">
                   <p className="text-blue-900 text-sm font-medium mb-2">Tổng Sẵn Sàng Thanh Toán:</p>
                   <p className="text-blue-600 text-3xl font-bold">
-                    {((userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0)).toLocaleString()} Camlycoin
+                    {(userBalance?.available_balance || 0).toLocaleString()} Camlycoin
                   </p>
                 </div>
 
@@ -531,7 +590,7 @@ export default function UserProfile() {
                     onChange={(e) => setPaymentAmount(e.target.value)}
                     placeholder="Nhập số Camlycoin đã thanh toán..."
                     className="bg-white border-2 border-blue-300 text-slate-900 rounded-xl text-lg"
-                    max={(userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0)}
+                    max={userBalance?.available_balance || 0}
                   />
                   <p className="text-xs text-slate-600 mt-2">
                     💡 Thanh toán định kỳ vào ngày 1, 10, 20 hàng tháng
@@ -551,7 +610,7 @@ export default function UserProfile() {
                   </Button>
                   <Button
                     onClick={() => markAsPaidMutation.mutate(paymentAmount)}
-                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > ((userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0))}
+                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > (userBalance?.available_balance || 0)}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl py-6 font-bold disabled:opacity-50 shadow-lg hover:shadow-xl"
                   >
                     <CheckCircle2 className="w-5 h-5 mr-2" />
