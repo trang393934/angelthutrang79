@@ -147,15 +147,18 @@ async function auditSingleUser(userEmail, base44) {
       let exclusionReason = 'valid';
       let coinCategory = 'pending_withdrawal';
 
-      // Check 1: Is it 11th+ question?
+      // Check 1: Is it 11th+ question? (No coins, not frozen - just not rewarded)
       if (i >= 10) {
         exclusionReason = 'exceeds_daily_limit';
-        coinCategory = 'pending_review';
-        result.pending_review_coins += question.coins;
+        coinCategory = 'valid'; // Not frozen, just not rewarded
         result.excess_count++;
+        // Don't add to any category - these questions don't get coins at all
+        continue;
       }
+      
+      // For first 10 questions only:
       // Check 2: Is it a duplicate?
-      else if (isDuplicate(question.text, Array.from(seenQuestions))) {
+      if (isDuplicate(question.text, Array.from(seenQuestions))) {
         exclusionReason = 'duplicate';
         coinCategory = 'frozen';
         result.frozen_coins += question.coins;
@@ -168,7 +171,7 @@ async function auditSingleUser(userEmail, base44) {
         result.frozen_coins += question.coins;
         result.greeting_count++;
       }
-      // Valid question
+      // Valid question - gets full reward
       else {
         result.valid_coins += question.coins;
         seenQuestions.add(question.text.toLowerCase().trim());
