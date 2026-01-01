@@ -140,6 +140,12 @@ export default function Layout({ children, currentPageName }) {
         gradient: 'from-purple-500 to-pink-600'
       },
       { 
+        name: 'Withdrawals', 
+        icon: Wallet, 
+        path: 'WithdrawalManagement',
+        gradient: 'from-amber-400 to-orange-500'
+      },
+      { 
         name: 'Test R2 Upload', 
         icon: Sparkles, 
         path: 'TestR2Upload',
