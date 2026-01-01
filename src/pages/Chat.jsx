@@ -1177,7 +1177,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
         </AnimatePresence>
 
         {/* Messages */}
-        <div className="flex-1 pt-24 pb-32 px-4 max-w-4xl mx-auto w-full overflow-y-auto">
+        <div className="flex-1 pt-24 pb-[180px] md:pb-32 px-4 max-w-4xl mx-auto w-full overflow-y-auto">
           <AnimatePresence mode="popLayout">
             {messages.map((message, index) => (
               <motion.div
