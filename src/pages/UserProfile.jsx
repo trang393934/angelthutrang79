@@ -461,18 +461,18 @@ export default function UserProfile() {
             </div>
             <div className="mt-4 bg-white rounded-xl p-3 border border-yellow-300">
               <p className="text-yellow-800 text-xs font-semibold">
-                📊 Công thức: balance = available_balance + pending_review_balance + frozen_balance + pending_withdrawal_balance
+                📊 Công thức: balance = available_balance + pending_review_balance + frozen_balance
               </p>
               <p className="text-yellow-900 font-bold mt-2">
-                Tính toán: {(userBalance.available_balance || 0).toLocaleString()} + {(userBalance.pending_review_balance || 0).toLocaleString()} + {(userBalance.frozen_balance || 0).toLocaleString()} + {(userBalance.pending_withdrawal_balance || 0).toLocaleString()} = {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0) + (userBalance.pending_withdrawal_balance || 0)).toLocaleString()}
+                Tính toán: {(userBalance.available_balance || 0).toLocaleString()} + {(userBalance.pending_review_balance || 0).toLocaleString()} + {(userBalance.frozen_balance || 0).toLocaleString()} = {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0)).toLocaleString()}
               </p>
-              {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0) + (userBalance.pending_withdrawal_balance || 0)) !== (userBalance.balance || 0) && (
+              {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0)) !== (userBalance.balance || 0) && (
                 <div className="mt-3 p-3 bg-red-100 border border-red-400 rounded-lg">
                   <p className="text-red-800 font-bold text-sm">
                     ⚠️ CẢNH BÁO: Số liệu không khớp!
                   </p>
                   <p className="text-red-700 text-xs mt-1">
-                    Chênh lệch: {Math.abs(((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0) + (userBalance.pending_withdrawal_balance || 0)) - (userBalance.balance || 0)).toLocaleString()} Camlycoin
+                    Chênh lệch: {Math.abs(((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0)) - (userBalance.balance || 0)).toLocaleString()} Camlycoin
                   </p>
                   <p className="text-red-600 text-xs mt-2">
                     💡 Balance phải được cập nhật = tổng các thành phần. Cần chạy lại comprehensive audit để đồng bộ.
