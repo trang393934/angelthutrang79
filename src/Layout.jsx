@@ -140,6 +140,12 @@ export default function Layout({ children, currentPageName }) {
         gradient: 'from-purple-500 to-pink-600'
       },
       { 
+        name: 'Comprehensive Audit', 
+        icon: Activity, 
+        path: 'AdminAuditControl',
+        gradient: 'from-indigo-500 to-purple-600'
+      },
+      { 
         name: 'Withdrawals', 
         icon: Wallet, 
         path: 'WithdrawalManagement',

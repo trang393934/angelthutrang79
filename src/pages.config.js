@@ -22,6 +22,8 @@ import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import CamlyWithdrawal from './pages/CamlyWithdrawal';
 import WithdrawalManagement from './pages/WithdrawalManagement';
+import WalletBreakdown from './pages/WalletBreakdown';
+import AdminAuditControl from './pages/AdminAuditControl';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +52,8 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "CamlyWithdrawal": CamlyWithdrawal,
     "WithdrawalManagement": WithdrawalManagement,
+    "WalletBreakdown": WalletBreakdown,
+    "AdminAuditControl": AdminAuditControl,
 }
 
 export const pagesConfig = {
