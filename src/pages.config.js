@@ -25,6 +25,8 @@ import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawalManagement from './pages/WithdrawalManagement';
 import ReviewPendingActions from './pages/ReviewPendingActions';
+import CommunityRewards from './pages/CommunityRewards';
+import AdminCommunityRewards from './pages/AdminCommunityRewards';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +58,8 @@ export const PAGES = {
     "WalletBreakdown": WalletBreakdown,
     "WithdrawalManagement": WithdrawalManagement,
     "ReviewPendingActions": ReviewPendingActions,
+    "CommunityRewards": CommunityRewards,
+    "AdminCommunityRewards": AdminCommunityRewards,
 }
 
 export const pagesConfig = {

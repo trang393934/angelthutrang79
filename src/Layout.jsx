@@ -121,6 +121,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-amber-400 to-orange-400'
     },
     { 
+      name: 'Community Rewards', 
+      icon: Gift, 
+      path: 'CommunityRewards',
+      gradient: 'from-purple-400 to-pink-400'
+    },
+    { 
       name: 'Camlycoin', 
       icon: Globe, 
       path: 'RewardsManagement',
@@ -150,6 +156,12 @@ export default function Layout({ children, currentPageName }) {
         icon: Shield, 
         path: 'ReviewPendingActions',
         gradient: 'from-purple-400 to-indigo-500'
+      },
+      { 
+        name: 'Community Rewards Admin', 
+        icon: Gift, 
+        path: 'AdminCommunityRewards',
+        gradient: 'from-pink-400 to-rose-500'
       },
       { 
         name: 'Withdrawals', 
