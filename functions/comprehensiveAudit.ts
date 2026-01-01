@@ -181,9 +181,13 @@ async function auditSingleUser(userEmail, base44) {
   // Update user balance
   const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: userEmail });
   
+  // Calculate total balance correctly
+  const totalBalance = result.frozen_coins + result.pending_review_coins + result.valid_coins;
+  
   if (balances.length > 0) {
     const balance = balances[0];
     await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+      balance: totalBalance, // CRITICAL: Update total balance
       frozen_balance: result.frozen_coins,
       pending_review_balance: result.pending_review_coins,
       pending_withdrawal_balance: result.valid_coins,
@@ -194,12 +198,12 @@ async function auditSingleUser(userEmail, base44) {
   } else {
     await base44.asServiceRole.entities.CamlycoinBalance.create({
       user_email: userEmail,
-      balance: result.frozen_coins + result.pending_review_coins + result.valid_coins,
+      balance: totalBalance,
       frozen_balance: result.frozen_coins,
       pending_review_balance: result.pending_review_coins,
       pending_withdrawal_balance: result.valid_coins,
       available_balance: result.valid_coins,
-      total_earned: result.frozen_coins + result.pending_review_coins + result.valid_coins,
+      total_earned: totalBalance,
       last_audit_date: new Date().toISOString(),
       audit_status: result.frozen_coins > 0 || result.pending_review_coins > 0 ? 'under_review' : 'clean'
     });
