@@ -73,11 +73,12 @@ export default function AngelMascot() {
           repeatType: "reverse"
         },
       }}
-      className="fixed z-50 cursor-grab active:cursor-grabbing"
+      className="fixed z-50 cursor-grab active:cursor-grabbing touch-none select-none"
       style={{
-        touchAction: 'none',
         left: 0,
         top: 0,
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
       }}
     >
       {/* Glowing effect */}
