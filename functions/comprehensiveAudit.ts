@@ -174,18 +174,22 @@ async function auditSingleUser(userEmail, base44) {
         seenQuestions.add(question.text.toLowerCase().trim());
       }
 
-      // Log the audit
-      await base44.asServiceRole.entities.QuestionAuditLog.create({
-        user_email: userEmail,
-        transaction_id: question.id,
-        question_text: question.text,
-        question_date: question.date.toISOString(),
-        coins_earned: question.coins,
-        exclusion_reason,
-        coin_category,
-        audit_date: new Date().toISOString(),
-        question_number_in_day: i + 1
-      });
+      // Log the audit (catch errors to not break the loop)
+      try {
+        await base44.asServiceRole.entities.QuestionAuditLog.create({
+          user_email: userEmail,
+          transaction_id: question.id,
+          question_text: question.text,
+          question_date: question.date.toISOString(),
+          coins_earned: question.coins,
+          exclusion_reason: exclusionReason,
+          coin_category: coinCategory,
+          audit_date: new Date().toISOString(),
+          question_number_in_day: i + 1
+        });
+      } catch (logError) {
+        console.error('Failed to log audit for question:', logError.message);
+      }
     }
   }
 
