@@ -146,6 +146,9 @@ async function auditSingleUser(userEmail, base44) {
       const question = dayQuestions[i];
       let exclusionReason = 'valid';
       let coinCategory = 'pending_withdrawal';
+      let similarTo = null;
+      let similarityScore = 0;
+      let auditReason = '';
 
       // Check 1: Is it 11th+ question? (No coins, not frozen - just not rewarded)
       if (i >= 10) {
@@ -188,7 +191,20 @@ async function auditSingleUser(userEmail, base44) {
         }
       }
 
-      // Batch log later to avoid rate limits
+      // Create detailed audit log with AI reasoning
+      await base44.asServiceRole.entities.QuestionAuditLog.create({
+        user_email: userEmail,
+        transaction_id: question.id,
+        question_text: question.text,
+        question_date: question.date.toISOString(),
+        coins_earned: question.coins,
+        exclusion_reason: exclusionReason,
+        coin_category: coinCategory,
+        audit_date: new Date().toISOString(),
+        question_number_in_day: i + 1,
+        similar_to_question: similarTo || null,
+        similarity_score: similarityScore || 0
+      });
     }
   }
 
@@ -240,23 +256,73 @@ function extractQuestionFromDescription(description) {
   return description.substring(0, 200);
 }
 
-function isDuplicate(questionText, previousQuestions) {
-  const normalized = questionText.toLowerCase().trim();
-  
-  // Exact match
-  if (previousQuestions.includes(normalized)) {
-    return true;
+// AI-powered duplicate detection with semantic understanding
+async function isDuplicateAI(question, previousQuestions, base44) {
+  if (previousQuestions.length === 0) {
+    return { isDuplicate: false, similarTo: null, similarity: 0, reason: null };
   }
-
-  // High similarity (Jaccard similarity > 0.85)
-  for (const prev of previousQuestions) {
-    const similarity = calculateJaccardSimilarity(normalized, prev);
+  
+  // Quick exact match check first
+  const normalized = question.toLowerCase().trim();
+  if (previousQuestions.includes(normalized)) {
+    return { isDuplicate: true, similarTo: normalized, similarity: 1.0, reason: 'Giống hệt 100%' };
+  }
+  
+  // Jaccard similarity for fast matching
+  for (const prevQ of previousQuestions) {
+    const similarity = calculateJaccardSimilarity(normalized, prevQ);
     if (similarity > 0.85) {
-      return true;
+      return { isDuplicate: true, similarTo: prevQ, similarity, reason: `Tương đồng ${(similarity * 100).toFixed(0)}%` };
     }
   }
+  
+  // AI semantic analysis for top 5 recent questions
+  const recentQuestions = previousQuestions.slice(-5);
+  try {
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Phân tích xem câu hỏi mới có trùng lặp về NỘI DUNG/Ý NGHĨA với các câu hỏi trước không?
 
-  return false;
+Câu hỏi mới: "${question}"
+
+Các câu hỏi đã hỏi trước đó:
+${recentQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
+
+Tiêu chí trùng lặp:
+- Hỏi cùng một vấn đề/chủ đề, chỉ khác cách diễn đạt
+- Ý nghĩa và mục đích giống nhau dù dùng từ khác
+- Cùng một câu hỏi được hỏi lại
+
+JSON:
+{
+  "is_duplicate": true/false,
+  "similar_to_index": số thứ tự (1-5) hoặc null,
+  "similarity_score": 0-1,
+  "reason": "giải thích ngắn gọn tại sao trùng/không trùng"
+}`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          is_duplicate: { type: "boolean" },
+          similar_to_index: { type: ["number", "null"] },
+          similarity_score: { type: "number" },
+          reason: { type: "string" }
+        }
+      }
+    });
+    
+    if (result.is_duplicate && result.similar_to_index) {
+      return { 
+        isDuplicate: true, 
+        similarTo: recentQuestions[result.similar_to_index - 1], 
+        similarity: result.similarity_score,
+        reason: result.reason
+      };
+    }
+  } catch (error) {
+    console.error('AI duplicate detection failed:', error);
+  }
+  
+  return { isDuplicate: false, similarTo: null, similarity: 0, reason: null };
 }
 
 function calculateJaccardSimilarity(str1, str2) {
@@ -269,35 +335,73 @@ function calculateJaccardSimilarity(str1, str2) {
   return union.size === 0 ? 0 : intersection.size / union.size;
 }
 
-function isGreeting(questionText) {
-  const text = questionText.toLowerCase().trim();
+// AI-powered greeting/non-question detection
+async function isGreetingOrNonQuestionAI(text, base44) {
+  const normalized = text.toLowerCase().trim();
   
-  // Very short (< 5 chars)
-  if (text.length < 5) {
-    return true;
+  // Quick pattern check for obvious cases
+  if (normalized.length < 5) {
+    return { isGreeting: true, reason: 'Quá ngắn, không có nội dung' };
   }
-
-  // Common greetings
+  
   const greetingPatterns = [
-    /^(hi|hello|hey|xin chào|chào|chào bạn|alo|hii|helo)\s*[!.?]*$/i,
-    /^(how are you|bạn khỏe không|khỏe không|như thế nào)\s*[!.?]*$/i,
-    /^(good morning|good evening|buổi sáng|buổi tối)\s*[!.?]*$/i,
-    /^(thank|thanks|cảm ơn|cám ơn|thank you|thanks a lot)\s*[!.?]*$/i,
-    /^(ok|okay|oke|good|tốt|được|uhm|ừ|à|ơ)\s*[!.?]*$/i
+    /^(hi|hello|hey|xin chào|chào|alo)\s*[!.?]*$/i,
+    /^(cảm ơn|thank|ok|oke|được|tốt|ừ)\s*[!.?]*$/i
   ];
-
+  
   for (const pattern of greetingPatterns) {
-    if (pattern.test(text)) {
-      return true;
+    if (pattern.test(normalized)) {
+      return { isGreeting: true, reason: 'Chỉ chào hỏi/cảm ơn ngắn gọn' };
     }
   }
-
-  // No interrogative words and very short (< 20 chars)
-  const hasInterrogative = /\b(what|how|why|when|where|who|which|gì|như thế nào|tại sao|khi nào|ở đâu|ai|cái nào|thế nào|là gì|có phải|có thể)\b/i.test(text);
   
-  if (!hasInterrogative && text.length < 20) {
-    return true;
-  }
+  // Use AI for sophisticated detection
+  try {
+    const result = await base44.integrations.Core.InvokeLLM({
+      prompt: `Phân tích câu sau có phải là:
+1. Chỉ chào hỏi/cảm ơn (KHÔNG có ý định học hỏi tri thức)
+2. Không phải câu hỏi thật sự (vô nghĩa, spam, test)
+3. Phản hồi ngắn không có giá trị (ok, ừ, được...)
 
-  return false;
+Câu: "${text}"
+
+Tiêu chí KHÔNG thưởng:
+- Chỉ chào/cảm ơn/phản hồi xã giao
+- Không có ý định tìm hiểu kiến thức/trí tuệ/tâm linh
+- Spam, test, câu vô nghĩa
+- Câu quá ngắn không thể hiện sự tò mò/học hỏi
+
+Tiêu chí CÓ thưởng:
+- Có câu hỏi thật sự về kiến thức/tâm linh/cuộc sống
+- Thể hiện sự tò mò, muốn học hỏi
+- Có nội dung có ý nghĩa
+
+JSON:
+{
+  "is_greeting_or_non_question": true/false,
+  "reason": "giải thích rõ ràng tại sao"
+}`,
+      response_json_schema: {
+        type: "object",
+        properties: {
+          is_greeting_or_non_question: { type: "boolean" },
+          reason: { type: "string" }
+        }
+      }
+    });
+    
+    return { 
+      isGreeting: result.is_greeting_or_non_question, 
+      reason: result.reason 
+    };
+  } catch (error) {
+    console.error('AI greeting detection failed:', error);
+    // Fallback to simple check
+    const hasInterrogative = /\b(what|how|why|when|where|who|which|gì|như thế nào|tại sao|khi nào|ở đâu|ai|cái nào|thế nào|là gì|có phải|có thể)\b/i.test(normalized);
+    if (!hasInterrogative && normalized.length < 20) {
+      return { isGreeting: true, reason: 'Không có từ nghi vấn và quá ngắn' };
+    }
+  }
+  
+  return { isGreeting: false, reason: null };
 }
