@@ -61,7 +61,7 @@ export default function UserProfile() {
     enabled: !!targetEmail && !!isAdmin,
   });
 
-  // Fetch bounty submissions to get wallet address
+  // Fetch wallet address from multiple sources
   const { data: submissions = [] } = useQuery({
     queryKey: ['user-submissions', targetEmail],
     queryFn: async () => {
@@ -72,7 +72,22 @@ export default function UserProfile() {
     enabled: !!targetEmail && !!isAdmin,
   });
 
-  const walletAddress = submissions.length > 0 ? submissions[0].wallet_address : null;
+  const { data: withdrawalRequests = [] } = useQuery({
+    queryKey: ['user-withdrawals', targetEmail],
+    queryFn: async () => {
+      if (!targetEmail) return [];
+      const allWithdrawals = await base44.entities.WithdrawalRequest.list();
+      return allWithdrawals.filter(req => req.user_email === targetEmail);
+    },
+    enabled: !!targetEmail && !!isAdmin,
+  });
+
+  // Try to get wallet from submissions first, then from withdrawal requests
+  const walletAddress = submissions.length > 0 
+    ? submissions[0].wallet_address 
+    : withdrawalRequests.length > 0 
+    ? withdrawalRequests[0].withdrawal_address 
+    : null;
 
   const copyWalletAddress = () => {
     if (walletAddress) {
@@ -242,7 +257,7 @@ export default function UserProfile() {
                   <User className="w-8 h-8 text-white" />
                 </div>
               )}
-              
+
               {/* Upload button - only show for own profile */}
               {currentUser?.email === targetEmail && (
                 <>
@@ -275,33 +290,49 @@ export default function UserProfile() {
             </div>
           </div>
 
-          {/* Wallet Address */}
-          {walletAddress && (
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-4">
+          {/* Wallet Address - Prominent Display */}
+          {walletAddress ? (
+            <motion.div
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 border-2 border-white rounded-2xl p-5 shadow-xl"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <Wallet className="w-6 h-6 text-white" />
+                <span className="text-white font-bold text-lg">Địa Chỉ Ví Web3 (BEP-20)</span>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-3 mb-3">
+                <p className="text-white font-mono text-sm break-all">{walletAddress}</p>
+              </div>
+              <Button
+                onClick={copyWalletAddress}
+                className="w-full bg-white text-purple-600 rounded-xl font-bold hover:bg-purple-50"
+              >
+                {copiedWallet ? (
+                  <>
+                    <Check className="w-5 h-5 mr-2" />
+                    Đã Copy!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-5 h-5 mr-2" />
+                    Copy Địa Chỉ Ví
+                  </>
+                )}
+              </Button>
+              <p className="text-white/90 text-xs mt-3 text-center">
+                💡 Sử dụng địa chỉ này để chuyển Camlycoin thưởng
+              </p>
+            </motion.div>
+          ) : (
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Wallet className="w-5 h-5 text-purple-600" />
-                <span className="text-slate-900 font-semibold">Địa Chỉ Ví</span>
+                <Wallet className="w-5 h-5 text-orange-600" />
+                <span className="text-orange-900 font-semibold">Chưa Có Địa Chỉ Ví</span>
               </div>
-              <div className="flex items-center gap-2">
-                <p className="text-slate-700 font-mono text-sm break-all flex-1">{walletAddress}</p>
-                <Button
-                  onClick={copyWalletAddress}
-                  size="sm"
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full"
-                >
-                  {copiedWallet ? (
-                    <>
-                      <Check className="w-4 h-4 mr-1" />
-                      Copied
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-4 h-4 mr-1" />
-                      Copy
-                    </>
-                  )}
-                </Button>
-              </div>
+              <p className="text-orange-800 text-sm">
+                Người dùng chưa cung cấp địa chỉ ví Web3. Yêu cầu họ submit bounty hoặc tạo withdrawal request.
+              </p>
             </div>
           )}
         </motion.div>
