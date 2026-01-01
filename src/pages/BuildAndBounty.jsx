@@ -131,6 +131,56 @@ Trả về JSON:`,
     },
   });
 
+  const approveIdeaMutation = useMutation({
+    mutationFn: async (idea) => {
+      // Update idea status
+      await base44.entities.BuildIdea.update(idea.id, {
+        status: 'approved'
+      });
+
+      // Create transaction
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: idea.created_by,
+        amount: idea.reward_points,
+        type: 'build_reward',
+        description: `✅ Ý tưởng được duyệt: ${idea.title}`,
+        reference_id: idea.id,
+        processed_by: currentUser.email
+      });
+
+      // Update user balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: idea.created_by });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        await base44.entities.CamlycoinBalance.update(balance.id, {
+          balance: (balance.balance || 0) + idea.reward_points,
+          total_earned: (balance.total_earned || 0) + idea.reward_points,
+          unpaid_amount: (balance.unpaid_amount || 0) + idea.reward_points
+        });
+      } else {
+        await base44.entities.CamlycoinBalance.create({
+          user_email: idea.created_by,
+          balance: idea.reward_points,
+          total_earned: idea.reward_points,
+          total_spent: 0,
+          paid_amount: 0,
+          unpaid_amount: idea.reward_points
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
+    },
+  });
+
+  const rejectIdeaMutation = useMutation({
+    mutationFn: (ideaId) => 
+      base44.entities.BuildIdea.update(ideaId, { status: 'rejected' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
+    },
+  });
+
   const networkConfigs = {
     'Ethereum': { chainId: '0x1', name: 'Ethereum Mainnet', symbol: 'ETH' },
     'Binance Smart Chain': { chainId: '0x38', name: 'BSC Mainnet', symbol: 'BNB' },
@@ -761,12 +811,35 @@ Trả về JSON:`,
                             🪙 {idea.reward_points.toLocaleString()} Camlycoin
                           </Badge>
                         </div>
+
+                        {/* Admin Action Buttons */}
+                        {currentUser?.role === 'admin' && idea.status === 'pending' && (
+                          <div className="flex gap-2 mt-3">
+                            <Button
+                              onClick={() => approveIdeaMutation.mutate(idea)}
+                              size="sm"
+                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full shadow-md hover:shadow-lg"
+                            >
+                              <CheckCircle2 className="w-4 h-4 mr-1" />
+                              Duyệt
+                            </Button>
+                            <Button
+                              onClick={() => rejectIdeaMutation.mutate(idea.id)}
+                              size="sm"
+                              variant="outline"
+                              className="border-red-300 text-red-700 hover:bg-red-50 rounded-full"
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Từ chối
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       <Button
                         onClick={() => voteMutation.mutate({ id: idea.id, currentVotes: idea.votes })}
                         variant="outline"
                         size="sm"
-                        className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full flex-shrink-0"
                       >
                         <Star className="w-4 h-4 mr-1" />
                         {idea.votes}
