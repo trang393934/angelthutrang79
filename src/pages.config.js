@@ -17,6 +17,7 @@ import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
+import AuditDashboard from './pages/AuditDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "Settings": Settings,
     "TestR2Upload": TestR2Upload,
     "UserProfile": UserProfile,
+    "AuditDashboard": AuditDashboard,
 }
 
 export const pagesConfig = {
