@@ -1,5 +1,6 @@
 import AITools from './pages/AITools';
 import Analytics from './pages/Analytics';
+import AuditDashboard from './pages/AuditDashboard';
 import BuildAndBounty from './pages/BuildAndBounty';
 import CamlycoinHistory from './pages/CamlycoinHistory';
 import Chat from './pages/Chat';
@@ -17,13 +18,15 @@ import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
-import AuditDashboard from './pages/AuditDashboard';
+import PuritySpotlight from './pages/PuritySpotlight';
+import MonitoringDashboard from './pages/MonitoringDashboard';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AITools": AITools,
     "Analytics": Analytics,
+    "AuditDashboard": AuditDashboard,
     "BuildAndBounty": BuildAndBounty,
     "CamlycoinHistory": CamlycoinHistory,
     "Chat": Chat,
@@ -41,7 +44,8 @@ export const PAGES = {
     "Settings": Settings,
     "TestR2Upload": TestR2Upload,
     "UserProfile": UserProfile,
-    "AuditDashboard": AuditDashboard,
+    "PuritySpotlight": PuritySpotlight,
+    "MonitoringDashboard": MonitoringDashboard,
 }
 
 export const pagesConfig = {
