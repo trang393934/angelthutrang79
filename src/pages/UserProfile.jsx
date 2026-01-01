@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -301,55 +301,123 @@ export default function UserProfile() {
           )}
         </motion.div>
 
-        {/* Balance Overview */}
+        {/* Balance Overview - New Categories */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
         >
+          {/* Total Balance */}
           <div className="bg-gradient-to-br from-amber-400 to-orange-400 rounded-3xl p-6 shadow-xl border-2 border-white">
             <div className="flex items-center gap-3 mb-2">
               <Coins className="w-6 h-6 text-white" />
-              <span className="text-white/90 text-xs font-medium">Số Dư Hiện Tại</span>
+              <span className="text-white/90 text-xs font-medium">Tổng Số Dư</span>
             </div>
-            <p className="text-white text-2xl font-bold break-words">
+            <p className="text-white text-3xl font-bold break-words">
               {(userBalance?.balance || 0).toLocaleString()}
             </p>
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
+          {/* Sẵn Sàng Rút (Pending Withdrawal) */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-6 h-6 text-green-500" />
-              <span className="text-slate-700 text-xs font-medium">Tổng Kiếm Được</span>
+              <CheckCircle2 className="w-6 h-6 text-green-500" />
+              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
             </div>
-            <p className="text-slate-900 text-2xl font-bold break-words">
-              {(userBalance?.total_earned || 0).toLocaleString()}
+            <p className="text-slate-900 text-3xl font-bold break-words">
+              {(userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0).toLocaleString()}
             </p>
-            <p className="text-green-600 text-xs mt-1">Camlycoin</p>
+            <p className="text-green-600 text-xs mt-1">✅ Hợp Lệ</p>
           </div>
 
+          {/* Chờ Xét Duyệt (Pending Review) */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <CheckCircle2 className="w-6 h-6 text-blue-500" />
-              <span className="text-slate-700 text-xs font-medium">Đã Thanh Toán</span>
+              <Clock className="w-6 h-6 text-blue-500" />
+              <span className="text-slate-700 text-xs font-medium">Chờ Xét Duyệt</span>
+            </div>
+            <p className="text-slate-900 text-3xl font-bold break-words">
+              {(userBalance?.pending_review_balance || 0).toLocaleString()}
+            </p>
+            <p className="text-blue-600 text-xs mt-1">⏳ Câu 11+</p>
+          </div>
+
+          {/* Đóng Băng (Frozen) */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-red-200 rounded-3xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <Activity className="w-6 h-6 text-red-500" />
+              <span className="text-slate-700 text-xs font-medium">Đóng Băng</span>
+            </div>
+            <p className="text-slate-900 text-3xl font-bold break-words">
+              {(userBalance?.frozen_balance || 0).toLocaleString()}
+            </p>
+            <p className="text-red-600 text-xs mt-1">❄️ Trùng/Chào</p>
+          </div>
+        </motion.div>
+
+        {/* Admin Payment Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
+        >
+          {/* Đã Thanh Toán */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <CheckCircle2 className="w-6 h-6 text-purple-500" />
+              <span className="text-slate-700 text-xs font-medium">Đã Thanh Toán (Admin)</span>
             </div>
             <p className="text-slate-900 text-2xl font-bold break-words">
               {(userBalance?.paid_amount || 0).toLocaleString()}
             </p>
-            <p className="text-blue-600 text-xs mt-1">Camlycoin</p>
+            <p className="text-purple-600 text-xs mt-1">Camlycoin</p>
           </div>
 
+          {/* Chưa Thanh Toán */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-orange-500" />
-              <span className="text-slate-700 text-xs font-medium">Chưa Thanh Toán</span>
+              <span className="text-slate-700 text-xs font-medium">Chưa Thanh Toán (Admin)</span>
             </div>
             <p className="text-slate-900 text-2xl font-bold break-words">
               {(userBalance?.unpaid_amount || 0).toLocaleString()}
             </p>
             <p className="text-orange-600 text-xs mt-1">Camlycoin</p>
+          </div>
+        </motion.div>
+
+        {/* Info Box - Explaining Categories */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-3xl p-6 shadow-lg mb-8"
+        >
+          <div className="flex items-start gap-3">
+            <Eye className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
+            <div>
+              <h4 className="text-purple-900 font-bold mb-3">Giải Thích Phân Loại Camlycoin</h4>
+              <div className="space-y-2 text-sm text-purple-800">
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Sẵn Sàng Rút:</strong> Coins từ câu hỏi hợp lệ, đã được audit xác nhận</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Chờ Xét Duyệt:</strong> Coins từ câu hỏi thứ 11+ mỗi ngày (giới hạn 10 câu/ngày)</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Lock className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Đóng Băng:</strong> Coins từ câu hỏi trùng lặp hoặc chỉ chào hỏi (không học hỏi kiến thức)</p>
+                </div>
+              </div>
+              <p className="text-xs text-purple-700 mt-3">
+                💡 Xem chi tiết tại <Link to={createPageUrl('WalletBreakdown')} className="underline font-bold">Wallet Breakdown</Link>
+              </p>
+            </div>
           </div>
         </motion.div>
 
