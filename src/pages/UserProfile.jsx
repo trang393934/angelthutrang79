@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -132,6 +132,24 @@ export default function UserProfile() {
       queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
       setShowPaymentModal(false);
       setPaymentAmount('');
+    }
+  });
+
+  const runAuditMutation = useMutation({
+    mutationFn: async () => {
+      const result = await base44.functions.invoke('comprehensiveAudit', {
+        targetUserEmail: targetEmail,
+        batchSize: 1
+      });
+      return result.data;
+    },
+    onSuccess: () => {
+      alert('✅ Audit hoàn tất! Đang tải lại dữ liệu...');
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+    },
+    onError: (error) => {
+      alert('❌ Lỗi khi chạy audit: ' + error.message);
     }
   });
 
@@ -459,6 +477,23 @@ export default function UserProfile() {
                   <p className="text-red-600 text-xs mt-2">
                     💡 Balance phải được cập nhật = tổng các thành phần. Cần chạy lại comprehensive audit để đồng bộ.
                   </p>
+                  <Button
+                    onClick={() => runAuditMutation.mutate()}
+                    disabled={runAuditMutation.isPending}
+                    className="w-full mt-3 bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                  >
+                    {runAuditMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Đang Chạy Audit...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Chạy Comprehensive Audit
+                      </>
+                    )}
+                  </Button>
                 </div>
               )}
             </div>
