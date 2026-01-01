@@ -157,24 +157,35 @@ async function auditSingleUser(userEmail, base44) {
       }
       
       // For first 10 questions only:
-      // Check 2: Is it a duplicate?
-      if (isDuplicate(question.text, Array.from(seenQuestions))) {
+      // Check 2: AI-powered duplicate detection
+      const duplicateCheck = await isDuplicateAI(question.text, Array.from(seenQuestions), base44);
+      if (duplicateCheck.isDuplicate) {
         exclusionReason = 'duplicate';
         coinCategory = 'frozen';
         result.frozen_coins += question.coins;
         result.duplicate_count++;
+        similarTo = duplicateCheck.similarTo;
+        similarityScore = duplicateCheck.similarity;
+        auditReason = duplicateCheck.reason || `Trùng với: "${duplicateCheck.similarTo}"`;
       }
-      // Check 3: Is it a greeting/non-question?
-      else if (isGreeting(question.text)) {
-        exclusionReason = 'greeting';
-        coinCategory = 'frozen';
-        result.frozen_coins += question.coins;
-        result.greeting_count++;
-      }
-      // Valid question - gets full reward
+      // Check 3: AI-powered greeting/non-question detection
       else {
-        result.valid_coins += question.coins;
-        seenQuestions.add(question.text.toLowerCase().trim());
+        const greetingCheck = await isGreetingOrNonQuestionAI(question.text, base44);
+        if (greetingCheck.isGreeting) {
+          exclusionReason = 'greeting';
+          coinCategory = 'frozen';
+          result.frozen_coins += question.coins;
+          result.greeting_count++;
+          auditReason = greetingCheck.reason;
+        }
+        // Valid question - gets full reward
+        else {
+          exclusionReason = 'valid';
+          coinCategory = 'pending_withdrawal';
+          result.valid_coins += question.coins;
+          seenQuestions.add(question.text.toLowerCase().trim());
+          auditReason = 'Câu hỏi hợp lệ, có giá trị tri thức';
+        }
       }
 
       // Batch log later to avoid rate limits
