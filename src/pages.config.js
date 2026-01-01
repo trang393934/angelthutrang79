@@ -1,7 +1,9 @@
 import AITools from './pages/AITools';
+import AdminAuditControl from './pages/AdminAuditControl';
 import Analytics from './pages/Analytics';
 import AuditDashboard from './pages/AuditDashboard';
 import BuildAndBounty from './pages/BuildAndBounty';
+import CamlyWithdrawal from './pages/CamlyWithdrawal';
 import CamlycoinHistory from './pages/CamlycoinHistory';
 import Chat from './pages/Chat';
 import DailyMessage from './pages/DailyMessage';
@@ -20,18 +22,18 @@ import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
-import CamlyWithdrawal from './pages/CamlyWithdrawal';
-import WithdrawalManagement from './pages/WithdrawalManagement';
 import WalletBreakdown from './pages/WalletBreakdown';
-import AdminAuditControl from './pages/AdminAuditControl';
+import WithdrawalManagement from './pages/WithdrawalManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AITools": AITools,
+    "AdminAuditControl": AdminAuditControl,
     "Analytics": Analytics,
     "AuditDashboard": AuditDashboard,
     "BuildAndBounty": BuildAndBounty,
+    "CamlyWithdrawal": CamlyWithdrawal,
     "CamlycoinHistory": CamlycoinHistory,
     "Chat": Chat,
     "DailyMessage": DailyMessage,
@@ -50,10 +52,8 @@ export const PAGES = {
     "Settings": Settings,
     "TestR2Upload": TestR2Upload,
     "UserProfile": UserProfile,
-    "CamlyWithdrawal": CamlyWithdrawal,
-    "WithdrawalManagement": WithdrawalManagement,
     "WalletBreakdown": WalletBreakdown,
-    "AdminAuditControl": AdminAuditControl,
+    "WithdrawalManagement": WithdrawalManagement,
 }
 
 export const pagesConfig = {

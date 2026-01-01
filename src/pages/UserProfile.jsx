@@ -320,16 +320,16 @@ export default function UserProfile() {
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          {/* Sẵn Sàng Rút (Pending Withdrawal) */}
+          {/* Sẵn Sàng Thanh Toán - GỘP CHUNG */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <CheckCircle2 className="w-6 h-6 text-green-500" />
-              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
+              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0).toLocaleString()}
+              {((userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0)).toLocaleString()}
             </p>
-            <p className="text-green-600 text-xs mt-1">✅ Hợp Lệ</p>
+            <p className="text-green-600 text-xs mt-1">✅ Admin Chuyển Khoản</p>
           </div>
 
           {/* Chờ Xét Duyệt (Pending Review) */}
@@ -362,30 +362,30 @@ export default function UserProfile() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"
+          className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
         >
-          {/* Đã Thanh Toán */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircle2 className="w-6 h-6 text-purple-500" />
-              <span className="text-slate-700 text-xs font-medium">Đã Thanh Toán (Admin)</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-white" />
+              <div>
+                <h3 className="text-white text-xl font-bold">Đã Thanh Toán</h3>
+                <p className="text-white/80 text-xs">Admin đã chuyển khoản</p>
+              </div>
             </div>
-            <p className="text-slate-900 text-2xl font-bold break-words">
+            <p className="text-white text-4xl font-bold">
               {(userBalance?.paid_amount || 0).toLocaleString()}
             </p>
-            <p className="text-purple-600 text-xs mt-1">Camlycoin</p>
           </div>
-
-          {/* Chưa Thanh Toán */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="w-6 h-6 text-orange-500" />
-              <span className="text-slate-700 text-xs font-medium">Chưa Thanh Toán (Admin)</span>
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+            <p className="text-white text-sm font-semibold mb-2">📅 Lịch Thanh Toán Hàng Tháng</p>
+            <div className="flex gap-2">
+              <Badge className="bg-white/30 text-white border-white/50">Ngày 1</Badge>
+              <Badge className="bg-white/30 text-white border-white/50">Ngày 10</Badge>
+              <Badge className="bg-white/30 text-white border-white/50">Ngày 20</Badge>
             </div>
-            <p className="text-slate-900 text-2xl font-bold break-words">
-              {(userBalance?.unpaid_amount || 0).toLocaleString()}
+            <p className="text-white/90 text-xs mt-3">
+              💡 Admin sẽ chuyển khoản theo lịch trên cho số dư "Sẵn Sàng Thanh Toán"
             </p>
-            <p className="text-orange-600 text-xs mt-1">Camlycoin</p>
           </div>
         </motion.div>
 
@@ -403,7 +403,7 @@ export default function UserProfile() {
               <div className="space-y-2 text-sm text-purple-800">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Sẵn Sàng Rút:</strong> Coins từ câu hỏi hợp lệ, đã được audit xác nhận</p>
+                  <p><strong>Sẵn Sàng Thanh Toán:</strong> Coins hợp lệ, admin sẽ chuyển khoản ngày 1/10/20 hàng tháng</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Clock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -422,7 +422,7 @@ export default function UserProfile() {
         </motion.div>
 
         {/* Payment Action - Only for Admin */}
-        {userBalance && (userBalance.unpaid_amount || 0) > 0 && (
+        {userBalance && ((userBalance.pending_withdrawal_balance || userBalance.available_balance || 0) + (userBalance.unpaid_amount || 0)) > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -434,9 +434,9 @@ export default function UserProfile() {
               Đánh Dấu Thanh Toán
             </h3>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
-              <p className="text-white/90 text-sm mb-2">Số Camlycoin chưa thanh toán:</p>
+              <p className="text-white/90 text-sm mb-2">Tổng Sẵn Sàng Thanh Toán:</p>
               <p className="text-white text-3xl font-bold">
-                {(userBalance.unpaid_amount || 0).toLocaleString()} Camlycoin
+                {((userBalance.pending_withdrawal_balance || userBalance.available_balance || 0) + (userBalance.unpaid_amount || 0)).toLocaleString()} Camlycoin
               </p>
             </div>
             <Button
@@ -479,9 +479,9 @@ export default function UserProfile() {
                 </div>
 
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6">
-                  <p className="text-blue-900 text-sm font-medium mb-2">Số tiền chưa thanh toán:</p>
+                  <p className="text-blue-900 text-sm font-medium mb-2">Tổng Sẵn Sàng Thanh Toán:</p>
                   <p className="text-blue-600 text-3xl font-bold">
-                    {(userBalance?.unpaid_amount || 0).toLocaleString()} Camlycoin
+                    {((userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0)).toLocaleString()} Camlycoin
                   </p>
                 </div>
 
@@ -495,10 +495,10 @@ export default function UserProfile() {
                     onChange={(e) => setPaymentAmount(e.target.value)}
                     placeholder="Nhập số Camlycoin đã thanh toán..."
                     className="bg-white border-2 border-blue-300 text-slate-900 rounded-xl text-lg"
-                    max={userBalance?.unpaid_amount || 0}
+                    max={(userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0)}
                   />
                   <p className="text-xs text-slate-600 mt-2">
-                    💡 Nhập số tiền bạn đã thanh toán cho người dùng này
+                    💡 Thanh toán định kỳ vào ngày 1, 10, 20 hàng tháng
                   </p>
                 </div>
 
@@ -515,11 +515,11 @@ export default function UserProfile() {
                   </Button>
                   <Button
                     onClick={() => markAsPaidMutation.mutate(paymentAmount)}
-                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > (userBalance?.unpaid_amount || 0)}
+                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > ((userBalance?.pending_withdrawal_balance || userBalance?.available_balance || 0) + (userBalance?.unpaid_amount || 0))}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl py-6 font-bold disabled:opacity-50 shadow-lg hover:shadow-xl"
                   >
                     <CheckCircle2 className="w-5 h-5 mr-2" />
-                    Xác Nhận
+                    Xác Nhận Đã Chuyển
                   </Button>
                 </div>
               </motion.div>
