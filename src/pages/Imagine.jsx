@@ -81,8 +81,10 @@ Keep it concise but specific about colors, style, composition, and effects.
 Return only the enhanced prompt, nothing else.`,
       });
 
+      // IMPORTANT: Truyền existing image URL để AI edit thay vì tạo mới
       const result = await base44.integrations.Core.GenerateImage({ 
-        prompt: enhancedPrompt 
+        prompt: enhancedPrompt,
+        existing_image_urls: [imageUrl] // Dùng ảnh gốc làm reference
       });
       
       // Check if result has url property
@@ -425,9 +427,13 @@ Return only the enhanced prompt, nothing else.`,
                     </>
                   )}
 
-                  <div className="mt-6 bg-cyan-50 border-2 border-cyan-300 rounded-2xl p-4">
-                    <p className="text-cyan-900 text-sm font-medium">
-                      ✨ <strong>AI Editor:</strong> Mô tả rõ ràng điều bạn muốn thay đổi, AI sẽ hiểu và tạo phiên bản mới cho bạn
+                  <div className="mt-6 bg-gradient-to-r from-cyan-50 to-blue-50 border-2 border-cyan-300 rounded-2xl p-4">
+                    <p className="text-cyan-900 text-sm font-medium mb-2">
+                      ✨ <strong>AI Image Editor:</strong> Chỉnh sửa ảnh gốc thông minh
+                    </p>
+                    <p className="text-cyan-800 text-xs leading-relaxed">
+                      🎯 AI sẽ giữ nguyên ảnh gốc và chỉnh sửa theo yêu cầu của con<br/>
+                      🪽 Không tạo ảnh hoàn toàn mới - chỉ thay đổi chi tiết con muốn
                     </p>
                   </div>
                 </motion.div>
