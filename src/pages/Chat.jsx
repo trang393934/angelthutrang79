@@ -8,6 +8,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
+import ShareToFUNButton from '@/components/ShareToFUNButton';
 
 export default function Chat() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
@@ -1300,8 +1301,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                         </Button>
                       </div>
 
-                      {/* Feedback buttons */}
-                      <div className="flex gap-2 items-center">
+                      {/* Feedback & Share buttons */}
+                      <div className="flex gap-2 items-center flex-wrap">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -1330,6 +1331,10 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                           <ThumbsDown className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'not_helpful' ? 'fill-amber-400' : ''}`} />
                           Cần cải thiện
                         </Button>
+                        <ShareToFUNButton 
+                          content={message.content}
+                          title="Tri thức từ Angel AI"
+                        />
                       </div>
 
                       {/* Feedback input form */}
