@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2, Mic, MicOff, Volume2, VolumeX, Copy, Check, AlertTriangle } from 'lucide-react';
+import { Send, Sparkles, ArrowLeft, Loader2, Plus, Trash2, Heart, Menu, X, FileText, RefreshCw, Maximize2, Lightbulb, ThumbsUp, ThumbsDown, MessageSquare, Image as ImageIcon, Video, Wand2, Mic, MicOff, Volume2, VolumeX, Copy, Check, AlertTriangle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Link } from 'react-router-dom';
