@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp, Heart, Award, Activity, Shield } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp, Heart, Award, Activity, Shield, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
@@ -77,6 +77,12 @@ export default function Layout({ children, currentPageName }) {
       icon: Award, 
       path: 'Leaderboard',
       gradient: 'from-yellow-400 to-amber-500'
+    },
+    { 
+      name: 'Nhiệm Vụ', 
+      icon: Target, 
+      path: 'Quests',
+      gradient: 'from-indigo-400 to-purple-500'
     },
     { 
       name: 'Tâm Điểm Thưởng', 

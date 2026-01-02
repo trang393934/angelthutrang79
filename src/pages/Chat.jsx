@@ -527,6 +527,12 @@ export default function Chat() {
       });
     }
 
+    // Track quest progress (fire and forget)
+    base44.functions.invoke('trackQuestProgress', { 
+      action: 'quality_question',
+      metadata: { questionLength: userInput.length }
+    }).catch(err => console.log('Quest tracking failed:', err));
+
     // Tạo background jobs song song (không chờ)
     Promise.all([
       // 1. Generate suggestions + tags
@@ -985,8 +991,20 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       [messageIndex]: rating
     }));
 
+    // Track quest progress for feedback
+    base44.functions.invoke('trackQuestProgress', { 
+      action: 'feedback_given',
+      metadata: { rating }
+    }).catch(err => console.log('Quest tracking failed:', err));
+
     // QUALITY REWARD: If helpful rating and user asked question today
     if (rating === 'helpful' && currentUser && dailyLimit) {
+      // Track helpful feedback quest
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'helpful_feedback',
+        metadata: { rating: 'helpful' }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
       // Get or create user level
       const userLevels = await base44.entities.UserLevel.filter({ user_email: currentUser.email });
       let userLevel = userLevels[0];

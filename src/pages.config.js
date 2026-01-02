@@ -17,6 +17,7 @@ import Home from './pages/Home';
 import Imagine from './pages/Imagine';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Landing from './pages/Landing';
+import Leaderboard from './pages/Leaderboard';
 import Library from './pages/Library';
 import LightLaw from './pages/LightLaw';
 import MonitoringDashboard from './pages/MonitoringDashboard';
@@ -29,7 +30,7 @@ import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import Leaderboard from './pages/Leaderboard';
+import Quests from './pages/Quests';
 import __Layout from './Layout.jsx';
 
 
@@ -53,6 +54,7 @@ export const PAGES = {
     "Imagine": Imagine,
     "KnowledgeBase": KnowledgeBase,
     "Landing": Landing,
+    "Leaderboard": Leaderboard,
     "Library": Library,
     "LightLaw": LightLaw,
     "MonitoringDashboard": MonitoringDashboard,
@@ -65,7 +67,7 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "WalletBreakdown": WalletBreakdown,
     "WithdrawalManagement": WithdrawalManagement,
-    "Leaderboard": Leaderboard,
+    "Quests": Quests,
 }
 
 export const pagesConfig = {
