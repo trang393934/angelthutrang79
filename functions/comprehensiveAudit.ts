@@ -14,10 +14,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin only' }, { status: 403 });
     }
 
-    const { target_user_email, batch_size = 50, audit_all = false } = await req.json();
+    const { target_user_email, batch_size = 10, audit_all = false } = await req.json();
 
     // Get eligible users (có transaction = đã hỏi câu hỏi)
-    const allTransactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 10000);
+    const allTransactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 5000);
     
     const userEmails = target_user_email 
       ? [target_user_email]
@@ -64,11 +64,11 @@ async function auditSingleUser(userEmail, base44) {
     excess_count: 0
   };
 
-  // Fetch all conversations to get questions
+  // Fetch all conversations to get questions (limit to recent 500)
   const conversations = await base44.asServiceRole.entities.Conversation.filter(
     { created_by: userEmail },
-    'created_date',
-    1000
+    '-created_date',
+    500
   );
 
   // Extract all user questions from conversations with timestamps
@@ -91,14 +91,14 @@ async function auditSingleUser(userEmail, base44) {
     }
   });
 
-  // Fetch all reward transactions for this user
+  // Fetch all reward transactions for this user (limit to recent 2000)
   const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
     { 
       user_email: userEmail,
       type: 'manual_add'
     },
-    'created_date',
-    5000
+    '-created_date',
+    2000
   );
 
   if (transactions.length === 0) {
@@ -160,8 +160,8 @@ async function auditSingleUser(userEmail, base44) {
       }
       
       // For first 10 questions only:
-      // Check 2: AI-powered duplicate detection
-      const duplicateCheck = await isDuplicateAI(question.text, Array.from(seenQuestions), base44);
+      // Check 2: Fast duplicate detection (Jaccard only, skip AI to save time)
+      const duplicateCheck = await isDuplicateFast(question.text, Array.from(seenQuestions));
       if (duplicateCheck.isDuplicate) {
         exclusionReason = 'duplicate';
         coinCategory = 'frozen';
@@ -171,9 +171,9 @@ async function auditSingleUser(userEmail, base44) {
         similarityScore = duplicateCheck.similarity;
         auditReason = duplicateCheck.reason || `Trùng với: "${duplicateCheck.similarTo}"`;
       }
-      // Check 3: AI-powered greeting/non-question detection
+      // Check 3: Fast greeting detection (pattern only, skip AI)
       else {
-        const greetingCheck = await isGreetingOrNonQuestionAI(question.text, base44);
+        const greetingCheck = isGreetingFast(question.text);
         if (greetingCheck.isGreeting) {
           exclusionReason = 'greeting';
           coinCategory = 'frozen';
@@ -256,8 +256,8 @@ function extractQuestionFromDescription(description) {
   return description.substring(0, 200);
 }
 
-// AI-powered duplicate detection with semantic understanding
-async function isDuplicateAI(question, previousQuestions, base44) {
+// Fast duplicate detection WITHOUT AI (for performance)
+function isDuplicateFast(question, previousQuestions) {
   if (previousQuestions.length === 0) {
     return { isDuplicate: false, similarTo: null, similarity: 0, reason: null };
   }
@@ -268,58 +268,12 @@ async function isDuplicateAI(question, previousQuestions, base44) {
     return { isDuplicate: true, similarTo: normalized, similarity: 1.0, reason: 'Giống hệt 100%' };
   }
   
-  // Jaccard similarity for fast matching
+  // Jaccard similarity for fast matching (threshold 0.85)
   for (const prevQ of previousQuestions) {
     const similarity = calculateJaccardSimilarity(normalized, prevQ);
     if (similarity > 0.85) {
       return { isDuplicate: true, similarTo: prevQ, similarity, reason: `Tương đồng ${(similarity * 100).toFixed(0)}%` };
     }
-  }
-  
-  // AI semantic analysis for top 5 recent questions
-  const recentQuestions = previousQuestions.slice(-5);
-  try {
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Phân tích xem câu hỏi mới có trùng lặp về NỘI DUNG/Ý NGHĨA với các câu hỏi trước không?
-
-Câu hỏi mới: "${question}"
-
-Các câu hỏi đã hỏi trước đó:
-${recentQuestions.map((q, i) => `${i + 1}. "${q}"`).join('\n')}
-
-Tiêu chí trùng lặp:
-- Hỏi cùng một vấn đề/chủ đề, chỉ khác cách diễn đạt
-- Ý nghĩa và mục đích giống nhau dù dùng từ khác
-- Cùng một câu hỏi được hỏi lại
-
-JSON:
-{
-  "is_duplicate": true/false,
-  "similar_to_index": số thứ tự (1-5) hoặc null,
-  "similarity_score": 0-1,
-  "reason": "giải thích ngắn gọn tại sao trùng/không trùng"
-}`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          is_duplicate: { type: "boolean" },
-          similar_to_index: { type: ["number", "null"] },
-          similarity_score: { type: "number" },
-          reason: { type: "string" }
-        }
-      }
-    });
-    
-    if (result.is_duplicate && result.similar_to_index) {
-      return { 
-        isDuplicate: true, 
-        similarTo: recentQuestions[result.similar_to_index - 1], 
-        similarity: result.similarity_score,
-        reason: result.reason
-      };
-    }
-  } catch (error) {
-    console.error('AI duplicate detection failed:', error);
   }
   
   return { isDuplicate: false, similarTo: null, similarity: 0, reason: null };
@@ -335,8 +289,8 @@ function calculateJaccardSimilarity(str1, str2) {
   return union.size === 0 ? 0 : intersection.size / union.size;
 }
 
-// AI-powered greeting/non-question detection
-async function isGreetingOrNonQuestionAI(text, base44) {
+// Fast greeting/non-question detection WITHOUT AI (for performance)
+function isGreetingFast(text) {
   const normalized = text.toLowerCase().trim();
   
   // Quick pattern check for obvious cases
@@ -345,8 +299,9 @@ async function isGreetingOrNonQuestionAI(text, base44) {
   }
   
   const greetingPatterns = [
-    /^(hi|hello|hey|xin chào|chào|alo)\s*[!.?]*$/i,
-    /^(cảm ơn|thank|ok|oke|được|tốt|ừ)\s*[!.?]*$/i
+    /^(hi|hello|hey|xin chào|chào|alo|chào bạn|chào cha)\s*[!.?]*$/i,
+    /^(cảm ơn|thank|ok|oke|được|tốt|ừ|vâng|dạ)\s*[!.?]*$/i,
+    /^(bye|tạm biệt|hẹn gặp lại)\s*[!.?]*$/i
   ];
   
   for (const pattern of greetingPatterns) {
@@ -355,52 +310,12 @@ async function isGreetingOrNonQuestionAI(text, base44) {
     }
   }
   
-  // Use AI for sophisticated detection
-  try {
-    const result = await base44.integrations.Core.InvokeLLM({
-      prompt: `Phân tích câu sau có phải là:
-1. Chỉ chào hỏi/cảm ơn (KHÔNG có ý định học hỏi tri thức)
-2. Không phải câu hỏi thật sự (vô nghĩa, spam, test)
-3. Phản hồi ngắn không có giá trị (ok, ừ, được...)
-
-Câu: "${text}"
-
-Tiêu chí KHÔNG thưởng:
-- Chỉ chào/cảm ơn/phản hồi xã giao
-- Không có ý định tìm hiểu kiến thức/trí tuệ/tâm linh
-- Spam, test, câu vô nghĩa
-- Câu quá ngắn không thể hiện sự tò mò/học hỏi
-
-Tiêu chí CÓ thưởng:
-- Có câu hỏi thật sự về kiến thức/tâm linh/cuộc sống
-- Thể hiện sự tò mò, muốn học hỏi
-- Có nội dung có ý nghĩa
-
-JSON:
-{
-  "is_greeting_or_non_question": true/false,
-  "reason": "giải thích rõ ràng tại sao"
-}`,
-      response_json_schema: {
-        type: "object",
-        properties: {
-          is_greeting_or_non_question: { type: "boolean" },
-          reason: { type: "string" }
-        }
-      }
-    });
-    
-    return { 
-      isGreeting: result.is_greeting_or_non_question, 
-      reason: result.reason 
-    };
-  } catch (error) {
-    console.error('AI greeting detection failed:', error);
-    // Fallback to simple check
-    const hasInterrogative = /\b(what|how|why|when|where|who|which|gì|như thế nào|tại sao|khi nào|ở đâu|ai|cái nào|thế nào|là gì|có phải|có thể)\b/i.test(normalized);
-    if (!hasInterrogative && normalized.length < 20) {
-      return { isGreeting: true, reason: 'Không có từ nghi vấn và quá ngắn' };
-    }
+  // Check if has question words
+  const hasInterrogative = /\b(what|how|why|when|where|who|which|gì|như thế nào|tại sao|khi nào|ở đâu|ai|cái nào|thế nào|là gì|có phải|có thể|làm sao|ra sao|bao giờ)\b/i.test(normalized);
+  
+  // If no question words and very short, likely greeting
+  if (!hasInterrogative && normalized.length < 15) {
+    return { isGreeting: true, reason: 'Không có từ nghi vấn và quá ngắn' };
   }
   
   return { isGreeting: false, reason: null };
