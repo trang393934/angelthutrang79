@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -62,31 +62,39 @@ export default function UserProfile() {
     enabled: !!targetEmail && !!isAdmin,
   });
 
-  // Fetch eliminated audit logs (không phải valid) - lấy TOÀN BỘ lịch sử
-  const { data: eliminatedLogs = [], isLoading: isLoadingLogs } = useQuery({
-    queryKey: ['eliminated-logs', targetEmail],
+  // Fetch ALL audit logs của user (bao gồm cả valid để hiển thị toàn bộ lịch sử)
+  const { data: allUserLogs = [], isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
+    queryKey: ['all-user-audit-logs', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return [];
       
-      // Fetch tất cả audit logs của user này, không giới hạn
-      const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 5000);
+      // Fetch tất cả audit logs của user này
+      const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 10000);
       
-      // Filter các câu hỏi đã bị loại bỏ
-      const eliminated = allLogs.filter(log => 
-        log.user_email === targetEmail && 
-        log.exclusion_reason !== 'valid' &&
-        (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
-      );
+      // Filter chỉ lấy của user này
+      const userLogs = allLogs.filter(log => log.user_email === targetEmail);
       
-      console.log('Total audit logs fetched:', allLogs.length);
-      console.log('Eliminated logs for', targetEmail, ':', eliminated.length);
+      console.log('Total audit logs for', targetEmail, ':', userLogs.length);
+      console.log('Breakdown:', {
+        valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
+        duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
+        greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
+        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
+      });
       
-      return eliminated;
+      return userLogs;
     },
     enabled: !!targetEmail && !!isAdmin,
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 0,
     cacheTime: 0
   });
+
+  // Phân loại logs
+  const eliminatedLogs = allUserLogs.filter(log => 
+    log.exclusion_reason !== 'valid' && 
+    (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
+  );
+  const validLogs = allUserLogs.filter(log => log.exclusion_reason === 'valid');
 
   // Fetch wallet address from multiple sources
   const { data: submissions = [] } = useQuery({
@@ -747,20 +755,37 @@ export default function UserProfile() {
                 className="bg-white rounded-3xl p-8 max-w-4xl w-full shadow-2xl my-8"
               >
                 <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-slate-900 text-2xl font-bold">Câu Hỏi Đã Loại Bỏ</h3>
+                  <div className="flex-1">
+                    <h3 className="text-slate-900 text-2xl font-bold">Lịch Sử Câu Hỏi</h3>
                     <p className="text-slate-600 text-sm mt-1">
-                      {eliminatedLogs.length} câu hỏi • Click Duyệt để thêm vào Available Balance
+                      <strong>{allUserLogs.length}</strong> câu hỏi tổng cộng • 
+                      <span className="text-green-600 font-semibold"> {validLogs.length} hợp lệ</span> • 
+                      <span className="text-red-600 font-semibold"> {eliminatedLogs.length} đã loại bỏ</span>
                     </p>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowEliminatedModal(false)}
-                    className="text-slate-600 hover:text-slate-900"
-                  >
-                    <X className="w-5 h-5" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => refetchLogs()}
+                      disabled={isLoadingLogs}
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                    >
+                      {isLoadingLogs ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowEliminatedModal(false)}
+                      className="text-slate-600 hover:text-slate-900"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
                 </div>
 
                 {isLoadingLogs ? (
@@ -768,12 +793,31 @@ export default function UserProfile() {
                     <Loader2 className="w-16 h-16 text-purple-300 mx-auto mb-4 animate-spin" />
                     <p className="text-slate-700 font-medium">Đang tải lịch sử câu hỏi...</p>
                   </div>
+                ) : allUserLogs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <AlertCircle className="w-16 h-16 text-orange-300 mx-auto mb-4" />
+                    <p className="text-slate-700 font-bold text-lg mb-2">Chưa Có Dữ Liệu Audit</p>
+                    <p className="text-slate-600 text-sm mb-4">
+                      User này chưa có câu hỏi nào trong QuestionAuditLog.<br/>
+                      Cần chạy Comprehensive Audit để phân tích lịch sử câu hỏi.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        setShowEliminatedModal(false);
+                        // Scroll to audit button
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold"
+                    >
+                      Đi Đến Audit Button
+                    </Button>
+                  </div>
                 ) : eliminatedLogs.length === 0 ? (
                   <div className="text-center py-12">
                     <CheckCircle2 className="w-16 h-16 text-green-300 mx-auto mb-4" />
-                    <p className="text-slate-700 font-medium">Không có câu hỏi nào bị loại bỏ</p>
-                    <p className="text-slate-500 text-sm mt-2">
-                      User này chưa có câu hỏi nào trong QuestionAuditLog
+                    <p className="text-slate-700 font-bold text-lg mb-2">Không Có Câu Hỏi Bị Loại Bỏ</p>
+                    <p className="text-slate-600 text-sm">
+                      Tất cả {validLogs.length} câu hỏi đều hợp lệ! ✅
                     </p>
                   </div>
                 ) : (
