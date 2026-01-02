@@ -546,7 +546,7 @@ export default function UserProfile() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
         >
           {/* Tổng Đã Kiếm */}
           <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-xl border-2 border-white">
@@ -594,6 +594,22 @@ export default function UserProfile() {
               {(userBalance?.frozen_balance || 0).toLocaleString()}
             </p>
             <p className="text-red-600 text-xs mt-1">❄️ Câu 11+ trùng/chào</p>
+          </div>
+
+          {/* Thưởng Hoạt Động Khác */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-pink-300 rounded-3xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <Gift className="w-6 h-6 text-pink-500" />
+              <span className="text-slate-700 text-xs font-medium">Thưởng Hoạt Động</span>
+            </div>
+            <p className="text-slate-900 text-3xl font-bold break-words">
+              {(transactions.filter(tx => 
+                tx.amount > 0 && 
+                tx.type !== 'manual_add' && 
+                (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
+              ).reduce((sum, tx) => sum + tx.amount, 0)).toLocaleString()}
+            </p>
+            <p className="text-pink-600 text-xs mt-1">🎁 Bounty, Build, Community</p>
           </div>
         </motion.div>
 
