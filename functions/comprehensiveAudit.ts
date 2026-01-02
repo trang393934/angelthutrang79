@@ -29,8 +29,26 @@ Deno.serve(async (req) => {
     const results = [];
 
     for (const userEmail of userEmails) {
-      const auditResult = await auditSingleUser(userEmail, base44);
-      results.push(auditResult);
+      try {
+        const auditResult = await auditSingleUser(userEmail, base44);
+        results.push(auditResult);
+        
+        // Add delay between users to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Failed to audit ${userEmail}:`, error);
+        results.push({
+          user_email: userEmail,
+          error: error.message,
+          total_questions: 0,
+          frozen_coins: 0,
+          pending_review_coins: 0,
+          valid_coins: 0,
+          duplicate_count: 0,
+          greeting_count: 0,
+          excess_count: 0
+        });
+      }
     }
 
     return Response.json({
@@ -192,19 +210,26 @@ async function auditSingleUser(userEmail, base44) {
       }
 
       // Create detailed audit log with AI reasoning
-      await base44.asServiceRole.entities.QuestionAuditLog.create({
-        user_email: userEmail,
-        transaction_id: question.id,
-        question_text: question.text,
-        question_date: question.date.toISOString(),
-        coins_earned: question.coins,
-        exclusion_reason: exclusionReason,
-        coin_category: coinCategory,
-        audit_date: new Date().toISOString(),
-        question_number_in_day: i + 1,
-        similar_to_question: similarTo || null,
-        similarity_score: similarityScore || 0
-      });
+      try {
+        await base44.asServiceRole.entities.QuestionAuditLog.create({
+          user_email: userEmail,
+          transaction_id: question.id,
+          question_text: question.text,
+          question_date: question.date.toISOString(),
+          coins_earned: question.coins,
+          exclusion_reason: exclusionReason,
+          coin_category: coinCategory,
+          audit_date: new Date().toISOString(),
+          question_number_in_day: i + 1,
+          similar_to_question: similarTo || null,
+          similarity_score: similarityScore || 0
+        });
+        
+        // Small delay to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } catch (error) {
+        console.error('Failed to create audit log:', error);
+      }
     }
   }
 
