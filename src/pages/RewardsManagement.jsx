@@ -22,6 +22,7 @@ export default function RewardsManagement() {
   const [maxBalance, setMaxBalance] = useState('');
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+  const [modalTab, setModalTab] = useState('transactions');
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -80,6 +81,16 @@ export default function RewardsManagement() {
     queryFn: async () => {
       if (!selectedUserEmail) return [];
       return base44.entities.CamlycoinTransaction.filter({ user_email: selectedUserEmail }, '-created_date', 100);
+    },
+    enabled: !!selectedUserEmail && isAdmin,
+  });
+
+  // Fetch selected user withdrawal requests
+  const { data: selectedUserWithdrawals = [] } = useQuery({
+    queryKey: ['selected-user-withdrawals', selectedUserEmail],
+    queryFn: async () => {
+      if (!selectedUserEmail) return [];
+      return base44.entities.WithdrawalRequest.filter({ user_email: selectedUserEmail }, '-created_date', 100);
     },
     enabled: !!selectedUserEmail && isAdmin,
   });
@@ -967,11 +978,12 @@ export default function RewardsManagement() {
                               onClick={() => {
                                 setSelectedUserEmail(balance.user_email);
                                 setShowTransactionsModal(true);
+                                setModalTab('transactions');
                               }}
                               className="border-amber-300 text-amber-700 hover:bg-amber-50 rounded-lg text-xs h-7"
                             >
                               <History className="w-3 h-3 mr-1" />
-                              GD
+                              Chi Tiết
                             </Button>
                           </div>
                         </div>
@@ -1002,6 +1014,7 @@ export default function RewardsManagement() {
               onClick={() => {
                 setShowTransactionsModal(false);
                 setSelectedUserEmail(null);
+                setModalTab('transactions');
               }}
             >
               <motion.div
@@ -1013,7 +1026,7 @@ export default function RewardsManagement() {
               >
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h3 className="text-slate-900 text-2xl font-bold">Lịch Sử Giao Dịch</h3>
+                    <h3 className="text-slate-900 text-2xl font-bold">Chi Tiết User</h3>
                     <p className="text-slate-600 text-sm mt-1">{selectedUserEmail}</p>
                   </div>
                   <Button
@@ -1022,6 +1035,7 @@ export default function RewardsManagement() {
                     onClick={() => {
                       setShowTransactionsModal(false);
                       setSelectedUserEmail(null);
+                      setModalTab('transactions');
                     }}
                     className="text-slate-600 hover:text-slate-900"
                   >
@@ -1029,56 +1043,194 @@ export default function RewardsManagement() {
                   </Button>
                 </div>
 
-                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
-                  {selectedUserTransactions.length === 0 ? (
-                    <div className="text-center py-12">
-                      <Clock className="w-12 h-12 text-amber-300 mx-auto mb-4" />
-                      <p className="text-slate-700 font-medium">Chưa có giao dịch nào</p>
-                    </div>
-                  ) : (
-                    selectedUserTransactions.map((tx, index) => {
-                      const Icon = transactionIcons[tx.type] || DollarSign;
-                      const isPositive = tx.amount > 0;
-                      
-                      return (
-                        <motion.div
-                          key={tx.id}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.03 }}
-                          className="bg-white border-2 border-amber-100 rounded-2xl p-4"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3 flex-1">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                isPositive ? 'bg-green-100' : 'bg-red-100'
-                              }`}>
-                                <Icon className={`w-5 h-5 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-slate-900 font-semibold break-words">{tx.description}</p>
-                                <p className="text-xs text-slate-600">
-                                  {new Date(tx.created_date).toLocaleString('vi-VN')}
-                                </p>
-                                {tx.processed_by && (
-                                  <p className="text-xs text-purple-600">
-                                    Bởi: {tx.processed_by}
+                {/* Tabs */}
+                <div className="grid grid-cols-2 gap-3 mb-6">
+                  <Button
+                    onClick={() => setModalTab('transactions')}
+                    className={`rounded-xl py-3 font-bold ${
+                      modalTab === 'transactions'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'bg-gray-100 text-slate-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <History className="w-4 h-4 mr-2" />
+                    Giao Dịch ({selectedUserTransactions.length})
+                  </Button>
+                  <Button
+                    onClick={() => setModalTab('withdrawals')}
+                    className={`rounded-xl py-3 font-bold ${
+                      modalTab === 'withdrawals'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white'
+                        : 'bg-gray-100 text-slate-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Wallet className="w-4 h-4 mr-2" />
+                    Yêu Cầu Rút ({selectedUserWithdrawals.length})
+                  </Button>
+                </div>
+
+                {/* Transactions Tab */}
+                {modalTab === 'transactions' && (
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                    {selectedUserTransactions.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Clock className="w-12 h-12 text-amber-300 mx-auto mb-4" />
+                        <p className="text-slate-700 font-medium">Chưa có giao dịch nào</p>
+                      </div>
+                    ) : (
+                      selectedUserTransactions.map((tx, index) => {
+                        const Icon = transactionIcons[tx.type] || DollarSign;
+                        const isPositive = tx.amount > 0;
+                        
+                        return (
+                          <motion.div
+                            key={tx.id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.03 }}
+                            className="bg-white border-2 border-amber-100 rounded-2xl p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                  isPositive ? 'bg-green-100' : 'bg-red-100'
+                                }`}>
+                                  <Icon className={`w-5 h-5 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-slate-900 font-semibold break-words">{tx.description}</p>
+                                  <p className="text-xs text-slate-600">
+                                    {new Date(tx.created_date).toLocaleString('vi-VN')}
                                   </p>
+                                  {tx.processed_by && (
+                                    <p className="text-xs text-purple-600">
+                                      Bởi: {tx.processed_by}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right ml-4 flex-shrink-0">
+                                <p className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                  {isPositive ? '+' : ''}{tx.amount.toLocaleString()}
+                                </p>
+                                <p className="text-xs text-slate-600">Camlycoin</p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                {/* Withdrawals Tab */}
+                {modalTab === 'withdrawals' && (
+                  <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                    {selectedUserWithdrawals.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Wallet className="w-12 h-12 text-amber-300 mx-auto mb-4" />
+                        <p className="text-slate-700 font-medium">Chưa có yêu cầu rút tiền nào</p>
+                      </div>
+                    ) : (
+                      selectedUserWithdrawals.map((req, index) => {
+                        const statusConfigs = {
+                          pending: { label: '⏳ Chờ Duyệt', className: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+                          approved: { label: '✅ Đã Duyệt', className: 'bg-green-100 text-green-800 border-green-300' },
+                          processing: { label: '🔄 Đang Xử Lý', className: 'bg-blue-100 text-blue-800 border-blue-300' },
+                          completed: { label: '✅ Hoàn Tất', className: 'bg-green-100 text-green-800 border-green-300' },
+                          rejected: { label: '❌ Từ Chối', className: 'bg-red-100 text-red-800 border-red-300' },
+                          failed: { label: '❌ Thất Bại', className: 'bg-red-100 text-red-800 border-red-300' }
+                        };
+                        const statusConfig = statusConfigs[req.status] || statusConfigs.pending;
+
+                        return (
+                          <motion.div
+                            key={req.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.03 }}
+                            className="bg-white border-2 border-amber-100 rounded-2xl p-5"
+                          >
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                  <Badge className={`border ${statusConfig.className}`}>
+                                    {statusConfig.label}
+                                  </Badge>
+                                  <Badge className="bg-purple-100 text-purple-800 border-purple-300 font-bold">
+                                    🪙 {req.amount.toLocaleString()} Camlycoin
+                                  </Badge>
+                                </div>
+                                <p className="text-slate-700 text-sm mb-2 break-all">
+                                  <strong>Địa chỉ ví:</strong> {req.withdrawal_address}
+                                </p>
+                                <p className="text-xs text-slate-600">
+                                  Tạo: {new Date(req.created_date).toLocaleString('vi-VN')}
+                                </p>
+                                {req.processed_date && (
+                                  <p className="text-xs text-green-600 mt-1">
+                                    Xử lý: {new Date(req.processed_date).toLocaleString('vi-VN')} • {req.processed_by}
+                                  </p>
+                                )}
+                                {req.rejection_reason && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                                    <p className="text-red-800 text-xs">
+                                      <strong>Lý do:</strong> {req.rejection_reason}
+                                    </p>
+                                  </div>
+                                )}
+                                {req.tx_hash && (
+                                  <div className="bg-green-50 border border-green-200 rounded-lg p-2 mt-2">
+                                    <p className="text-green-800 text-xs break-all">
+                                      <strong>TX Hash:</strong> {req.tx_hash}
+                                    </p>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                            <div className="text-right ml-4 flex-shrink-0">
-                              <p className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                                {isPositive ? '+' : ''}{tx.amount.toLocaleString()}
-                              </p>
-                              <p className="text-xs text-slate-600">Camlycoin</p>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })
-                  )}
-                </div>
+
+                            {req.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => {
+                                    approveWithdrawalMutation.mutate(req);
+                                  }}
+                                  disabled={approveWithdrawalMutation.isPending}
+                                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                                >
+                                  {approveWithdrawalMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                  )}
+                                  Duyệt
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    const reason = prompt('Lý do từ chối:');
+                                    if (reason) {
+                                      rejectWithdrawalMutation.mutate({ request: req, reason });
+                                    }
+                                  }}
+                                  disabled={rejectWithdrawalMutation.isPending}
+                                  variant="outline"
+                                  className="flex-1 border-red-300 text-red-700 hover:bg-red-50 rounded-xl font-bold"
+                                >
+                                  {rejectWithdrawalMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                  )}
+                                  Từ Chối
+                                </Button>
+                              </div>
+                            )}
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
               </motion.div>
             </motion.div>
           )}
