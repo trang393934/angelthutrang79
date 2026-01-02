@@ -1,6 +1,7 @@
 import AITools from './pages/AITools';
 import AdminAuditControl from './pages/AdminAuditControl';
 import AdminCommunityRewards from './pages/AdminCommunityRewards';
+import AdminDashboard from './pages/AdminDashboard';
 import Analytics from './pages/Analytics';
 import AuditDashboard from './pages/AuditDashboard';
 import BlogEditor from './pages/BlogEditor';
@@ -28,7 +29,6 @@ import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import AdminDashboard from './pages/AdminDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +36,7 @@ export const PAGES = {
     "AITools": AITools,
     "AdminAuditControl": AdminAuditControl,
     "AdminCommunityRewards": AdminCommunityRewards,
+    "AdminDashboard": AdminDashboard,
     "Analytics": Analytics,
     "AuditDashboard": AuditDashboard,
     "BlogEditor": BlogEditor,
@@ -63,7 +64,6 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "WalletBreakdown": WalletBreakdown,
     "WithdrawalManagement": WithdrawalManagement,
-    "AdminDashboard": AdminDashboard,
 }
 
 export const pagesConfig = {

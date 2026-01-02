@@ -611,28 +611,28 @@ export default function UserProfile() {
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
               <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">balance:</p>
+                <p className="text-yellow-700 text-xs mb-1">balance (tổng):</p>
                 <p className="text-yellow-900 font-bold">{(userBalance.balance || 0).toLocaleString()}</p>
               </div>
-              <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">available_balance:</p>
-                <p className="text-yellow-900 font-bold">{(userBalance.available_balance || 0).toLocaleString()}</p>
+              <div className="bg-green-50 rounded-xl p-3 border-2 border-green-400">
+                <p className="text-green-700 text-xs mb-1 font-semibold">✅ available_balance:</p>
+                <p className="text-green-900 font-bold">{(userBalance.available_balance || 0).toLocaleString()}</p>
+                <p className="text-green-600 text-[10px] mt-1">10 câu đầu/ngày</p>
               </div>
-              <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">pending_review_balance:</p>
-                <p className="text-yellow-900 font-bold">{(userBalance.pending_review_balance || 0).toLocaleString()}</p>
+              <div className="bg-blue-50 rounded-xl p-3 border-2 border-blue-400">
+                <p className="text-blue-700 text-xs mb-1 font-semibold">⏳ pending_review_balance:</p>
+                <p className="text-blue-900 font-bold">{(userBalance.pending_review_balance || 0).toLocaleString()}</p>
+                <p className="text-blue-600 text-[10px] mt-1">Câu 11+ hợp lệ</p>
               </div>
-              <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">frozen_balance:</p>
-                <p className="text-yellow-900 font-bold">{(userBalance.frozen_balance || 0).toLocaleString()}</p>
+              <div className="bg-red-50 rounded-xl p-3 border-2 border-red-400">
+                <p className="text-red-700 text-xs mb-1 font-semibold">❄️ frozen_balance:</p>
+                <p className="text-red-900 font-bold">{(userBalance.frozen_balance || 0).toLocaleString()}</p>
+                <p className="text-red-600 text-[10px] mt-1">Câu 11+ trùng/chào</p>
               </div>
-              <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">unpaid_amount:</p>
-                <p className="text-yellow-900 font-bold">{(userBalance.unpaid_amount || 0).toLocaleString()}</p>
-              </div>
-              <div className="bg-white rounded-xl p-3 border border-yellow-200">
-                <p className="text-yellow-700 text-xs mb-1">paid_amount:</p>
-                <p className="text-yellow-900 font-bold">{(userBalance.paid_amount || 0).toLocaleString()}</p>
+              <div className="bg-purple-50 rounded-xl p-3 border border-purple-200">
+                <p className="text-purple-700 text-xs mb-1">paid_amount:</p>
+                <p className="text-purple-900 font-bold">{(userBalance.paid_amount || 0).toLocaleString()}</p>
+                <p className="text-purple-600 text-[10px] mt-1">Đã chuyển khoản</p>
               </div>
               <div className="bg-white rounded-xl p-3 border border-yellow-200">
                 <p className="text-yellow-700 text-xs mb-1">total_earned:</p>
@@ -646,25 +646,36 @@ export default function UserProfile() {
               {/* NEW: Coins bị loại bỏ sau audit - CLICKABLE */}
               <button
                 onClick={() => setShowEliminatedModal(true)}
-                className="bg-red-50 rounded-xl p-3 border-2 border-red-400 hover:bg-red-100 hover:shadow-lg transition-all cursor-pointer w-full text-left active:scale-95"
+                className="bg-orange-50 rounded-xl p-3 border-2 border-orange-400 hover:bg-orange-100 hover:shadow-lg transition-all cursor-pointer w-full text-left active:scale-95"
               >
-                <p className="text-red-700 text-xs mb-1 font-semibold flex items-center gap-1">
+                <p className="text-orange-700 text-xs mb-1 font-semibold flex items-center gap-1">
                   ❌ Đã Loại Bỏ Sau Audit:
                   <Eye className="w-3 h-3 flex-shrink-0" />
                 </p>
-                <p className="text-red-900 font-bold break-words">{((userBalance.total_earned || 0) - (userBalance.balance || 0) - (userBalance.paid_amount || 0)).toLocaleString()}</p>
-                <p className="text-red-600 text-[10px] mt-1 flex items-center gap-1">
-                  👆 Click để xem chi tiết và duyệt lại
+                <p className="text-orange-900 font-bold break-words">{((userBalance.total_earned || 0) - (userBalance.balance || 0) - (userBalance.paid_amount || 0)).toLocaleString()}</p>
+                <p className="text-orange-600 text-[10px] mt-1 flex items-center gap-1">
+                  👆 Click xem chi tiết
                 </p>
               </button>
             </div>
-            <div className="mt-4 bg-white rounded-xl p-3 border border-yellow-300">
-              <p className="text-yellow-800 text-xs font-semibold">
+            <div className="mt-4 bg-white rounded-xl p-4 border-2 border-yellow-300">
+              <p className="text-yellow-800 text-xs font-semibold mb-2">
                 📊 Công thức: balance = available_balance + pending_review_balance + frozen_balance
               </p>
-              <p className="text-yellow-900 font-bold mt-2">
+              <p className="text-yellow-900 font-bold">
                 Tính toán: {(userBalance.available_balance || 0).toLocaleString()} + {(userBalance.pending_review_balance || 0).toLocaleString()} + {(userBalance.frozen_balance || 0).toLocaleString()} = {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0)).toLocaleString()}
               </p>
+
+              {/* NEW: Logic Explanation */}
+              <div className="mt-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-300 rounded-lg">
+                <p className="text-blue-900 font-bold text-xs mb-2">🔄 LOGIC KIỂM DUYỆT MỚI:</p>
+                <ul className="text-blue-800 text-[11px] space-y-1">
+                  <li>✅ <strong>10 câu đầu/ngày:</strong> TẤT CẢ → available_balance (kể cả trùng/chào)</li>
+                  <li>⏳ <strong>Câu 11+ hợp lệ:</strong> → pending_review (chờ admin duyệt)</li>
+                  <li>❄️ <strong>Câu 11+ trùng/chào:</strong> → frozen (đóng băng vĩnh viễn)</li>
+                </ul>
+              </div>
+
               {((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0)) !== (userBalance.balance || 0) && (
                 <div className="mt-3 p-3 bg-red-100 border border-red-400 rounded-lg">
                   <p className="text-red-800 font-bold text-sm">
@@ -674,7 +685,7 @@ export default function UserProfile() {
                     Chênh lệch: {Math.abs(((userBalance.available_balance || 0) + (userBalance.pending_review_balance || 0) + (userBalance.frozen_balance || 0)) - (userBalance.balance || 0)).toLocaleString()} Camlycoin
                   </p>
                   <p className="text-red-600 text-xs mt-2">
-                    💡 Balance phải được cập nhật = tổng các thành phần. Cần chạy lại comprehensive audit để đồng bộ.
+                    💡 Cần chạy comprehensive audit để đồng bộ lại balance theo logic mới.
                   </p>
                   <Button
                     onClick={() => runAuditMutation.mutate()}
