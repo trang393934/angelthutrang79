@@ -371,8 +371,9 @@ export default function RewardsManagement() {
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
                   {(() => {
                     const totalEarned = allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0);
+                    const totalPaid = allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
                     const totalFrozen = allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
-                    return (totalEarned - totalFrozen).toLocaleString();
+                    return (totalEarned - totalPaid - totalFrozen).toLocaleString();
                   })()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
