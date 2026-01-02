@@ -555,9 +555,27 @@ export default function UserProfile() {
               <span className="text-white/90 text-xs font-medium">Tổng Đã Kiếm</span>
             </div>
             <p className="text-white text-3xl font-bold break-words">
-              {(userBalance?.total_earned || 0).toLocaleString()}
+              {(() => {
+                const activityRewards = transactions.filter(tx => 
+                  tx.amount > 0 && 
+                  tx.type !== 'manual_add' && 
+                  (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
+                ).reduce((sum, tx) => sum + tx.amount, 0);
+
+                const frozen = userBalance?.frozen_balance || 0;
+                const available = userBalance?.available_balance || 0;
+                const pending = userBalance?.pending_review_balance || 0;
+                const paid = userBalance?.paid_amount || 0;
+                const total_earned = userBalance?.total_earned || 0;
+
+                const calculated = activityRewards + frozen + available + paid + pending;
+                const difference = Math.max(0, total_earned - calculated);
+
+                // Tổng Đã Kiếm = Frozen + Sẵn Sàng TT + Paid + Chờ Duyệt - Thưởng Hoạt Động
+                return (frozen + available + paid + pending + difference).toLocaleString();
+              })()}
             </p>
-            <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+            <p className="text-white/80 text-xs mt-1">Camlycoin (Từ câu hỏi)</p>
           </div>
 
           {/* Sẵn Sàng Thanh Toán */}
