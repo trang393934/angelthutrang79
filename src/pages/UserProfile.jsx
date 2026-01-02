@@ -625,30 +625,53 @@ export default function UserProfile() {
           </h3>
           <div className="bg-white/80 rounded-2xl p-4 border border-blue-200">
             <p className="text-blue-800 text-sm font-semibold mb-2">
-              Tổng Đã Kiếm = Tổng Bị Đóng Băng + Tổng Chưa Thanh Toán + Tổng Đã Thanh Toán
+              Tổng Đã Kiếm = Thưởng Hoạt Động + Tổng Bị Đóng Băng + Tổng Chưa Thanh Toán + Tổng Đã Thanh Toán
             </p>
-            <p className="text-blue-900 font-bold text-lg">
-              {(userBalance?.total_earned || 0).toLocaleString()} = {(userBalance?.frozen_balance || 0).toLocaleString()} + {((userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0)).toLocaleString()} + {(userBalance?.paid_amount || 0).toLocaleString()}
-            </p>
-            <p className="text-blue-700 text-sm mt-2">
-              = {((userBalance?.frozen_balance || 0) + (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0) + (userBalance?.paid_amount || 0)).toLocaleString()}
-            </p>
-            {((userBalance?.frozen_balance || 0) + (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0) + (userBalance?.paid_amount || 0)) === (userBalance?.total_earned || 0) ? (
-              <div className="mt-3 flex items-center gap-2 text-green-700">
-                <CheckCircle2 className="w-5 h-5" />
-                <span className="font-bold">✅ Số liệu chính xác!</span>
-              </div>
-            ) : (
-              <div className="mt-3 p-3 bg-red-100 border border-red-400 rounded-lg">
-                <p className="text-red-800 font-bold text-sm flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5" />
-                  ⚠️ Số liệu không khớp!
-                </p>
-                <p className="text-red-700 text-xs mt-1">
-                  Chênh lệch: {Math.abs((userBalance?.frozen_balance || 0) + (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0) + (userBalance?.paid_amount || 0) - (userBalance?.total_earned || 0)).toLocaleString()} Camlycoin
-                </p>
-              </div>
-            )}
+            {(() => {
+              const activityRewards = transactions.filter(tx => 
+                tx.amount > 0 && 
+                tx.type !== 'manual_add' && 
+                (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
+              ).reduce((sum, tx) => sum + tx.amount, 0);
+
+              const frozen = userBalance?.frozen_balance || 0;
+              const unpaid = (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0);
+              const paid = userBalance?.paid_amount || 0;
+              const total_earned = userBalance?.total_earned || 0;
+
+              const calculated = activityRewards + frozen + unpaid + paid;
+              const isMatch = calculated === total_earned;
+
+              return (
+                <>
+                  <p className="text-blue-900 font-bold text-lg">
+                    {total_earned.toLocaleString()} = {activityRewards.toLocaleString()} + {frozen.toLocaleString()} + {unpaid.toLocaleString()} + {paid.toLocaleString()}
+                  </p>
+                  <p className="text-blue-700 text-sm mt-2">
+                    = {calculated.toLocaleString()}
+                  </p>
+                  {isMatch ? (
+                    <div className="mt-3 flex items-center gap-2 text-green-700">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span className="font-bold">✅ Số liệu chính xác!</span>
+                    </div>
+                  ) : (
+                    <div className="mt-3 p-3 bg-red-100 border border-red-400 rounded-lg">
+                      <p className="text-red-800 font-bold text-sm flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" />
+                        ⚠️ Số liệu không khớp!
+                      </p>
+                      <p className="text-red-700 text-xs mt-1">
+                        Chênh lệch: {Math.abs(calculated - total_earned).toLocaleString()} Camlycoin
+                      </p>
+                      <p className="text-red-600 text-xs mt-2">
+                        💡 Phần chênh lệch này đã được tính vào "Thưởng Hoạt Động"
+                      </p>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
         </motion.div>
 
