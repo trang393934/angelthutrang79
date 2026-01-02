@@ -68,6 +68,12 @@ export default function AITools() {
     setResult('');
     
     try {
+      // Track quest progress
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'ai_tool_use',
+        metadata: { tool: 'content_creator' }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
       const content = await base44.integrations.Core.InvokeLLM({
         prompt: `Bạn là một writer chuyên nghiệp với khả năng sáng tạo nội dung xuất sắc. Hãy tạo một bài viết/nội dung hoàn chỉnh, chất lượng cao dựa trên chủ đề sau:
 
@@ -117,6 +123,12 @@ Hãy tạo nội dung HOÀN CHỈNH, sẵn sàng để xuất bản!`,
     setResult('');
     
     try {
+      // Track quest progress
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'ai_tool_use',
+        metadata: { tool: 'idea_generator' }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
       const ideas = await base44.integrations.Core.InvokeLLM({
         prompt: `Bạn là một content strategist sáng tạo. Dựa trên chủ đề/từ khóa sau, hãy đề xuất các ý tưởng nội dung phong phú và đa dạng:
 
@@ -391,6 +403,182 @@ Trình bày chuyên nghiệp, chi tiết như một nhạc sĩ & producer thực
       setResult('❌ Có lỗi xảy ra khi tạo lời bài hát. Vui lòng thử lại.');
     }
     
+    setIsLoading(false);
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsUploadingFile(true);
+    setResult('');
+
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setUploadedFile({ name: file.name, url: file_url });
+
+      // Track quest progress
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'ai_tool_use',
+        metadata: { tool: 'file_analysis' }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
+      // Analyze file content
+      const analysis = await base44.integrations.Core.InvokeLLM({
+        prompt: `Hãy phân tích và tóm tắt chi tiết tài liệu này:
+
+Yêu cầu phân tích:
+
+1. TÓM TẮT TỔNG QUAN
+   - Chủ đề chính
+   - Mục đích tài liệu
+   - Đối tượng hướng đến
+
+2. NỘI DUNG CHI TIẾT
+   - Các ý chính quan trọng
+   - Thông tin, dữ liệu nổi bật
+   - Cấu trúc tài liệu
+
+3. INSIGHTS & PHÂN TÍCH
+   - Điểm mạnh của tài liệu
+   - Thông tin giá trị nhất
+   - Góc nhìn độc đáo
+
+4. ỨNG DỤNG THỰC TẾ
+   - Cách áp dụng kiến thức này
+   - Các bước hành động gợi ý
+   - Lưu ý khi áp dụng
+
+Trả lời bằng tiếng Việt, chi tiết và có cấu trúc rõ ràng.`,
+        file_urls: [file_url]
+      });
+
+      setResult(analysis);
+    } catch (error) {
+      setResult('❌ Có lỗi khi phân tích file. Vui lòng thử lại.');
+    }
+
+    setIsUploadingFile(false);
+  };
+
+  const handleGenerateQuiz = async () => {
+    if (!quizTopic.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setGeneratedQuiz(null);
+    setResult('');
+
+    try {
+      // Track quest progress
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'ai_tool_use',
+        metadata: { tool: 'quiz_generator' }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
+      const baseContent = uploadedFile 
+        ? `Dựa trên tài liệu đã upload về "${quizTopic}"` 
+        : `Dựa trên chủ đề "${quizTopic}"`;
+
+      const quiz = await base44.integrations.Core.InvokeLLM({
+        prompt: `Hãy tạo một bài kiểm tra/quiz ${baseContent}.
+
+Yêu cầu:
+- Tạo ${quizCount} câu hỏi
+- Mỗi câu có 4 đáp án (A, B, C, D)
+- Đánh dấu rõ đáp án đúng
+- Giải thích chi tiết tại sao đáp án đó đúng
+- Câu hỏi từ dễ đến khó
+- Bao quát nhiều khía cạnh của chủ đề
+
+Trả về JSON:`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  question: { type: "string" },
+                  options: {
+                    type: "object",
+                    properties: {
+                      A: { type: "string" },
+                      B: { type: "string" },
+                      C: { type: "string" },
+                      D: { type: "string" }
+                    }
+                  },
+                  correct_answer: { type: "string" },
+                  explanation: { type: "string" },
+                  difficulty: { type: "string" }
+                }
+              }
+            }
+          }
+        },
+        file_urls: uploadedFile ? [uploadedFile.url] : undefined
+      });
+
+      setGeneratedQuiz(quiz);
+      setResult('Quiz đã được tạo thành công!');
+    } catch (error) {
+      setResult('❌ Có lỗi khi tạo quiz. Vui lòng thử lại.');
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleAISuggest = async () => {
+    if (!userAnswer.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setAiSuggestion('');
+
+    try {
+      // Track quest progress
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'ai_tool_use',
+        metadata: { tool: 'answer_assistant' }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
+      const suggestion = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là một giáo viên/cố vấn chuyên nghiệp. Hãy gợi ý cải thiện cho câu trả lời sau:
+
+Câu trả lời của học viên:
+${userAnswer}
+
+Hãy:
+1. CHỈ RA ĐIỂM TỐT:
+   - Những gì học viên đã làm đúng
+   - Điểm mạnh trong câu trả lời
+
+2. GỢI Ý CẢI THIỆN:
+   - Những điểm cần bổ sung
+   - Cách diễn đạt tốt hơn
+   - Thông tin thiếu sót
+
+3. ĐỀ XUẤT CÂU TRẢ LỜI MẪU:
+   - Cách trả lời hoàn chỉnh hơn
+   - Cấu trúc rõ ràng
+   - Ngôn từ chuyên nghiệp
+
+4. KIẾN THỨC BỔ SUNG:
+   - Thông tin liên quan hữu ích
+   - Nguồn tham khảo (nếu có)
+
+Giọng điệu: Khuyến khích, hỗ trợ, không phán xét
+Ngôn ngữ: Tiếng Việt, dễ hiểu`,
+      });
+
+      setAiSuggestion(suggestion);
+      setResult(suggestion);
+    } catch (error) {
+      setResult('❌ Có lỗi khi tạo gợi ý. Vui lòng thử lại.');
+    }
+
     setIsLoading(false);
   };
 
