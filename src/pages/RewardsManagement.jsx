@@ -26,6 +26,11 @@ export default function RewardsManagement() {
   const [showAIAnalysis, setShowAIAnalysis] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [withdrawalSearchTerm, setWithdrawalSearchTerm] = useState('');
+  const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState('all');
+  const [withdrawalDateFrom, setWithdrawalDateFrom] = useState('');
+  const [withdrawalDateTo, setWithdrawalDateTo] = useState('');
+  const [selectedWithdrawals, setSelectedWithdrawals] = useState([]);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -276,6 +281,65 @@ export default function RewardsManagement() {
     }
   });
 
+  // Bulk approve withdrawals
+  const bulkApproveWithdrawalsMutation = useMutation({
+    mutationFn: async (requests) => {
+      for (const req of requests) {
+        await base44.entities.WithdrawalRequest.update(req.id, {
+          status: 'approved',
+          processed_by: currentUser.email,
+          processed_date: new Date().toISOString()
+        });
+
+        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: req.user_email });
+        if (balances.length > 0) {
+          const balance = balances[0];
+          await base44.entities.CamlycoinBalance.update(balance.id, {
+            available_balance: Math.max(0, (balance.available_balance || 0) - req.amount),
+            balance: Math.max(0, (balance.balance || 0) - req.amount)
+          });
+        }
+
+        await base44.functions.invoke('sendNotificationEmail', {
+          type: 'withdrawal_approved',
+          recipient_email: req.user_email,
+          data: { amount: req.amount }
+        }).catch(err => console.error('Email failed:', err));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+      setSelectedWithdrawals([]);
+      alert(`✅ Đã duyệt ${selectedWithdrawals.length} yêu cầu rút tiền!`);
+    }
+  });
+
+  // Bulk reject withdrawals
+  const bulkRejectWithdrawalsMutation = useMutation({
+    mutationFn: async ({ requests, reason }) => {
+      for (const req of requests) {
+        await base44.entities.WithdrawalRequest.update(req.id, {
+          status: 'rejected',
+          rejection_reason: reason,
+          processed_by: currentUser.email,
+          processed_date: new Date().toISOString()
+        });
+
+        await base44.functions.invoke('sendNotificationEmail', {
+          type: 'withdrawal_rejected',
+          recipient_email: req.user_email,
+          data: { amount: req.amount, reason }
+        }).catch(err => console.error('Email failed:', err));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+      setSelectedWithdrawals([]);
+      alert(`❌ Đã từ chối ${selectedWithdrawals.length} yêu cầu rút tiền!`);
+    }
+  });
+
   // AI Analysis function
   const runAIAnalysis = async (targetEmail = null, autoApply = false) => {
     setIsAnalyzing(true);
@@ -312,6 +376,50 @@ export default function RewardsManagement() {
     } catch (error) {
       alert('❌ Lỗi: ' + error.message);
     }
+  };
+
+  // Filter withdrawal requests
+  const filteredWithdrawals = allWithdrawalRequests.filter(req => {
+    // Status filter
+    if (withdrawalStatusFilter !== 'all' && req.status !== withdrawalStatusFilter) return false;
+    
+    // Search filter
+    if (withdrawalSearchTerm) {
+      const searchLower = withdrawalSearchTerm.toLowerCase();
+      const emailMatch = req.user_email.toLowerCase().includes(searchLower);
+      const addressMatch = req.withdrawal_address.toLowerCase().includes(searchLower);
+      if (!emailMatch && !addressMatch) return false;
+    }
+    
+    // Date filter
+    if (withdrawalDateFrom) {
+      const reqDate = new Date(req.created_date);
+      const fromDate = new Date(withdrawalDateFrom);
+      if (reqDate < fromDate) return false;
+    }
+    if (withdrawalDateTo) {
+      const reqDate = new Date(req.created_date);
+      const toDate = new Date(withdrawalDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      if (reqDate > toDate) return false;
+    }
+    
+    return true;
+  });
+
+  // Toggle withdrawal selection
+  const toggleWithdrawalSelection = (reqId) => {
+    setSelectedWithdrawals(prev => 
+      prev.includes(reqId) ? prev.filter(id => id !== reqId) : [...prev, reqId]
+    );
+  };
+
+  // Select all filtered withdrawals
+  const selectAllWithdrawals = () => {
+    const pendingIds = filteredWithdrawals
+      .filter(req => req.status === 'pending')
+      .map(req => req.id);
+    setSelectedWithdrawals(pendingIds);
   };
 
   // Export to CSV function
@@ -791,20 +899,164 @@ export default function RewardsManagement() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
+              {/* Filters and Search */}
+              <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl mb-6">
+                <div className="space-y-4">
+                  {/* Search */}
+                  <div>
+                    <Input
+                      value={withdrawalSearchTerm}
+                      onChange={(e) => setWithdrawalSearchTerm(e.target.value)}
+                      placeholder="🔍 Tìm kiếm theo email hoặc địa chỉ ví..."
+                      className="bg-white border-2 border-amber-300 rounded-xl"
+                    />
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="flex flex-wrap gap-2">
+                    {['all', 'pending', 'approved', 'processing', 'completed', 'rejected', 'failed'].map((status) => (
+                      <Button
+                        key={status}
+                        onClick={() => setWithdrawalStatusFilter(status)}
+                        size="sm"
+                        className={withdrawalStatusFilter === status 
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full'
+                          : 'bg-white border-2 border-amber-300 text-amber-700 hover:bg-amber-50 rounded-full'
+                        }
+                      >
+                        {status === 'all' ? 'Tất cả' : 
+                         status === 'pending' ? '⏳ Chờ duyệt' :
+                         status === 'approved' ? '✅ Đã duyệt' :
+                         status === 'processing' ? '🔄 Đang xử lý' :
+                         status === 'completed' ? '✅ Hoàn tất' :
+                         status === 'rejected' ? '❌ Từ chối' : '❌ Thất bại'}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Date Range Filter */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-slate-700 text-sm font-semibold mb-2 block">Từ ngày</label>
+                      <Input
+                        type="date"
+                        value={withdrawalDateFrom}
+                        onChange={(e) => setWithdrawalDateFrom(e.target.value)}
+                        className="bg-white border-2 border-amber-300 rounded-xl"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-slate-700 text-sm font-semibold mb-2 block">Đến ngày</label>
+                      <Input
+                        type="date"
+                        value={withdrawalDateTo}
+                        onChange={(e) => setWithdrawalDateTo(e.target.value)}
+                        className="bg-white border-2 border-amber-300 rounded-xl"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Results count */}
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-slate-700">
+                      Hiển thị <strong>{filteredWithdrawals.length}</strong> / {allWithdrawalRequests.length} yêu cầu
+                      {selectedWithdrawals.length > 0 && (
+                        <> • <strong className="text-purple-600">{selectedWithdrawals.length}</strong> đã chọn</>
+                      )}
+                    </p>
+                    {filteredWithdrawals.filter(r => r.status === 'pending').length > 0 && (
+                      <Button
+                        onClick={selectAllWithdrawals}
+                        size="sm"
+                        variant="outline"
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-lg"
+                      >
+                        Chọn tất cả pending
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bulk Actions */}
+              <AnimatePresence>
+                {selectedWithdrawals.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white text-lg font-bold mb-1">
+                          Hành Động Hàng Loạt
+                        </h3>
+                        <p className="text-white/90 text-sm">
+                          {selectedWithdrawals.length} yêu cầu đã chọn
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => {
+                            const selectedReqs = allWithdrawalRequests.filter(r => selectedWithdrawals.includes(r.id));
+                            bulkApproveWithdrawalsMutation.mutate(selectedReqs);
+                          }}
+                          disabled={bulkApproveWithdrawalsMutation.isPending}
+                          className="bg-white text-green-600 rounded-xl font-bold shadow-lg hover:shadow-xl"
+                        >
+                          {bulkApproveWithdrawalsMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-4 h-4 mr-2" />
+                          )}
+                          Duyệt Tất Cả
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            const reason = prompt('Lý do từ chối hàng loạt:');
+                            if (reason) {
+                              const selectedReqs = allWithdrawalRequests.filter(r => selectedWithdrawals.includes(r.id));
+                              bulkRejectWithdrawalsMutation.mutate({ requests: selectedReqs, reason });
+                            }
+                          }}
+                          disabled={bulkRejectWithdrawalsMutation.isPending}
+                          className="bg-white text-red-600 rounded-xl font-bold shadow-lg hover:shadow-xl"
+                        >
+                          {bulkRejectWithdrawalsMutation.isPending ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <XCircle className="w-4 h-4 mr-2" />
+                          )}
+                          Từ Chối Tất Cả
+                        </Button>
+                        <Button
+                          onClick={() => setSelectedWithdrawals([])}
+                          variant="outline"
+                          className="bg-white/20 text-white border-white/50 rounded-xl font-bold hover:bg-white/30"
+                        >
+                          Bỏ Chọn
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl">
                 <h3 className="text-slate-900 font-bold text-xl mb-6 flex items-center gap-2">
                   <Wallet className="w-6 h-6 text-amber-500" />
-                  Yêu Cầu Rút Tiền ({allWithdrawalRequests.filter(r => r.status === 'pending').length} chờ duyệt)
+                  Yêu Cầu Rút Tiền ({filteredWithdrawals.filter(r => r.status === 'pending').length} chờ duyệt)
                 </h3>
 
-                {allWithdrawalRequests.length === 0 ? (
+                {filteredWithdrawals.length === 0 ? (
                   <div className="text-center py-12">
                     <Wallet className="w-12 h-12 text-amber-300 mx-auto mb-4" />
-                    <p className="text-slate-700 font-medium">Chưa có yêu cầu rút tiền nào</p>
+                    <p className="text-slate-700 font-medium">Không tìm thấy yêu cầu rút tiền nào</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {allWithdrawalRequests.map((req, index) => {
+                    {filteredWithdrawals.map((req, index) => {
                       const statusConfigs = {
                         pending: { label: '⏳ Chờ Duyệt', className: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
                         approved: { label: '✅ Đã Duyệt', className: 'bg-green-100 text-green-800 border-green-300' },
@@ -821,10 +1073,22 @@ export default function RewardsManagement() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: index * 0.05 }}
-                          className="bg-white border-2 border-amber-100 rounded-2xl p-5"
+                          className={`bg-white border-2 rounded-2xl p-5 transition-all ${
+                            selectedWithdrawals.includes(req.id) 
+                              ? 'border-purple-400 bg-purple-50' 
+                              : 'border-amber-100'
+                          }`}
                         >
                           <div className="flex flex-col gap-4">
                             <div className="flex items-start justify-between">
+                              {req.status === 'pending' && (
+                                <input
+                                  type="checkbox"
+                                  checked={selectedWithdrawals.includes(req.id)}
+                                  onChange={() => toggleWithdrawalSelection(req.id)}
+                                  className="mt-1 mr-3 w-5 h-5 rounded border-2 border-purple-400 text-purple-600 focus:ring-purple-500 cursor-pointer flex-shrink-0"
+                                />
+                              )}
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                                   <Badge className={`border ${statusConfig.className}`}>
