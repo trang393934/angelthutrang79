@@ -23,6 +23,7 @@ import LightLaw from './pages/LightLaw';
 import MonitoringDashboard from './pages/MonitoringDashboard';
 import PersonalVision from './pages/PersonalVision';
 import PuritySpotlight from './pages/PuritySpotlight';
+import Quests from './pages/Quests';
 import ReviewPendingActions from './pages/ReviewPendingActions';
 import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
@@ -30,7 +31,6 @@ import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import Quests from './pages/Quests';
 import __Layout from './Layout.jsx';
 
 
@@ -60,6 +60,7 @@ export const PAGES = {
     "MonitoringDashboard": MonitoringDashboard,
     "PersonalVision": PersonalVision,
     "PuritySpotlight": PuritySpotlight,
+    "Quests": Quests,
     "ReviewPendingActions": ReviewPendingActions,
     "RewardsManagement": RewardsManagement,
     "Settings": Settings,
@@ -67,7 +68,6 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "WalletBreakdown": WalletBreakdown,
     "WithdrawalManagement": WithdrawalManagement,
-    "Quests": Quests,
 }
 
 export const pagesConfig = {

@@ -206,59 +206,42 @@ export default function UserProfile() {
     }
   };
 
-  // Approve unpaid amount mutation
-  const approveUnpaidMutation = useMutation({
-    mutationFn: async () => {
+  // Approve percentage mutation - NEW
+  const approvePercentageMutation = useMutation({
+    mutationFn: async (percentage) => {
       if (!userBalance) return;
       
-      const unpaidAmount = userBalance.unpaid_amount || 0;
-      if (unpaidAmount <= 0) return;
+      const total = userBalance.total_earned || 0;
+      const available = userBalance.available_balance || 0;
+      const frozen = userBalance.frozen_balance || 0;
+      const paid = userBalance.paid_amount || 0;
+      const pending = Math.max(0, total - available - frozen - paid);
+      
+      if (pending <= 0) return;
 
+      const approveAmount = Math.floor(pending * percentage / 100);
+      
       await base44.entities.CamlycoinBalance.update(userBalance.id, {
-        unpaid_amount: 0,
-        available_balance: (userBalance.available_balance || 0) + unpaidAmount
+        available_balance: available + approveAmount
       });
 
       await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
-        description: `✅ Admin duyệt ${unpaidAmount.toLocaleString()} Camlycoin từ 1/1/2026 → Sẵn Sàng Thanh Toán`,
+        description: `✅ Admin duyệt ${percentage}% (${approveAmount.toLocaleString()}/${pending.toLocaleString()}) Camlycoin → Sẵn Sàng Thanh Toán`,
         processed_by: currentUser.email
       });
 
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+    },
+    onSuccess: () => {
       alert('✅ Đã duyệt thanh toán!');
     }
   });
 
-  // Reject unpaid amount mutation
-  const rejectUnpaidMutation = useMutation({
-    mutationFn: async () => {
-      if (!userBalance) return;
-      
-      const unpaidAmount = userBalance.unpaid_amount || 0;
-      if (unpaidAmount <= 0) return;
 
-      await base44.entities.CamlycoinBalance.update(userBalance.id, {
-        unpaid_amount: 0,
-        frozen_balance: (userBalance.frozen_balance || 0) + unpaidAmount
-      });
-
-      await base44.entities.CamlycoinTransaction.create({
-        user_email: targetEmail,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `❌ Admin từ chối ${unpaidAmount.toLocaleString()} Camlycoin từ 1/1/2026 → Đóng Băng`,
-        processed_by: currentUser.email
-      });
-
-      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
-      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
-      alert('❌ Đã từ chối thanh toán!');
-    }
-  });
 
   // Mark as paid mutation
   const markAsPaidMutation = useMutation({
@@ -731,27 +714,51 @@ export default function UserProfile() {
             <p className="text-amber-600 text-xs mt-1">⏳ Admin sẽ thanh toán ngày 1/10/20</p>
           </div>
 
-          {/* Chờ Duyệt Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-300 rounded-3xl p-6 shadow-lg">
+          {/* Chờ Duyệt Thanh Toán - CÔNG THỨC MỚI */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <Eye className="w-6 h-6 text-blue-500" />
+              <Clock className="w-6 h-6 text-orange-500" />
               <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.pending_review_balance || 0).toLocaleString()}
+              {(() => {
+                const total = userBalance?.total_earned || 0;
+                const available = userBalance?.available_balance || 0;
+                const frozen = userBalance?.frozen_balance || 0;
+                const paid = userBalance?.paid_amount || 0;
+                const pending = Math.max(0, total - available - frozen - paid);
+                return pending.toLocaleString();
+              })()}
             </p>
-            <p className="text-blue-600 text-xs mt-1">👁️ Câu 11+ hợp lệ</p>
+            <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
             
-            {pendingReviewLogs.length > 0 && (
-              <Button
-                onClick={() => setShowPendingReviewModal(true)}
-                className="w-full mt-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl shadow-md hover:shadow-lg"
-                size="sm"
-              >
-                <Eye className="w-4 h-4 mr-2" />
-                Xem {pendingReviewLogs.length} Câu Hỏi
-              </Button>
-            )}
+            {/* Quick Approve Buttons - 10%, 20%, 30%, 50% */}
+            {(() => {
+              const total = userBalance?.total_earned || 0;
+              const available = userBalance?.available_balance || 0;
+              const frozen = userBalance?.frozen_balance || 0;
+              const paid = userBalance?.paid_amount || 0;
+              const pending = Math.max(0, total - available - frozen - paid);
+              
+              if (pending > 0) {
+                return (
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    {[10, 20, 30, 50].map(percent => (
+                      <Button
+                        key={percent}
+                        onClick={() => approvePercentageMutation.mutate(percent)}
+                        disabled={approvePercentageMutation.isPending}
+                        size="sm"
+                        className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
+                      >
+                        Duyệt {percent}%
+                      </Button>
+                    ))}
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
 
           {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
@@ -778,80 +785,14 @@ export default function UserProfile() {
             <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
           </div>
 
-          {/* Chưa Duyệt (1/1/2026) - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-300 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="w-6 h-6 text-orange-500" />
-              <span className="text-slate-700 text-xs font-medium">Chưa Duyệt (1/1/2026)</span>
-            </div>
-            <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.unpaid_amount || 0).toLocaleString()}
-            </p>
-            <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
-          </div>
+
         </motion.div>
 
 
 
 
 
-        {/* Unpaid Amount Section - Admin Approval */}
-        {userBalance && (userBalance.unpaid_amount || 0) > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-white" />
-                <div>
-                  <h3 className="text-white text-xl font-bold">Chờ Duyệt Thanh Toán</h3>
-                  <p className="text-white/80 text-xs">Coins từ 1/1/2026 cần admin duyệt</p>
-                </div>
-              </div>
-              <p className="text-white text-4xl font-bold">
-                {(userBalance.unpaid_amount || 0).toLocaleString()}
-              </p>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 mb-4">
-              <p className="text-white text-sm font-semibold mb-2">📊 Coins kiếm được từ 1/1/2026</p>
-              <p className="text-white/90 text-xs">
-                💡 Cần admin duyệt trước khi chuyển vào "Sẵn Sàng Thanh Toán"
-              </p>
-            </div>
 
-            {/* Admin Approval Buttons */}
-            <div className="flex gap-3">
-              <Button
-                onClick={() => approveUnpaidMutation.mutate()}
-                disabled={approveUnpaidMutation.isPending}
-                className="flex-1 bg-white text-green-600 rounded-2xl font-bold py-6 text-lg hover:bg-green-50 shadow-lg hover:shadow-xl"
-              >
-                {approveUnpaidMutation.isPending ? (
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-5 h-5 mr-2" />
-                )}
-                Duyệt Thanh Toán
-              </Button>
-              <Button
-                onClick={() => rejectUnpaidMutation.mutate()}
-                disabled={rejectUnpaidMutation.isPending}
-                variant="outline"
-                className="flex-1 bg-white/20 border-2 border-white text-white rounded-2xl font-bold py-6 text-lg hover:bg-white/30 shadow-lg hover:shadow-xl backdrop-blur-sm"
-              >
-                {rejectUnpaidMutation.isPending ? (
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                ) : (
-                  <XCircle className="w-5 h-5 mr-2" />
-                )}
-                Từ Chối
-              </Button>
-            </div>
-          </motion.div>
-        )}
 
         {/* Admin Payment Section */}
         <motion.div
@@ -899,20 +840,21 @@ export default function UserProfile() {
               <div className="space-y-2 text-sm text-purple-800">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Sẵn Sàng Thanh Toán:</strong> Coins hợp lệ, admin sẽ chuyển khoản ngày 1/10/20 hàng tháng</p>
+                  <p><strong>Sẵn Sàng Thanh Toán:</strong> Coins đã được admin duyệt, sẽ chuyển khoản ngày 1/10/20 hàng tháng</p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Clock className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Chờ Xét Duyệt:</strong> Coins từ câu hỏi thứ 11+ mỗi ngày (giới hạn 10 câu/ngày)</p>
+                  <Clock className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Chờ Duyệt Thanh Toán:</strong> Tổng Đã Kiếm - Sẵn Sàng - Đóng Băng - Đã Thanh Toán (cần admin duyệt từng phần)</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Lock className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Đóng Băng:</strong> Coins từ câu hỏi trùng lặp hoặc chỉ chào hỏi (không học hỏi kiến thức)</p>
+                  <p><strong>Đóng Băng:</strong> Coins từ câu hỏi trùng lặp, chào hỏi, spam (không được thanh toán)</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <DollarSign className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Đã Thanh Toán:</strong> Coins đã được chuyển khoản thành công cho user</p>
                 </div>
               </div>
-              <p className="text-xs text-purple-700 mt-3">
-                💡 Xem chi tiết tại <Link to={createPageUrl('WalletBreakdown')} className="underline font-bold">Wallet Breakdown</Link>
-              </p>
             </div>
           </div>
         </motion.div>
