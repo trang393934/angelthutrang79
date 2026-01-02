@@ -41,6 +41,9 @@ export default function Chat() {
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [duplicateQuestion, setDuplicateQuestion] = useState(null);
   const [pendingInput, setPendingInput] = useState('');
+  const [showRefineModal, setShowRefineModal] = useState(false);
+  const [refinedSuggestions, setRefinedSuggestions] = useState([]);
+  const [isRefining, setIsRefining] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const recognitionRef = useRef(null);
@@ -1746,9 +1749,146 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
           )}
         </AnimatePresence>
 
+        {/* Refine Modal */}
+        <AnimatePresence>
+          {showRefineModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setShowRefineModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-3xl w-full shadow-2xl my-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-lg">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-slate-900 text-2xl font-bold">AI Gợi Ý Cải Thiện</h3>
+                      <p className="text-emerald-700 text-sm font-medium">Tối ưu câu hỏi để nhận câu trả lời tốt nhất</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowRefineModal(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {isRefining ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-16 h-16 text-emerald-300 mx-auto mb-4 animate-spin" />
+                    <p className="text-slate-700 font-medium">AI đang phân tích và tạo gợi ý...</p>
+                  </div>
+                ) : refinedSuggestions.versions ? (
+                  <div className="space-y-6">
+                    {/* Original Message */}
+                    <div className="bg-slate-50 border-2 border-slate-300 rounded-2xl p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge className="bg-slate-200 text-slate-800 text-xs">📝 Câu Hỏi Gốc</Badge>
+                      </div>
+                      <p className="text-slate-900 font-medium leading-relaxed mb-3">{input}</p>
+                      {refinedSuggestions.original_analysis && (
+                        <div className="bg-white border border-slate-300 rounded-xl p-3 mt-3">
+                          <p className="text-slate-700 text-sm leading-relaxed">
+                            <strong className="text-slate-900">💡 Nhận xét:</strong> {refinedSuggestions.original_analysis}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Refined Versions */}
+                    {refinedSuggestions.versions.map((version, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="bg-gradient-to-br from-emerald-50 to-green-50 border-2 border-emerald-300 rounded-2xl p-5 hover:shadow-lg transition-all cursor-pointer"
+                        onClick={() => useRefinedVersion(version.text)}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <Badge className="bg-emerald-600 text-white text-xs">
+                            {version.label}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            className="bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-full text-xs h-7 shadow-md hover:shadow-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              useRefinedVersion(version.text);
+                            }}
+                          >
+                            ✓ Sử Dụng
+                          </Button>
+                        </div>
+                        <p className="text-slate-900 font-semibold leading-relaxed mb-3">{version.text}</p>
+                        <div className="bg-white/70 border border-emerald-300 rounded-xl p-3">
+                          <p className="text-emerald-800 text-sm">
+                            <strong>Lợi ích:</strong> {version.why}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
+
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowRefineModal(false);
+                        setRefinedSuggestions([]);
+                      }}
+                      className="w-full border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl py-4 font-semibold"
+                    >
+                      Giữ Nguyên Câu Hỏi Gốc
+                    </Button>
+                  </div>
+                ) : null}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Input */}
         <div className="fixed bottom-0 right-0 left-0 lg:left-64 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl pb-safe">
           <div className="max-w-4xl mx-auto p-4">
+            {/* AI Refine Helper - Show when typing */}
+            <AnimatePresence>
+              {input.trim().length > 10 && !isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-3"
+                >
+                  <Button
+                    onClick={refineMyMessage}
+                    disabled={isRefining}
+                    size="sm"
+                    variant="outline"
+                    className="border-2 border-emerald-300 text-emerald-700 hover:bg-emerald-50 rounded-full shadow-md hover:shadow-lg font-semibold"
+                  >
+                    {isRefining ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 mr-2" />
+                    )}
+                    AI Gợi Ý Cải Thiện Câu Hỏi ✨
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="flex items-end gap-2 md:gap-3">
               {!isVoiceMode && (
                 <Button
