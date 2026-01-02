@@ -96,6 +96,7 @@ export default function UserProfile() {
     (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
   );
   const validLogs = allUserLogs.filter(log => log.exclusion_reason === 'valid');
+  const pendingReviewLogs = allUserLogs.filter(log => log.coin_category === 'pending_review');
 
   // Fetch wallet address from multiple sources
   const { data: submissions = [] } = useQuery({
@@ -706,6 +707,17 @@ export default function UserProfile() {
               })()}
             </p>
             <p className="text-blue-600 text-xs mt-1">👁️ Câu 11+ hợp lệ</p>
+            
+            {pendingReviewLogs.length > 0 && (
+              <Button
+                onClick={() => setShowPendingReviewModal(true)}
+                className="w-full mt-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl shadow-md hover:shadow-lg"
+                size="sm"
+              >
+                <Eye className="w-4 h-4 mr-2" />
+                Xem {pendingReviewLogs.length} Câu Hỏi
+              </Button>
+            )}
           </div>
 
           {/* Tổng Đã Thanh Toán */}
