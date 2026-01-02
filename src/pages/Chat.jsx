@@ -905,6 +905,84 @@ Bắt đầu bằng: "Để hiểu sâu hơn về điều này..."`,
     }
   };
 
+  const refineMyMessage = async () => {
+    if (!input.trim() || isRefining) return;
+
+    setIsRefining(true);
+    setShowRefineModal(true);
+
+    try {
+      // Get conversation context
+      const recentContext = messages.slice(-3).map(m => 
+        `${m.role === 'user' ? 'Con' : 'Cha'}: ${m.content.substring(0, 150)}`
+      ).join('\n');
+
+      const refinement = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là AI trợ lý giúp cải thiện câu hỏi của người dùng để nhận được câu trả lời tốt nhất từ Angel AI.
+
+Context cuộc trò chuyện gần đây:
+${recentContext || 'Chưa có context'}
+
+Câu hỏi/tin nhắn gốc của người dùng:
+"${input}"
+
+Hãy tạo 3 phiên bản cải thiện của câu hỏi này:
+
+1. PHIÊN BẢN RÕ RÀNG HƠN:
+   - Làm rõ ý định câu hỏi
+   - Cấu trúc dễ hiểu hơn
+   - Bổ sung context nếu cần
+
+2. PHIÊN BẢN SÂU SẮC HƠN:
+   - Đào sâu vào khía cạnh tâm linh
+   - Kết nối với ý nghĩa cao hơn
+   - Tập trung vào insight
+
+3. PHIÊN BẢN CỤ THỂ HƠN:
+   - Thêm chi tiết, ví dụ
+   - Nêu rõ tình huống
+   - Hỏi về hướng dẫn thực hành
+
+Trả về JSON:`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            original_analysis: {
+              type: "string",
+              description: "Phân tích điểm mạnh/yếu của câu hỏi gốc"
+            },
+            versions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  label: { type: "string" },
+                  text: { type: "string" },
+                  why: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      setRefinedSuggestions(refinement);
+    } catch (error) {
+      setRefinedSuggestions({ 
+        original_analysis: 'Có lỗi khi phân tích. Vui lòng thử lại.',
+        versions: []
+      });
+    }
+
+    setIsRefining(false);
+  };
+
+  const useRefinedVersion = (refinedText) => {
+    setInput(refinedText);
+    setShowRefineModal(false);
+    setRefinedSuggestions([]);
+  };
+
   const generateImage = async () => {
     if (!imagePrompt.trim() || isGeneratingImage) return;
     
