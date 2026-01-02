@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -18,6 +18,7 @@ export default function UserProfile() {
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEliminatedModal, setShowEliminatedModal] = useState(false);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -57,6 +58,21 @@ export default function UserProfile() {
     queryFn: async () => {
       if (!targetEmail) return [];
       return base44.entities.CamlycoinTransaction.filter({ user_email: targetEmail }, '-created_date', 20);
+    },
+    enabled: !!targetEmail && !!isAdmin,
+  });
+
+  // Fetch eliminated audit logs (không phải valid)
+  const { data: eliminatedLogs = [] } = useQuery({
+    queryKey: ['eliminated-logs', targetEmail],
+    queryFn: async () => {
+      if (!targetEmail) return [];
+      const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 500);
+      return allLogs.filter(log => 
+        log.user_email === targetEmail && 
+        log.exclusion_reason !== 'valid' &&
+        (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
+      );
     },
     enabled: !!targetEmail && !!isAdmin,
   });
@@ -147,9 +163,99 @@ export default function UserProfile() {
       alert('✅ Audit hoàn tất! Đang tải lại dữ liệu...');
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['eliminated-logs'] });
     },
     onError: (error) => {
       alert('❌ Lỗi khi chạy audit: ' + error.message);
+    }
+  });
+
+  // Approve eliminated question mutation
+  const approveEliminatedMutation = useMutation({
+    mutationFn: async (logId) => {
+      const log = eliminatedLogs.find(l => l.id === logId);
+      if (!log) return;
+
+      // Move coins to available_balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        const currentAvailable = balance.available_balance || 0;
+        const currentFrozen = balance.frozen_balance || 0;
+        const currentPending = balance.pending_review_balance || 0;
+
+        if (log.coin_category === 'frozen') {
+          await base44.entities.CamlycoinBalance.update(balance.id, {
+            frozen_balance: Math.max(0, currentFrozen - log.coins_earned),
+            available_balance: currentAvailable + log.coins_earned
+          });
+        } else if (log.coin_category === 'pending_review') {
+          await base44.entities.CamlycoinBalance.update(balance.id, {
+            pending_review_balance: Math.max(0, currentPending - log.coins_earned),
+            available_balance: currentAvailable + log.coins_earned
+          });
+        }
+      }
+
+      // Update log
+      await base44.entities.QuestionAuditLog.update(logId, {
+        coin_category: 'pending_withdrawal',
+        exclusion_reason: 'valid'
+      });
+
+      // Create transaction
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `✅ Admin duyệt câu đã loại bỏ: "${log.question_text.substring(0, 50)}..."\n💰 +${log.coins_earned} → Available`,
+        processed_by: currentUser.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['eliminated-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      alert('✅ Đã duyệt thưởng câu hỏi!');
+    }
+  });
+
+  // Reject eliminated question mutation
+  const rejectEliminatedMutation = useMutation({
+    mutationFn: async (logId) => {
+      const log = eliminatedLogs.find(l => l.id === logId);
+      if (!log) return;
+
+      // If pending_review, move to frozen
+      if (log.coin_category === 'pending_review') {
+        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+        if (balances.length > 0) {
+          const balance = balances[0];
+          await base44.entities.CamlycoinBalance.update(balance.id, {
+            pending_review_balance: Math.max(0, (balance.pending_review_balance || 0) - log.coins_earned),
+            frozen_balance: (balance.frozen_balance || 0) + log.coins_earned
+          });
+        }
+
+        await base44.entities.QuestionAuditLog.update(logId, {
+          coin_category: 'frozen'
+        });
+      }
+
+      // Create transaction
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `❌ Admin từ chối câu đã loại bỏ: "${log.question_text.substring(0, 50)}..."\n💰 ${log.coins_earned} → Frozen`,
+        processed_by: currentUser.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['eliminated-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      alert('❌ Đã từ chối câu hỏi!');
     }
   });
 
@@ -455,12 +561,18 @@ export default function UserProfile() {
                 <p className="text-yellow-900 font-bold">{(userBalance.total_spent || 0).toLocaleString()}</p>
               </div>
 
-              {/* NEW: Coins bị loại bỏ sau audit */}
-              <div className="bg-red-50 rounded-xl p-3 border-2 border-red-400">
-                <p className="text-red-700 text-xs mb-1 font-semibold">❌ Đã Loại Bỏ Sau Audit:</p>
+              {/* NEW: Coins bị loại bỏ sau audit - CLICKABLE */}
+              <button
+                onClick={() => setShowEliminatedModal(true)}
+                className="bg-red-50 rounded-xl p-3 border-2 border-red-400 hover:bg-red-100 transition-all cursor-pointer w-full text-left"
+              >
+                <p className="text-red-700 text-xs mb-1 font-semibold flex items-center gap-1">
+                  ❌ Đã Loại Bỏ Sau Audit:
+                  <Eye className="w-3 h-3" />
+                </p>
                 <p className="text-red-900 font-bold">{((userBalance.total_earned || 0) - (userBalance.balance || 0) - (userBalance.paid_amount || 0)).toLocaleString()}</p>
-                <p className="text-red-600 text-[10px] mt-1">Không bao gồm frozen (frozen vẫn trong balance)</p>
-              </div>
+                <p className="text-red-600 text-[10px] mt-1">Click để xem chi tiết và duyệt lại</p>
+              </button>
             </div>
             <div className="mt-4 bg-white rounded-xl p-3 border border-yellow-300">
               <p className="text-yellow-800 text-xs font-semibold">
@@ -594,6 +706,144 @@ export default function UserProfile() {
             </Button>
           </motion.div>
         )}
+
+        {/* Eliminated Questions Modal */}
+        <AnimatePresence>
+          {showEliminatedModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setShowEliminatedModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-4xl w-full shadow-2xl my-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-slate-900 text-2xl font-bold">Câu Hỏi Đã Loại Bỏ</h3>
+                    <p className="text-slate-600 text-sm mt-1">
+                      {eliminatedLogs.length} câu hỏi • Click Duyệt để thêm vào Available Balance
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowEliminatedModal(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {eliminatedLogs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-16 h-16 text-green-300 mx-auto mb-4" />
+                    <p className="text-slate-700 font-medium">Không có câu hỏi nào bị loại bỏ</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    {eliminatedLogs.map((log, idx) => (
+                      <motion.div
+                        key={log.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className={`border-2 rounded-2xl p-5 ${
+                          log.coin_category === 'frozen' 
+                            ? 'bg-red-50 border-red-300' 
+                            : 'bg-blue-50 border-blue-300'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge className={
+                                log.coin_category === 'frozen' 
+                                  ? 'bg-red-100 text-red-800 border border-red-300' 
+                                  : 'bg-blue-100 text-blue-800 border border-blue-300'
+                              }>
+                                {log.coin_category === 'frozen' ? '❄️ Frozen' : '⏳ Pending Review'}
+                              </Badge>
+                              <Badge className={
+                                log.exclusion_reason === 'duplicate' ? 'bg-orange-100 text-orange-800' :
+                                log.exclusion_reason === 'greeting' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-purple-100 text-purple-800'
+                              }>
+                                {log.exclusion_reason === 'duplicate' ? '🔄 Duplicate' :
+                                 log.exclusion_reason === 'greeting' ? '👋 Greeting' :
+                                 log.exclusion_reason === 'exceeds_daily_limit' ? '📊 Câu 11+' :
+                                 log.exclusion_reason}
+                              </Badge>
+                              <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
+                                🪙 {log.coins_earned?.toLocaleString()} Camlycoin
+                              </Badge>
+                            </div>
+
+                            <p className="text-slate-900 font-semibold mb-2 break-words leading-relaxed">
+                              {log.question_text}
+                            </p>
+
+                            <div className="flex flex-wrap gap-2 text-xs text-slate-600 mb-2">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(log.question_date).toLocaleString('vi-VN')}
+                              </span>
+                              <span className="font-bold">
+                                Câu #{log.question_number_in_day} của ngày
+                              </span>
+                            </div>
+
+                            {log.similar_to_question && (
+                              <div className="bg-white/80 border border-orange-300 rounded-xl p-3 mt-2">
+                                <p className="text-orange-900 text-xs font-semibold mb-1">
+                                  Tương tự ({((log.similarity_score || 0) * 100).toFixed(0)}%):
+                                </p>
+                                <p className="text-orange-800 text-sm italic">"{log.similar_to_question}"</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            onClick={() => approveEliminatedMutation.mutate(log.id)}
+                            disabled={approveEliminatedMutation.isPending}
+                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
+                          >
+                            {approveEliminatedMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                            )}
+                            Duyệt Thưởng
+                          </Button>
+                          <Button
+                            onClick={() => rejectEliminatedMutation.mutate(log.id)}
+                            disabled={rejectEliminatedMutation.isPending}
+                            className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
+                          >
+                            {rejectEliminatedMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <XCircle className="w-4 h-4 mr-2" />
+                            )}
+                            Từ Chối
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Payment Modal */}
         <AnimatePresence>
