@@ -132,6 +132,60 @@ export default function UserProfile() {
     }
   };
 
+  // Approve unpaid amount mutation
+  const approveUnpaidMutation = useMutation({
+    mutationFn: async () => {
+      if (!userBalance) return;
+      
+      const unpaidAmount = userBalance.unpaid_amount || 0;
+      if (unpaidAmount <= 0) return;
+
+      await base44.entities.CamlycoinBalance.update(userBalance.id, {
+        unpaid_amount: 0,
+        available_balance: (userBalance.available_balance || 0) + unpaidAmount
+      });
+
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `✅ Admin duyệt ${unpaidAmount.toLocaleString()} Camlycoin từ 1/1/2026 → Sẵn Sàng Thanh Toán`,
+        processed_by: currentUser.email
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      alert('✅ Đã duyệt thanh toán!');
+    }
+  });
+
+  // Reject unpaid amount mutation
+  const rejectUnpaidMutation = useMutation({
+    mutationFn: async () => {
+      if (!userBalance) return;
+      
+      const unpaidAmount = userBalance.unpaid_amount || 0;
+      if (unpaidAmount <= 0) return;
+
+      await base44.entities.CamlycoinBalance.update(userBalance.id, {
+        unpaid_amount: 0,
+        frozen_balance: (userBalance.frozen_balance || 0) + unpaidAmount
+      });
+
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `❌ Admin từ chối ${unpaidAmount.toLocaleString()} Camlycoin từ 1/1/2026 → Đóng Băng`,
+        processed_by: currentUser.email
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      alert('❌ Đã từ chối thanh toán!');
+    }
+  });
+
   // Mark as paid mutation
   const markAsPaidMutation = useMutation({
     mutationFn: async (amount) => {
@@ -641,6 +695,64 @@ export default function UserProfile() {
                   </Button>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Unpaid Amount Section - Admin Approval */}
+        {userBalance && (userBalance.unpaid_amount || 0) > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-gradient-to-br from-orange-500 to-amber-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <Clock className="w-8 h-8 text-white" />
+                <div>
+                  <h3 className="text-white text-xl font-bold">Chờ Duyệt Thanh Toán</h3>
+                  <p className="text-white/80 text-xs">Coins từ 1/1/2026 cần admin duyệt</p>
+                </div>
+              </div>
+              <p className="text-white text-4xl font-bold">
+                {(userBalance.unpaid_amount || 0).toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 mb-4">
+              <p className="text-white text-sm font-semibold mb-2">📊 Coins kiếm được từ 1/1/2026</p>
+              <p className="text-white/90 text-xs">
+                💡 Cần admin duyệt trước khi chuyển vào "Sẵn Sàng Thanh Toán"
+              </p>
+            </div>
+
+            {/* Admin Approval Buttons */}
+            <div className="flex gap-3">
+              <Button
+                onClick={() => approveUnpaidMutation.mutate()}
+                disabled={approveUnpaidMutation.isPending}
+                className="flex-1 bg-white text-green-600 rounded-2xl font-bold py-6 text-lg hover:bg-green-50 shadow-lg hover:shadow-xl"
+              >
+                {approveUnpaidMutation.isPending ? (
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                )}
+                Duyệt Thanh Toán
+              </Button>
+              <Button
+                onClick={() => rejectUnpaidMutation.mutate()}
+                disabled={rejectUnpaidMutation.isPending}
+                variant="outline"
+                className="flex-1 bg-white/20 border-2 border-white text-white rounded-2xl font-bold py-6 text-lg hover:bg-white/30 shadow-lg hover:shadow-xl backdrop-blur-sm"
+              >
+                {rejectUnpaidMutation.isPending ? (
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                ) : (
+                  <XCircle className="w-5 h-5 mr-2" />
+                )}
+                Từ Chối
+              </Button>
             </div>
           </motion.div>
         )}
