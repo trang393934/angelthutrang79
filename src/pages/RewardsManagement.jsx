@@ -1322,6 +1322,141 @@ export default function RewardsManagement() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* AI Analysis Modal */}
+        <AnimatePresence>
+          {showAIAnalysis && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setShowAIAnalysis(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-6xl w-full shadow-2xl my-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-slate-900 text-2xl font-bold flex items-center gap-2">
+                      🤖 AI Reward Analysis
+                    </h3>
+                    <p className="text-slate-600 text-sm mt-1">
+                      {aiRecommendations.length} users được phân tích
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowAIAnalysis(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                  {aiRecommendations.map((rec, index) => {
+                    const recommendationColors = {
+                      bonus: 'from-green-500 to-emerald-500',
+                      watch: 'from-yellow-500 to-orange-500',
+                      normal: 'from-blue-500 to-indigo-500',
+                      freeze: 'from-red-500 to-rose-500'
+                    };
+                    const riskColors = {
+                      low: 'bg-green-100 text-green-800 border-green-300',
+                      medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                      high: 'bg-red-100 text-red-800 border-red-300'
+                    };
+
+                    return (
+                      <motion.div
+                        key={rec.user_email}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="bg-white border-2 border-purple-200 rounded-2xl p-5"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-3 flex-wrap">
+                              <p className="text-slate-900 font-bold">{rec.user_email}</p>
+                              <Badge className={`bg-gradient-to-r ${recommendationColors[rec.analysis.recommendation]} text-white border-0`}>
+                                {rec.analysis.recommendation.toUpperCase()}
+                              </Badge>
+                              <Badge className={riskColors[rec.analysis.risk_level]}>
+                                Risk: {rec.analysis.risk_level}
+                              </Badge>
+                              <Badge className="bg-indigo-100 text-indigo-800 border-indigo-300">
+                                Quality: {rec.analysis.quality_score}/10
+                              </Badge>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3 text-xs">
+                              <div className="bg-purple-50 rounded-lg p-2">
+                                <p className="text-purple-600 font-semibold">Earned</p>
+                                <p className="text-purple-900 font-bold">{rec.current_metrics.total_earned.toLocaleString()}</p>
+                              </div>
+                              <div className="bg-amber-50 rounded-lg p-2">
+                                <p className="text-amber-600 font-semibold">Streak</p>
+                                <p className="text-amber-900 font-bold">{rec.current_metrics.streak_days} days</p>
+                              </div>
+                              <div className="bg-green-50 rounded-lg p-2">
+                                <p className="text-green-600 font-semibold">Quality</p>
+                                <p className="text-green-900 font-bold">{rec.current_metrics.quality_feedback}</p>
+                              </div>
+                              <div className="bg-red-50 rounded-lg p-2">
+                                <p className="text-red-600 font-semibold">Frozen</p>
+                                <p className="text-red-900 font-bold">{rec.current_metrics.frozen_balance.toLocaleString()}</p>
+                              </div>
+                            </div>
+
+                            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 mb-3">
+                              <p className="text-slate-700 text-sm">
+                                <strong>AI Reason:</strong> {rec.analysis.reason}
+                              </p>
+                            </div>
+
+                            {rec.analysis.suggested_actions && rec.analysis.suggested_actions.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-3">
+                                {rec.analysis.suggested_actions.map((action, idx) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    💡 {action}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {rec.analysis.bonus_amount > 0 && (
+                          <div className="flex items-center justify-between bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4">
+                            <div>
+                              <p className="text-green-900 font-bold text-lg">
+                                Bonus: {rec.analysis.bonus_amount.toLocaleString()} Camlycoin
+                              </p>
+                            </div>
+                            <Button
+                              onClick={() => applyAIRecommendation(rec)}
+                              className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                            >
+                              <Sparkles className="w-4 h-4 mr-2" />
+                              Áp Dụng Thưởng
+                            </Button>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
