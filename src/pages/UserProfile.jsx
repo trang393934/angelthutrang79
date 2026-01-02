@@ -546,7 +546,7 @@ export default function UserProfile() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
         >
           {/* Tổng Đã Kiếm */}
           <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-xl border-2 border-white">
@@ -560,16 +560,28 @@ export default function UserProfile() {
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          {/* Tổng Chưa Thanh Toán */}
+          {/* Sẵn Sàng Thanh Toán */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-amber-500" />
-              <span className="text-slate-700 text-xs font-medium">Tổng Chưa Thanh Toán</span>
+              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {((userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0)).toLocaleString()}
+              {(userBalance?.available_balance || 0).toLocaleString()}
             </p>
-            <p className="text-amber-600 text-xs mt-1">⏳ Sẵn sàng + Chờ duyệt</p>
+            <p className="text-amber-600 text-xs mt-1">⏳ 10 câu đầu/ngày</p>
+          </div>
+
+          {/* Chờ Duyệt Thanh Toán */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-300 rounded-3xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <Eye className="w-6 h-6 text-blue-500" />
+              <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
+            </div>
+            <p className="text-slate-900 text-3xl font-bold break-words">
+              {(userBalance?.pending_review_balance || 0).toLocaleString()}
+            </p>
+            <p className="text-blue-600 text-xs mt-1">👁️ Câu 11+ hợp lệ</p>
           </div>
 
           {/* Tổng Đã Thanh Toán */}
