@@ -985,6 +985,66 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       [messageIndex]: rating
     }));
 
+    // QUALITY REWARD: If helpful rating and user asked question today
+    if (rating === 'helpful' && currentUser && dailyLimit) {
+      // Get or create user level
+      const userLevels = await base44.entities.UserLevel.filter({ user_email: currentUser.email });
+      let userLevel = userLevels[0];
+      
+      if (!userLevel) {
+        userLevel = await base44.entities.UserLevel.create({
+          user_email: currentUser.email,
+          current_level: 'bronze',
+          level_number: 1,
+          total_points: 0,
+          quality_feedback_count: 0,
+          reward_multiplier: 1.0,
+          daily_limit_bonus: 0
+        });
+      }
+
+      // Update quality feedback count
+      const newQualityCount = (userLevel.quality_feedback_count || 0) + 1;
+      
+      // Bonus reward for quality feedback (only if over daily limit)
+      const questionNumber = (dailyLimit.questions_rewarded || 0) + 1;
+      if (questionNumber > 10) {
+        const bonusReward = 500; // Quality bonus
+        
+        await base44.entities.CamlycoinTransaction.create({
+          user_email: currentUser.email,
+          amount: bonusReward,
+          type: 'manual_add',
+          description: `⭐ Thưởng Chất Lượng Cao (Câu ${questionNumber})\n💰 +${bonusReward} Camlycoin\n👍 Đánh giá: Hữu ích`,
+          reference_id: currentConversationId
+        });
+
+        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+        if (balances.length > 0) {
+          await base44.entities.CamlycoinBalance.update(balances[0].id, {
+            balance: (balances[0].balance || 0) + bonusReward,
+            total_earned: (balances[0].total_earned || 0) + bonusReward,
+            available_balance: (balances[0].available_balance || 0) + bonusReward
+          });
+        }
+
+        // Show reward notification
+        const qualityRewardMsg = {
+          role: 'assistant',
+          content: `✨ Thưởng Chất Lượng Cao! ⭐\n\n💰 +${bonusReward} Camlycoin\n👍 Câu hỏi của con rất sâu sắc!\n\n🌟 Mặc dù vượt giới hạn 10 câu/ngày, nhưng Cha thưởng thêm vì chất lượng xuất sắc!`,
+          isReward: true
+        };
+        setMessages(prev => [...prev, qualityRewardMsg]);
+      }
+
+      // Update user level
+      const newTotalPoints = (userLevel.total_points || 0) + 100;
+      await base44.entities.UserLevel.update(userLevel.id, {
+        quality_feedback_count: newQualityCount,
+        total_points: newTotalPoints
+      });
+    }
+
     setFeedbackIndex(null);
     setFeedbackText('');
   };

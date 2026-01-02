@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { AnimatePresence } from 'framer-motion';
+import LevelProgressCard from '@/components/LevelProgressCard';
 
 // My Rank Component
 function MyRankCard({ targetEmail }) {
@@ -152,6 +153,22 @@ export default function UserProfile() {
   );
   const validLogs = allUserLogs.filter(log => log.exclusion_reason === 'valid');
   const pendingReviewLogs = allUserLogs.filter(log => log.coin_category === 'pending_review');
+
+  // Fetch user level
+  const { data: userLevel } = useQuery({
+    queryKey: ['user-level', targetEmail],
+    queryFn: async () => {
+      if (!targetEmail) return null;
+      const levels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
+      if (levels.length > 0) return levels[0];
+      
+      // Auto-create if not exists
+      await base44.functions.invoke('updateUserLevel', { userEmail: targetEmail });
+      const newLevels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
+      return newLevels[0] || null;
+    },
+    enabled: !!targetEmail && !!isAdmin,
+  });
 
   // Fetch wallet address from multiple sources
   const { data: submissions = [] } = useQuery({
@@ -677,6 +694,11 @@ export default function UserProfile() {
 
         {/* My Rank Card */}
         <MyRankCard targetEmail={targetEmail} />
+
+        {/* Level Progress */}
+        {userLevel && (
+          <LevelProgressCard userLevel={userLevel} />
+        )}
 
         {/* Balance Overview - NEW LOGIC */}
         <motion.div

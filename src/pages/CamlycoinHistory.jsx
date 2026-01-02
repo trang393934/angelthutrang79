@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, History, Filter, Calendar, Search, TrendingUp, TrendingDown, DollarSign, Award, Plus, Minus, Download, X } from 'lucide-react';
+import { ArrowLeft, History, Filter, Calendar, Search, TrendingUp, TrendingDown, DollarSign, Award, Plus, Minus, Download, X, Zap, Star, ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +9,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import LevelProgressCard from '@/components/LevelProgressCard';
 
 export default function CamlycoinHistory() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -30,6 +31,22 @@ export default function CamlycoinHistory() {
       if (!currentUser) return null;
       const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
       return balances[0] || null;
+    },
+    enabled: !!currentUser,
+  });
+
+  // Fetch user level
+  const { data: userLevel } = useQuery({
+    queryKey: ['user-level', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return null;
+      const levels = await base44.entities.UserLevel.filter({ user_email: currentUser.email });
+      if (levels.length > 0) return levels[0];
+      
+      // Auto-create if not exists
+      await base44.functions.invoke('updateUserLevel', { userEmail: currentUser.email });
+      const newLevels = await base44.entities.UserLevel.filter({ user_email: currentUser.email });
+      return newLevels[0] || null;
     },
     enabled: !!currentUser,
   });
@@ -103,6 +120,16 @@ export default function CamlycoinHistory() {
     purchase: { label: 'Mua', icon: TrendingDown, color: 'bg-orange-100 text-orange-800' }
   };
 
+  // Parse energy scores from transaction descriptions
+  const parseEnergyScore = (description) => {
+    const match = description.match(/\((-?\d+)\/30\)/);
+    return match ? parseInt(match[1]) : null;
+  };
+
+  const isQualityReward = (description) => {
+    return description.includes('Thưởng Chất Lượng Cao') || description.includes('⭐');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 relative">
       {/* Background */}
@@ -147,10 +174,16 @@ export default function CamlycoinHistory() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
+        {/* Level Progress */}
+        {userLevel && (
+          <LevelProgressCard userLevel={userLevel} />
+        )}
+
         {/* Balance Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -389,11 +422,23 @@ export default function CamlycoinHistory() {
                             <Badge className={typeInfo.color}>
                               {typeInfo.label}
                             </Badge>
+                            {isQualityReward(tx.description) && (
+                              <Badge className="bg-amber-100 text-amber-800 border border-amber-400">
+                                <ThumbsUp className="w-3 h-3 mr-1" />
+                                Quality Bonus
+                              </Badge>
+                            )}
+                            {parseEnergyScore(tx.description) !== null && (
+                              <Badge className="bg-indigo-100 text-indigo-800 border border-indigo-400">
+                                <Zap className="w-3 h-3 mr-1" />
+                                {parseEnergyScore(tx.description)}/30 Energy
+                              </Badge>
+                            )}
                             <span className="text-xs text-slate-500">
                               {format(new Date(tx.created_date), 'dd/MM/yyyy HH:mm')}
                             </span>
                           </div>
-                          <p className="text-slate-900 font-medium mb-1 break-words">{tx.description}</p>
+                          <p className="text-slate-900 font-medium mb-1 break-words whitespace-pre-line">{tx.description}</p>
                           {tx.processed_by && (
                             <p className="text-xs text-purple-600">
                               Xử lý bởi: {tx.processed_by}
