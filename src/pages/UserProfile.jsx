@@ -700,91 +700,45 @@ export default function UserProfile() {
           <LevelProgressCard userLevel={userLevel} />
         )}
 
-        {/* Balance Overview - NEW LOGIC */}
+        {/* Balance Overview - CHÍNH XÁC TUYỆT ĐỐI */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
         >
-          {/* Tổng Đã Kiếm */}
+          {/* Tổng Đã Kiếm - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-xl border-2 border-white">
             <div className="flex items-center gap-3 mb-2">
               <Coins className="w-6 h-6 text-white" />
               <span className="text-white/90 text-xs font-medium">Tổng Đã Kiếm</span>
             </div>
             <p className="text-white text-3xl font-bold break-words">
-              {(() => {
-                const activityRewards = transactions.filter(tx => 
-                  tx.amount > 0 && 
-                  tx.type !== 'manual_add' && 
-                  (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
-                ).reduce((sum, tx) => sum + tx.amount, 0);
-
-                const frozen = userBalance?.frozen_balance || 0;
-                const available = userBalance?.available_balance || 0;
-                const pending = userBalance?.pending_review_balance || 0;
-                const paid = userBalance?.paid_amount || 0;
-                const total_earned = userBalance?.total_earned || 0;
-
-                const calculated = activityRewards + frozen + available + paid + pending;
-                const difference = Math.max(0, total_earned - calculated);
-
-                // Tổng Đã Kiếm = Frozen + (Available + Activity) + Paid + (Pending + difference)
-                const readyForPayment = available + activityRewards;
-                const pendingReview = pending + difference;
-
-                return (frozen + readyForPayment + paid + pendingReview).toLocaleString();
-              })()}
+              {(userBalance?.total_earned || 0).toLocaleString()}
             </p>
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          {/* Sẵn Sàng Thanh Toán */}
+          {/* Sẵn Sàng Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-amber-500" />
               <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(() => {
-                const activityRewards = transactions.filter(tx => 
-                  tx.amount > 0 && 
-                  tx.type !== 'manual_add' && 
-                  (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
-                ).reduce((sum, tx) => sum + tx.amount, 0);
-
-                return ((userBalance?.available_balance || 0) + activityRewards).toLocaleString();
-              })()}
+              {(userBalance?.available_balance || 0).toLocaleString()}
             </p>
-            <p className="text-amber-600 text-xs mt-1">⏳ 10 câu đầu/ngày + Thưởng hoạt động</p>
+            <p className="text-amber-600 text-xs mt-1">⏳ Admin sẽ thanh toán ngày 1/10/20</p>
           </div>
 
-          {/* Chờ Duyệt Thanh Toán */}
+          {/* Chờ Duyệt Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Eye className="w-6 h-6 text-blue-500" />
               <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(() => {
-                const activityRewards = transactions.filter(tx => 
-                  tx.amount > 0 && 
-                  tx.type !== 'manual_add' && 
-                  (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
-                ).reduce((sum, tx) => sum + tx.amount, 0);
-
-                const frozen = userBalance?.frozen_balance || 0;
-                const available = userBalance?.available_balance || 0;
-                const pending = userBalance?.pending_review_balance || 0;
-                const paid = userBalance?.paid_amount || 0;
-                const total_earned = userBalance?.total_earned || 0;
-
-                const calculated = activityRewards + frozen + available + paid + pending;
-                const difference = Math.max(0, total_earned - calculated);
-
-                return (pending + difference).toLocaleString();
-              })()}
+              {(userBalance?.pending_review_balance || 0).toLocaleString()}
             </p>
             <p className="text-blue-600 text-xs mt-1">👁️ Câu 11+ hợp lệ</p>
             
@@ -800,7 +754,7 @@ export default function UserProfile() {
             )}
           </div>
 
-          {/* Tổng Đã Thanh Toán */}
+          {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <CheckCircle2 className="w-6 h-6 text-green-500" />
@@ -812,7 +766,7 @@ export default function UserProfile() {
             <p className="text-green-600 text-xs mt-1">✅ Admin đã chuyển</p>
           </div>
 
-          {/* Tổng Bị Đóng Băng */}
+          {/* Tổng Bị Đóng Băng - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-red-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Activity className="w-6 h-6 text-red-500" />
@@ -821,23 +775,19 @@ export default function UserProfile() {
             <p className="text-slate-900 text-3xl font-bold break-words">
               {(userBalance?.frozen_balance || 0).toLocaleString()}
             </p>
-            <p className="text-red-600 text-xs mt-1">❄️ Câu 11+ trùng/chào</p>
+            <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
           </div>
 
-          {/* Thưởng Hoạt Động Khác */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-pink-300 rounded-3xl p-6 shadow-lg">
+          {/* Chưa Duyệt (1/1/2026) - TRỰC TIẾP TỪ DATABASE */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <Gift className="w-6 h-6 text-pink-500" />
-              <span className="text-slate-700 text-xs font-medium">Thưởng Hoạt Động</span>
+              <Clock className="w-6 h-6 text-orange-500" />
+              <span className="text-slate-700 text-xs font-medium">Chưa Duyệt (1/1/2026)</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(transactions.filter(tx => 
-                tx.amount > 0 && 
-                tx.type !== 'manual_add' && 
-                (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
-              ).reduce((sum, tx) => sum + tx.amount, 0)).toLocaleString()}
+              {(userBalance?.unpaid_amount || 0).toLocaleString()}
             </p>
-            <p className="text-pink-600 text-xs mt-1">🎁 Bounty, Build, Community</p>
+            <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
           </div>
         </motion.div>
 
