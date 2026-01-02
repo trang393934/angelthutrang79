@@ -309,21 +309,21 @@ Trả lời bằng tiếng Việt:`,
                       )}
                     </Button>
                   </div>
-                  {messages.length > 1 && (
-                    <Button
-                      onClick={() => {
+                  <Button
+                    onClick={() => {
+                      if (messages.length > 1) {
                         setMessages([{
                           role: 'assistant',
                           content: '👋 Xin chào! Tôi là trợ lý AI của Angel AI. Tôi có thể giúp gì cho bạn hôm nay?'
                         }]);
-                        setIsOpen(false);
-                      }}
-                      variant="outline"
-                      className="w-full border-2 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl text-sm font-semibold"
-                    >
-                      ✅ Kết thúc hội thoại
-                    </Button>
-                  )}
+                      }
+                      setIsOpen(false);
+                    }}
+                    variant="outline"
+                    className="w-full border-2 border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl text-sm font-semibold"
+                  >
+                    {messages.length > 1 ? '✅ Kết thúc hội thoại' : '❌ Đóng'}
+                  </Button>
                 </div>
               </>
             )}
