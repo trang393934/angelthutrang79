@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music, PenTool, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music, PenTool, Lightbulb, Upload, BookOpen, HelpCircle, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,8 +24,19 @@ export default function AITools() {
   const [melodyDescription, setMelodyDescription] = useState('');
   const [musicMessages, setMusicMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
+  const [quizTopic, setQuizTopic] = useState('');
+  const [quizCount, setQuizCount] = useState(5);
+  const [generatedQuiz, setGeneratedQuiz] = useState(null);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [aiSuggestion, setAiSuggestion] = useState('');
+  const fileInputRef = useRef(null);
 
   const tabs = [
+    { id: 'upload', label: 'Phân Tích File', icon: Upload, gradient: 'from-cyan-400 to-blue-500' },
+    { id: 'quiz', label: 'Tạo Quiz', icon: HelpCircle, gradient: 'from-pink-400 to-rose-500' },
+    { id: 'assist', label: 'AI Gợi Ý', icon: Edit3, gradient: 'from-emerald-400 to-green-500' },
     { id: 'create', label: 'Tạo Nội Dung', icon: PenTool, gradient: 'from-indigo-400 to-purple-400' },
     { id: 'ideas', label: 'Gợi Ý Ý Tưởng', icon: Lightbulb, gradient: 'from-yellow-400 to-amber-400' },
     { id: 'summarize', label: 'Tóm Tắt Văn Bản', icon: FileText, gradient: 'from-blue-400 to-cyan-400' },
@@ -424,8 +435,172 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
     setIsLoading(false);
   };
 
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsUploadingFile(true);
+    setResult('');
+
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setUploadedFile({ name: file.name, url: file_url });
+
+      // Analyze file content
+      const analysis = await base44.integrations.Core.InvokeLLM({
+        prompt: `Hãy phân tích và tóm tắt chi tiết tài liệu này:
+
+Yêu cầu phân tích:
+
+1. TÓM TẮT TỔNG QUAN
+   - Chủ đề chính
+   - Mục đích tài liệu
+   - Đối tượng hướng đến
+
+2. NỘI DUNG CHI TIẾT
+   - Các ý chính quan trọng
+   - Thông tin, dữ liệu nổi bật
+   - Cấu trúc tài liệu
+
+3. INSIGHTS & PHÂN TÍCH
+   - Điểm mạnh của tài liệu
+   - Thông tin giá trị nhất
+   - Góc nhìn độc đáo
+
+4. ỨNG DỤNG THỰC TẾ
+   - Cách áp dụng kiến thức này
+   - Các bước hành động gợi ý
+   - Lưu ý khi áp dụng
+
+Trả lời bằng tiếng Việt, chi tiết và có cấu trúc rõ ràng.`,
+        file_urls: [file_url]
+      });
+
+      setResult(analysis);
+    } catch (error) {
+      setResult('❌ Có lỗi khi phân tích file. Vui lòng thử lại.');
+    }
+
+    setIsUploadingFile(false);
+  };
+
+  const handleGenerateQuiz = async () => {
+    if (!quizTopic.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setGeneratedQuiz(null);
+    setResult('');
+
+    try {
+      const baseContent = uploadedFile 
+        ? `Dựa trên tài liệu đã upload về "${quizTopic}"` 
+        : `Dựa trên chủ đề "${quizTopic}"`;
+
+      const quiz = await base44.integrations.Core.InvokeLLM({
+        prompt: `Hãy tạo một bài kiểm tra/quiz ${baseContent}.
+
+Yêu cầu:
+- Tạo ${quizCount} câu hỏi
+- Mỗi câu có 4 đáp án (A, B, C, D)
+- Đánh dấu rõ đáp án đúng
+- Giải thích chi tiết tại sao đáp án đó đúng
+- Câu hỏi từ dễ đến khó
+- Bao quát nhiều khía cạnh của chủ đề
+
+Trả về JSON:`,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            title: { type: "string" },
+            description: { type: "string" },
+            questions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  question: { type: "string" },
+                  options: {
+                    type: "object",
+                    properties: {
+                      A: { type: "string" },
+                      B: { type: "string" },
+                      C: { type: "string" },
+                      D: { type: "string" }
+                    }
+                  },
+                  correct_answer: { type: "string" },
+                  explanation: { type: "string" },
+                  difficulty: { type: "string" }
+                }
+              }
+            }
+          }
+        },
+        file_urls: uploadedFile ? [uploadedFile.url] : undefined
+      });
+
+      setGeneratedQuiz(quiz);
+      setResult('Quiz đã được tạo thành công!');
+    } catch (error) {
+      setResult('❌ Có lỗi khi tạo quiz. Vui lòng thử lại.');
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleAISuggest = async () => {
+    if (!userAnswer.trim() || isLoading) return;
+
+    setIsLoading(true);
+    setAiSuggestion('');
+
+    try {
+      const suggestion = await base44.integrations.Core.InvokeLLM({
+        prompt: `Bạn là một giáo viên/cố vấn chuyên nghiệp. Hãy gợi ý cải thiện cho câu trả lời sau:
+
+Câu trả lời của học viên:
+${userAnswer}
+
+Hãy:
+1. CHỈ RA ĐIỂM TỐT:
+   - Những gì học viên đã làm đúng
+   - Điểm mạnh trong câu trả lời
+
+2. GỢI Ý CẢI THIỆN:
+   - Những điểm cần bổ sung
+   - Cách diễn đạt tốt hơn
+   - Thông tin thiếu sót
+
+3. ĐỀ XUẤT CÂU TRẢ LỜI MẪU:
+   - Cách trả lời hoàn chỉnh hơn
+   - Cấu trúc rõ ràng
+   - Ngôn từ chuyên nghiệp
+
+4. KIẾN THỨC BỔ SUNG:
+   - Thông tin liên quan hữu ích
+   - Nguồn tham khảo (nếu có)
+
+Giọng điệu: Khuyến khích, hỗ trợ, không phán xét
+Ngôn ngữ: Tiếng Việt, dễ hiểu`,
+      });
+
+      setAiSuggestion(suggestion);
+      setResult(suggestion);
+    } catch (error) {
+      setResult('❌ Có lỗi khi tạo gợi ý. Vui lòng thử lại.');
+    }
+
+    setIsLoading(false);
+  };
+
   const handleProcess = () => {
     switch (activeTab) {
+      case 'quiz':
+        handleGenerateQuiz();
+        break;
+      case 'assist':
+        handleAISuggest();
+        break;
       case 'create':
         handleCreate();
         break;
@@ -559,16 +734,104 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             <div>
               <h3 className="text-slate-900 font-bold text-lg">{currentTab?.label}</h3>
               <p className="text-purple-700 text-sm font-medium">
-                {activeTab === 'create' && 'Nhập chủ đề để AI tạo nội dung hoàn chỉnh'}
-                {activeTab === 'ideas' && 'Nhập chủ đề để AI gợi ý các ý tưởng nội dung sáng tạo'}
-                {activeTab === 'summarize' && 'Nhập văn bản dài để AI tóm tắt ngắn gọn'}
-                {activeTab === 'translate' && 'Nhập văn bản để AI dịch sang ngôn ngữ khác'}
-                {activeTab === 'analyze' && 'Nhập dữ liệu để AI phân tích và đưa ra insight'}
-                {activeTab === 'tag' && 'Nhập tài liệu để AI tự động phân loại và gắn thẻ'}
-                {activeTab === 'music' && 'Mô tả chủ đề hoặc cảm xúc để AI sáng tác lời bài hát'}
+              {activeTab === 'upload' && 'Tải lên file để AI phân tích và tóm tắt nội dung'}
+              {activeTab === 'quiz' && 'Tạo câu hỏi luyện tập từ chủ đề hoặc tài liệu'}
+              {activeTab === 'assist' && 'Nhận gợi ý và chỉnh sửa từ AI cho câu trả lời của bạn'}
+              {activeTab === 'create' && 'Nhập chủ đề để AI tạo nội dung hoàn chỉnh'}
+              {activeTab === 'ideas' && 'Nhập chủ đề để AI gợi ý các ý tưởng nội dung sáng tạo'}
+              {activeTab === 'summarize' && 'Nhập văn bản dài để AI tóm tắt ngắn gọn'}
+              {activeTab === 'translate' && 'Nhập văn bản để AI dịch sang ngôn ngữ khác'}
+              {activeTab === 'analyze' && 'Nhập dữ liệu để AI phân tích và đưa ra insight'}
+              {activeTab === 'tag' && 'Nhập tài liệu để AI tự động phân loại và gắn thẻ'}
+              {activeTab === 'music' && 'Mô tả chủ đề hoặc cảm xúc để AI sáng tác lời bài hát'}
               </p>
             </div>
           </div>
+
+          {activeTab === 'upload' && (
+            <div className="mb-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                className="hidden"
+              />
+              <Button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingFile}
+                className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-2xl py-6 font-bold shadow-lg hover:shadow-xl"
+              >
+                {isUploadingFile ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Đang Tải Lên...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5 mr-2" />
+                    {uploadedFile ? 'Đổi File Khác' : 'Tải Lên File (PDF, DOC, TXT, Image)'}
+                  </>
+                )}
+              </Button>
+              {uploadedFile && (
+                <div className="mt-3 bg-cyan-50 border-2 border-cyan-300 rounded-xl p-3">
+                  <p className="text-cyan-900 font-semibold text-sm flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    {uploadedFile.name}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'quiz' && (
+            <div className="space-y-4 mb-4">
+              <div>
+                <label className="text-slate-900 text-sm font-semibold mb-2 block">Chủ đề Quiz:</label>
+                <input
+                  type="text"
+                  value={quizTopic}
+                  onChange={(e) => setQuizTopic(e.target.value)}
+                  placeholder="Nhập chủ đề hoặc sử dụng file đã upload..."
+                  className="w-full bg-white border-2 border-pink-300 text-slate-900 placeholder:text-pink-300 rounded-xl px-4 py-3 focus:border-pink-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-slate-900 text-sm font-semibold mb-2 block">Số câu hỏi:</label>
+                <Select value={quizCount.toString()} onValueChange={(v) => setQuizCount(parseInt(v))}>
+                  <SelectTrigger className="bg-white border-2 border-pink-300 text-slate-900 rounded-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 câu</SelectItem>
+                    <SelectItem value="10">10 câu</SelectItem>
+                    <SelectItem value="15">15 câu</SelectItem>
+                    <SelectItem value="20">20 câu</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {uploadedFile && (
+                <div className="bg-pink-50 border-2 border-pink-300 rounded-xl p-3">
+                  <p className="text-pink-900 font-semibold text-sm">
+                    📄 Sẽ tạo quiz từ: {uploadedFile.name}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'assist' && (
+            <div className="mb-4">
+              <label className="text-slate-900 text-sm font-semibold mb-2 block">Câu trả lời của bạn:</label>
+              <Textarea
+                value={userAnswer}
+                onChange={(e) => setUserAnswer(e.target.value)}
+                placeholder="Nhập câu trả lời hoặc ý kiến của bạn để AI gợi ý cải thiện..."
+                className="min-h-[150px] bg-white border-2 border-emerald-300 text-slate-900 placeholder:text-emerald-300 rounded-xl resize-none"
+              />
+            </div>
+          )}
 
           {activeTab === 'translate' && (
             <div className="mb-4">
@@ -681,44 +944,55 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             </div>
           )}
 
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={
-              activeTab === 'create' ? 'Nhập chủ đề bạn muốn tạo nội dung...\n\nVí dụ:\n- Bài blog về lợi ích của thiền định\n- Bài viết giới thiệu sản phẩm công nghệ mới\n- Bài đăng mạng xã hội về du lịch\n- Email marketing cho khóa học online' :
-              activeTab === 'ideas' ? 'Nhập chủ đề/từ khóa để AI gợi ý ý tưởng...\n\nVí dụ:\n- Phát triển bản thân\n- Marketing số\n- Sức khỏe tinh thần\n- Khởi nghiệp' :
-              activeTab === 'summarize' ? 'Paste văn bản dài cần tóm tắt...' :
-              activeTab === 'translate' ? 'Paste văn bản cần dịch...' :
-              activeTab === 'analyze' ? 'Paste dữ liệu cần phân tích (text, số liệu, thống kê...)' :
-              activeTab === 'tag' ? 'Paste nội dung tài liệu cần phân loại và gắn thẻ...' :
-              'Nhập chủ đề, câu chuyện hoặc cảm xúc bạn muốn viết thành bài hát...\n\nVí dụ:\n- Một câu chuyện tình yêu buồn\n- Về hành trình tìm kiếm ánh sáng nội tâm\n- Về sự thay đổi của cuộc sống\n- Bài hát động viên vượt qua khó khăn'
-            }
-            className="min-h-[200px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl mb-4 font-medium leading-relaxed resize-none"
-          />
+          {activeTab !== 'upload' && activeTab !== 'quiz' && activeTab !== 'assist' && (
+            <Textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                activeTab === 'create' ? 'Nhập chủ đề bạn muốn tạo nội dung...\n\nVí dụ:\n- Bài blog về lợi ích của thiền định\n- Bài viết giới thiệu sản phẩm công nghệ mới\n- Bài đăng mạng xã hội về du lịch\n- Email marketing cho khóa học online' :
+                activeTab === 'ideas' ? 'Nhập chủ đề/từ khóa để AI gợi ý ý tưởng...\n\nVí dụ:\n- Phát triển bản thân\n- Marketing số\n- Sức khỏe tinh thần\n- Khởi nghiệp' :
+                activeTab === 'summarize' ? 'Paste văn bản dài cần tóm tắt...' :
+                activeTab === 'translate' ? 'Paste văn bản cần dịch...' :
+                activeTab === 'analyze' ? 'Paste dữ liệu cần phân tích (text, số liệu, thống kê...)' :
+                activeTab === 'tag' ? 'Paste nội dung tài liệu cần phân loại và gắn thẻ...' :
+                'Nhập chủ đề, câu chuyện hoặc cảm xúc bạn muốn viết thành bài hát...\n\nVí dụ:\n- Một câu chuyện tình yêu buồn\n- Về hành trình tìm kiếm ánh sáng nội tâm\n- Về sự thay đổi của cuộc sống\n- Bài hát động viên vượt qua khó khăn'
+              }
+              className="min-h-[200px] bg-white border-2 border-purple-300 text-slate-900 placeholder:text-purple-400 rounded-2xl mb-4 font-medium leading-relaxed resize-none"
+            />
+          )}
 
-          <Button
-            onClick={handleProcess}
-            disabled={!input.trim() || isLoading}
-            className={`w-full bg-gradient-to-r ${currentTab?.gradient} text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6`}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Đang Xử Lý...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5 mr-2" />
-                {activeTab === 'create' && 'Tạo Nội Dung Ngay'}
-                {activeTab === 'ideas' && 'Gợi Ý Ý Tưởng Ngay'}
-                {activeTab === 'summarize' && 'Tóm Tắt Ngay'}
-                {activeTab === 'translate' && 'Dịch Ngay'}
-                {activeTab === 'analyze' && 'Phân Tích Ngay'}
-                {activeTab === 'tag' && 'Phân Loại Ngay'}
-                {activeTab === 'music' && 'Sáng Tác Ngay 🎵'}
-              </>
-            )}
-          </Button>
+          {activeTab !== 'upload' && (
+            <Button
+              onClick={handleProcess}
+              disabled={
+                (activeTab === 'quiz' && !quizTopic.trim()) ||
+                (activeTab === 'assist' && !userAnswer.trim()) ||
+                (activeTab !== 'quiz' && activeTab !== 'assist' && !input.trim()) ||
+                isLoading
+              }
+              className={`w-full bg-gradient-to-r ${currentTab?.gradient} text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6`}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Đang Xử Lý...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  {activeTab === 'quiz' && 'Tạo Quiz Ngay 📝'}
+                  {activeTab === 'assist' && 'Gợi Ý Cải Thiện 💡'}
+                  {activeTab === 'create' && 'Tạo Nội Dung Ngay'}
+                  {activeTab === 'ideas' && 'Gợi Ý Ý Tưởng Ngay'}
+                  {activeTab === 'summarize' && 'Tóm Tắt Ngay'}
+                  {activeTab === 'translate' && 'Dịch Ngay'}
+                  {activeTab === 'analyze' && 'Phân Tích Ngay'}
+                  {activeTab === 'tag' && 'Phân Loại Ngay'}
+                  {activeTab === 'music' && 'Sáng Tác Ngay 🎵'}
+                </>
+              )}
+            </Button>
+          )}
         </motion.div>
 
         {/* Result Section */}
@@ -760,7 +1034,55 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
                 </Button>
               </div>
 
-              {activeTab === 'tag' ? (
+              {activeTab === 'quiz' && generatedQuiz ? (
+                <div className="space-y-4">
+                  <div className="bg-pink-50 border-2 border-pink-300 rounded-2xl p-4 mb-4">
+                    <h4 className="text-slate-900 font-bold text-lg mb-1">{generatedQuiz.title}</h4>
+                    <p className="text-slate-700 text-sm">{generatedQuiz.description}</p>
+                  </div>
+
+                  {generatedQuiz.questions.map((q, idx) => (
+                    <div key={idx} className="bg-white border-2 border-pink-200 rounded-2xl p-5">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-slate-900 font-bold mb-2">{q.question}</p>
+                          <Badge className="bg-pink-100 text-pink-800 text-xs">
+                            {q.difficulty || 'Trung bình'}
+                          </Badge>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2 mb-3 ml-11">
+                        {Object.entries(q.options).map(([key, value]) => (
+                          <div
+                            key={key}
+                            className={`p-3 rounded-xl border-2 ${
+                              key === q.correct_answer
+                                ? 'bg-green-50 border-green-400'
+                                : 'bg-gray-50 border-gray-300'
+                            }`}
+                          >
+                            <span className="font-bold text-slate-900">{key}.</span> {value}
+                            {key === q.correct_answer && (
+                              <Badge className="ml-2 bg-green-600 text-white text-xs">
+                                ✓ Đúng
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="ml-11 bg-blue-50 border-2 border-blue-300 rounded-xl p-3">
+                        <p className="text-blue-900 font-semibold text-sm mb-1">💡 Giải thích:</p>
+                        <p className="text-slate-800 text-sm leading-relaxed">{q.explanation}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : activeTab === 'tag' ? (
                 (() => {
                   const tagData = parseTaggingResult(result);
                   return tagData ? (
