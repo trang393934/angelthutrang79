@@ -73,6 +73,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-purple-400 to-pink-400'
     },
     { 
+      name: 'Bảng Xếp Hạng', 
+      icon: Award, 
+      path: 'Leaderboard',
+      gradient: 'from-yellow-400 to-amber-500'
+    },
+    { 
       name: 'Tâm Điểm Thưởng', 
       icon: Award, 
       path: 'PuritySpotlight',

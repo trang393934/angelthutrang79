@@ -29,6 +29,7 @@ import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawalManagement from './pages/WithdrawalManagement';
+import Leaderboard from './pages/Leaderboard';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "WalletBreakdown": WalletBreakdown,
     "WithdrawalManagement": WithdrawalManagement,
+    "Leaderboard": Leaderboard,
 }
 
 export const pagesConfig = {

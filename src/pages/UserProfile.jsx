@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle, Gift } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle, Gift, Trophy, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -9,6 +9,61 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { AnimatePresence } from 'framer-motion';
+
+// My Rank Component
+function MyRankCard({ targetEmail }) {
+  const { data: allBalances = [] } = useQuery({
+    queryKey: ['rank-balances'],
+    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
+  });
+
+  const rankedUsers = allBalances
+    .filter(b => (b.total_earned || 0) > 0)
+    .sort((a, b) => (b.total_earned || 0) - (a.total_earned || 0))
+    .map((user, index) => ({ ...user, rank: index + 1 }));
+
+  const myData = rankedUsers.find(u => u.user_email === targetEmail);
+
+  if (!myData) return null;
+
+  const getRankColor = (rank) => {
+    if (rank === 1) return 'from-yellow-400 to-amber-500';
+    if (rank === 2) return 'from-gray-300 to-gray-400';
+    if (rank === 3) return 'from-amber-500 to-orange-500';
+    return 'from-purple-400 to-pink-400';
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getRankColor(myData.rank)} flex items-center justify-center shadow-lg`}>
+            {myData.rank <= 3 ? (
+              <Trophy className="w-8 h-8 text-white" />
+            ) : (
+              <Award className="w-8 h-8 text-white" />
+            )}
+          </div>
+          <div>
+            <p className="text-white/90 text-sm mb-1">Xếp Hạng Toàn Hệ Thống</p>
+            <p className="text-white text-4xl font-bold">#{myData.rank}</p>
+            <p className="text-white/90 text-xs mt-1">trong {rankedUsers.length} users</p>
+          </div>
+        </div>
+        <Link to={createPageUrl('Leaderboard')}>
+          <Button className="bg-white text-orange-600 rounded-xl font-bold hover:bg-orange-50 shadow-lg">
+            <Trophy className="w-4 h-4 mr-2" />
+            Xem Bảng XH
+          </Button>
+        </Link>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function UserProfile() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -619,6 +674,9 @@ export default function UserProfile() {
             </div>
           )}
         </motion.div>
+
+        {/* My Rank Card */}
+        <MyRankCard targetEmail={targetEmail} />
 
         {/* Balance Overview - NEW LOGIC */}
         <motion.div
