@@ -62,19 +62,30 @@ export default function UserProfile() {
     enabled: !!targetEmail && !!isAdmin,
   });
 
-  // Fetch eliminated audit logs (không phải valid)
-  const { data: eliminatedLogs = [] } = useQuery({
+  // Fetch eliminated audit logs (không phải valid) - lấy TOÀN BỘ lịch sử
+  const { data: eliminatedLogs = [], isLoading: isLoadingLogs } = useQuery({
     queryKey: ['eliminated-logs', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return [];
-      const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 500);
-      return allLogs.filter(log => 
+      
+      // Fetch tất cả audit logs của user này, không giới hạn
+      const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 5000);
+      
+      // Filter các câu hỏi đã bị loại bỏ
+      const eliminated = allLogs.filter(log => 
         log.user_email === targetEmail && 
         log.exclusion_reason !== 'valid' &&
         (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
       );
+      
+      console.log('Total audit logs fetched:', allLogs.length);
+      console.log('Eliminated logs for', targetEmail, ':', eliminated.length);
+      
+      return eliminated;
     },
     enabled: !!targetEmail && !!isAdmin,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0
   });
 
   // Fetch wallet address from multiple sources
@@ -752,10 +763,18 @@ export default function UserProfile() {
                   </Button>
                 </div>
 
-                {eliminatedLogs.length === 0 ? (
+                {isLoadingLogs ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-16 h-16 text-purple-300 mx-auto mb-4 animate-spin" />
+                    <p className="text-slate-700 font-medium">Đang tải lịch sử câu hỏi...</p>
+                  </div>
+                ) : eliminatedLogs.length === 0 ? (
                   <div className="text-center py-12">
                     <CheckCircle2 className="w-16 h-16 text-green-300 mx-auto mb-4" />
                     <p className="text-slate-700 font-medium">Không có câu hỏi nào bị loại bỏ</p>
+                    <p className="text-slate-500 text-sm mt-2">
+                      User này chưa có câu hỏi nào trong QuestionAuditLog
+                    </p>
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
