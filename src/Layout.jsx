@@ -134,6 +134,12 @@ export default function Layout({ children, currentPageName }) {
     },
     ...(currentUser?.role === 'admin' ? [
       { 
+        name: 'Admin Dashboard', 
+        icon: Activity, 
+        path: 'AdminDashboard',
+        gradient: 'from-indigo-400 to-purple-500'
+      },
+      { 
         name: 'Monitoring', 
         icon: Activity, 
         path: 'MonitoringDashboard',
