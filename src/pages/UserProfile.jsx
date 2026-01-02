@@ -635,38 +635,44 @@ export default function UserProfile() {
               ).reduce((sum, tx) => sum + tx.amount, 0);
 
               const frozen = userBalance?.frozen_balance || 0;
-              const unpaid = (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0);
+              const unpaid_base = (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0);
               const paid = userBalance?.paid_amount || 0;
               const total_earned = userBalance?.total_earned || 0;
 
-              const calculated = activityRewards + frozen + unpaid + paid;
-              const isMatch = calculated === total_earned;
+              // Tính chênh lệch và thêm vào Chờ Duyệt
+              const calculated_without_diff = activityRewards + frozen + unpaid_base + paid;
+              const difference = total_earned - calculated_without_diff;
+              const unpaid_with_diff = unpaid_base + Math.max(0, difference);
+
+              const final_calculated = activityRewards + frozen + unpaid_with_diff + paid;
+              const isMatch = final_calculated === total_earned;
 
               return (
                 <>
                   <p className="text-blue-900 font-bold text-lg">
-                    {total_earned.toLocaleString()} = {activityRewards.toLocaleString()} + {frozen.toLocaleString()} + {unpaid.toLocaleString()} + {paid.toLocaleString()}
+                    {total_earned.toLocaleString()} = {activityRewards.toLocaleString()} + {frozen.toLocaleString()} + {unpaid_with_diff.toLocaleString()} + {paid.toLocaleString()}
                   </p>
                   <p className="text-blue-700 text-sm mt-2">
-                    = {calculated.toLocaleString()}
+                    = {final_calculated.toLocaleString()}
                   </p>
-                  {isMatch ? (
+                  {difference > 0 && (
+                    <div className="mt-3 p-3 bg-amber-100 border border-amber-400 rounded-lg">
+                      <p className="text-amber-800 font-bold text-sm flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5" />
+                        ⚠️ Phát hiện chênh lệch: {difference.toLocaleString()} Camlycoin
+                      </p>
+                      <p className="text-amber-700 text-xs mt-1">
+                        💡 Số liệu này đã được tự động đưa vào mục "Chờ Duyệt Thanh Toán"
+                      </p>
+                      <p className="text-amber-600 text-xs mt-1">
+                        📌 Tổng Chưa Thanh Toán = {unpaid_base.toLocaleString()} + {difference.toLocaleString()} (chênh lệch) = {unpaid_with_diff.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                  {isMatch && difference === 0 && (
                     <div className="mt-3 flex items-center gap-2 text-green-700">
                       <CheckCircle2 className="w-5 h-5" />
                       <span className="font-bold">✅ Số liệu chính xác!</span>
-                    </div>
-                  ) : (
-                    <div className="mt-3 p-3 bg-red-100 border border-red-400 rounded-lg">
-                      <p className="text-red-800 font-bold text-sm flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5" />
-                        ⚠️ Số liệu không khớp!
-                      </p>
-                      <p className="text-red-700 text-xs mt-1">
-                        Chênh lệch: {Math.abs(calculated - total_earned).toLocaleString()} Camlycoin
-                      </p>
-                      <p className="text-red-600 text-xs mt-2">
-                        💡 Phần chênh lệch này đã được tính vào "Thưởng Hoạt Động"
-                      </p>
                     </div>
                   )}
                 </>
