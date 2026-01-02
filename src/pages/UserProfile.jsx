@@ -564,14 +564,16 @@ export default function UserProfile() {
               {/* NEW: Coins bị loại bỏ sau audit - CLICKABLE */}
               <button
                 onClick={() => setShowEliminatedModal(true)}
-                className="bg-red-50 rounded-xl p-3 border-2 border-red-400 hover:bg-red-100 transition-all cursor-pointer w-full text-left"
+                className="bg-red-50 rounded-xl p-3 border-2 border-red-400 hover:bg-red-100 hover:shadow-lg transition-all cursor-pointer w-full text-left active:scale-95"
               >
                 <p className="text-red-700 text-xs mb-1 font-semibold flex items-center gap-1">
                   ❌ Đã Loại Bỏ Sau Audit:
-                  <Eye className="w-3 h-3" />
+                  <Eye className="w-3 h-3 flex-shrink-0" />
                 </p>
-                <p className="text-red-900 font-bold">{((userBalance.total_earned || 0) - (userBalance.balance || 0) - (userBalance.paid_amount || 0)).toLocaleString()}</p>
-                <p className="text-red-600 text-[10px] mt-1">Click để xem chi tiết và duyệt lại</p>
+                <p className="text-red-900 font-bold break-words">{((userBalance.total_earned || 0) - (userBalance.balance || 0) - (userBalance.paid_amount || 0)).toLocaleString()}</p>
+                <p className="text-red-600 text-[10px] mt-1 flex items-center gap-1">
+                  👆 Click để xem chi tiết và duyệt lại
+                </p>
               </button>
             </div>
             <div className="mt-4 bg-white rounded-xl p-3 border border-yellow-300">

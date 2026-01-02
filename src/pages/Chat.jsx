@@ -1139,6 +1139,23 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
               )}
               
               <div className="flex items-center gap-2 flex-1 justify-center">
+                {/* User Avatar - Mobile */}
+                {currentUser && (
+                  <div className="lg:hidden">
+                    {currentUser.avatar_url ? (
+                      <img
+                        src={currentUser.avatar_url}
+                        alt="Avatar"
+                        className="w-9 h-9 rounded-full object-cover border-2 border-purple-300 shadow-md flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center shadow-md border-2 border-white flex-shrink-0">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <motion.div
                   animate={{ 
                     boxShadow: [
@@ -1301,7 +1318,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
         </AnimatePresence>
 
         {/* Messages */}
-        <div className="flex-1 pt-24 pb-[180px] md:pb-32 px-4 max-w-4xl mx-auto w-full overflow-y-auto">
+        <div className="flex-1 pt-24 pb-[200px] md:pb-32 px-4 max-w-4xl mx-auto w-full overflow-y-auto">
           <AnimatePresence mode="popLayout">
             {messages.map((message, index) => (
               <motion.div
@@ -1645,9 +1662,9 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
         </AnimatePresence>
 
         {/* Input */}
-        <div className="fixed bottom-0 right-0 left-0 lg:left-64 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl">
+        <div className="fixed bottom-0 right-0 left-0 lg:left-64 bg-white/95 backdrop-blur-xl border-t border-purple-200 shadow-2xl pb-safe">
           <div className="max-w-4xl mx-auto p-4">
-            <div className="flex items-end gap-3">
+            <div className="flex items-end gap-2 md:gap-3">
               {!isVoiceMode && (
                 <Button
                   variant="ghost"
