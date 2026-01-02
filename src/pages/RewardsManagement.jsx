@@ -369,7 +369,17 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Chưa Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0).toLocaleString()}
+                  {(() => {
+                    const totalAvailable = allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0);
+                    const totalPending = allBalances.reduce((sum, b) => {
+                      const total = b.total_earned || 0;
+                      const available = b.available_balance || 0;
+                      const frozen = b.frozen_balance || 0;
+                      const paid = b.paid_amount || 0;
+                      return sum + Math.max(0, total - available - frozen - paid);
+                    }, 0);
+                    return (totalAvailable + totalPending).toLocaleString();
+                  })()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
