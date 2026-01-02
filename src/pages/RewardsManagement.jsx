@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Coins, TrendingUp, TrendingDown, Clock, CheckCircle2, XCircle, DollarSign, Users, Filter, Search, Plus, Minus, Loader2, Award, History, Download, X, Wallet, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Coins, TrendingUp, TrendingDown, Clock, CheckCircle2, XCircle, DollarSign, Users, Filter, Search, Plus, Minus, Loader2, Award, History, Download, X, Wallet, AlertCircle, Activity, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,6 +23,9 @@ export default function RewardsManagement() {
   const [selectedUserEmail, setSelectedUserEmail] = useState(null);
   const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const [modalTab, setModalTab] = useState('transactions');
+  const [showAIAnalysis, setShowAIAnalysis] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -273,6 +276,44 @@ export default function RewardsManagement() {
     }
   });
 
+  // AI Analysis function
+  const runAIAnalysis = async (targetEmail = null, autoApply = false) => {
+    setIsAnalyzing(true);
+    try {
+      const response = await base44.functions.invoke('analyzeAndRewardUsers', {
+        targetUserEmail: targetEmail,
+        autoApply: autoApply
+      });
+      
+      setAiRecommendations(response.data.recommendations);
+      setShowAIAnalysis(true);
+      
+      if (autoApply) {
+        alert(`✅ Đã phân tích và tự động thưởng ${response.data.recommendations.filter(r => r.analysis.recommendation === 'bonus').length} users!`);
+        queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+        queryClient.invalidateQueries({ queryKey: ['camlycoin-transactions'] });
+      }
+    } catch (error) {
+      alert('❌ Lỗi khi phân tích: ' + error.message);
+    }
+    setIsAnalyzing(false);
+  };
+
+  // Apply AI recommendation
+  const applyAIRecommendation = async (recommendation) => {
+    if (recommendation.analysis.bonus_amount <= 0) {
+      alert('Không có bonus để áp dụng!');
+      return;
+    }
+
+    try {
+      await runAIAnalysis(recommendation.user_email, true);
+      alert(`✅ Đã thưởng ${recommendation.analysis.bonus_amount.toLocaleString()} Camlycoin cho ${recommendation.user_email}!`);
+    } catch (error) {
+      alert('❌ Lỗi: ' + error.message);
+    }
+  };
+
   // Export to CSV function
   const exportToCSV = () => {
     // Prepare balance data
@@ -493,6 +534,7 @@ export default function RewardsManagement() {
 
         {/* Tabs */}
         {isAdmin ? (
+          <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { id: 'overview', label: 'Lịch Sử', icon: History },
@@ -517,6 +559,51 @@ export default function RewardsManagement() {
               );
             })}
           </div>
+
+          {/* AI Analysis Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-white text-xl font-bold mb-2 flex items-center gap-2">
+                  🤖 AI Reward Analysis
+                </h3>
+                <p className="text-white/90 text-sm">
+                  Phân tích hoạt động users và gợi ý thưởng tự động
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => runAIAnalysis(null, false)}
+                  disabled={isAnalyzing}
+                  className="bg-white text-indigo-600 rounded-xl font-bold shadow-lg hover:shadow-xl"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Activity className="w-4 h-4 mr-2" />
+                  )}
+                  Phân Tích Tất Cả
+                </Button>
+                <Button
+                  onClick={() => runAIAnalysis(null, true)}
+                  disabled={isAnalyzing}
+                  className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                >
+                  {isAnalyzing ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-4 h-4 mr-2" />
+                  )}
+                  Auto Thưởng
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+          </>
         ) : null}
 
         {/* Transaction History */}

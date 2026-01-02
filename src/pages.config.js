@@ -30,8 +30,8 @@ import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
-import WithdrawalManagement from './pages/WithdrawalManagement';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
+import WithdrawalManagement from './pages/WithdrawalManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -68,8 +68,8 @@ export const PAGES = {
     "TestR2Upload": TestR2Upload,
     "UserProfile": UserProfile,
     "WalletBreakdown": WalletBreakdown,
-    "WithdrawalManagement": WithdrawalManagement,
     "WithdrawCamlycoin": WithdrawCamlycoin,
+    "WithdrawalManagement": WithdrawalManagement,
 }
 
 export const pagesConfig = {
