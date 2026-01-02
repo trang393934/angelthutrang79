@@ -143,12 +143,21 @@ export default function UserProfile() {
         description: `✅ Admin đã chuyển khoản ${paidAmount.toLocaleString()} Camlycoin (Ngày ${new Date().getDate()}/${new Date().getMonth() + 1})`,
         processed_by: currentUser.email
       });
-      
+
+      // Send email notification to user
+      await base44.functions.invoke('sendNotificationEmail', {
+        type: 'payment_processed',
+        recipient_email: targetEmail,
+        data: {
+          amount: paidAmount
+        }
+      }).catch(err => console.error('Email notification failed:', err));
+
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
       setShowPaymentModal(false);
       setPaymentAmount('');
-    }
+      }
   });
 
   const runAuditMutation = useMutation({
