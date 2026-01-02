@@ -8,6 +8,8 @@ import ReactMarkdown from 'react-markdown';
 export default function SupportChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
@@ -17,6 +19,11 @@ export default function SupportChatWidget() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+
+  // Initialize position to bottom-right
+  useEffect(() => {
+    setPosition({ x: window.innerWidth - 440, y: window.innerHeight - 640 });
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -102,17 +109,36 @@ Trả lời bằng tiếng Việt:`,
 
   return (
     <>
-      {/* Chat Button */}
+      {/* Chat Button - Draggable */}
       <AnimatePresence>
         {!isOpen && (
           <motion.button
+            drag
+            dragMomentum={false}
+            dragElastic={0}
+            dragConstraints={{
+              top: 60,
+              left: 60,
+              right: window.innerWidth - 120,
+              bottom: window.innerHeight - 120,
+            }}
+            onDragStart={() => setIsDragging(true)}
+            onDragEnd={(e, info) => {
+              setIsDragging(false);
+              setPosition({ x: info.point.x - 32, y: info.point.y - 32 });
+            }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.1 }}
+            whileHover={{ scale: isDragging ? 1 : 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 z-[100] w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center"
+            onClick={(e) => {
+              if (!isDragging) {
+                setIsOpen(true);
+              }
+            }}
+            className="fixed z-[100] w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-2xl hover:shadow-purple-500/50 flex items-center justify-center cursor-grab active:cursor-grabbing"
+            style={{ bottom: 24, right: 24 }}
           >
             <MessageCircle className="w-8 h-8" />
             <motion.div
@@ -124,19 +150,30 @@ Trả lời bằng tiếng Việt:`,
         )}
       </AnimatePresence>
 
-      {/* Chat Window */}
+      {/* Chat Window - Draggable */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ 
-              opacity: 1, 
-              y: 0, 
-              scale: 1,
-              height: isMinimized ? 60 : 600 
+            drag
+            dragMomentum={false}
+            dragElastic={0}
+            dragConstraints={{
+              top: 0,
+              left: 0,
+              right: window.innerWidth - 400,
+              bottom: window.innerHeight - 600,
             }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-[100] w-96 bg-white rounded-3xl shadow-2xl border-2 border-purple-300 overflow-hidden flex flex-col"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ 
+              opacity: 1,
+              scale: 1,
+              height: isMinimized ? 60 : 600,
+              x: position.x,
+              y: position.y
+            }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed z-[100] w-96 bg-white rounded-3xl shadow-2xl border-2 border-purple-300 overflow-hidden flex flex-col cursor-move"
+            style={{ left: 0, top: 0 }}
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 flex items-center justify-between">
