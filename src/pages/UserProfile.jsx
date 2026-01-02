@@ -571,11 +571,14 @@ export default function UserProfile() {
                 const calculated = activityRewards + frozen + available + paid + pending;
                 const difference = Math.max(0, total_earned - calculated);
 
-                // Tổng Đã Kiếm = Frozen + Sẵn Sàng TT + Paid + Chờ Duyệt - Thưởng Hoạt Động
-                return (frozen + available + paid + pending + difference).toLocaleString();
+                // Tổng Đã Kiếm = Frozen + (Available + Activity) + Paid + (Pending + difference)
+                const readyForPayment = available + activityRewards;
+                const pendingReview = pending + difference;
+
+                return (frozen + readyForPayment + paid + pendingReview).toLocaleString();
               })()}
             </p>
-            <p className="text-white/80 text-xs mt-1">Camlycoin (Từ câu hỏi)</p>
+            <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
           {/* Sẵn Sàng Thanh Toán */}
