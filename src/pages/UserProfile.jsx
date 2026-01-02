@@ -625,7 +625,7 @@ export default function UserProfile() {
           </h3>
           <div className="bg-white/80 rounded-2xl p-4 border border-blue-200">
             <p className="text-blue-800 text-sm font-semibold mb-2">
-              Tổng Đã Kiếm = Thưởng Hoạt Động + Tổng Bị Đóng Băng + Tổng Chưa Thanh Toán + Tổng Đã Thanh Toán
+              Tổng Đã Kiếm = Thưởng Hoạt Động + Tổng Bị Đóng Băng + Tổng Chưa Thanh Toán + Tổng Đã Thanh Toán + Chờ Duyệt Thanh Toán
             </p>
             {(() => {
               const activityRewards = transactions.filter(tx => 
@@ -635,22 +635,23 @@ export default function UserProfile() {
               ).reduce((sum, tx) => sum + tx.amount, 0);
 
               const frozen = userBalance?.frozen_balance || 0;
-              const unpaid_base = (userBalance?.available_balance || 0) + (userBalance?.pending_review_balance || 0);
+              const available = userBalance?.available_balance || 0;
+              const pending = userBalance?.pending_review_balance || 0;
               const paid = userBalance?.paid_amount || 0;
               const total_earned = userBalance?.total_earned || 0;
 
               // Tính chênh lệch và thêm vào Chờ Duyệt
-              const calculated_without_diff = activityRewards + frozen + unpaid_base + paid;
+              const calculated_without_diff = activityRewards + frozen + available + paid + pending;
               const difference = total_earned - calculated_without_diff;
-              const unpaid_with_diff = unpaid_base + Math.max(0, difference);
+              const pending_with_diff = pending + Math.max(0, difference);
 
-              const final_calculated = activityRewards + frozen + unpaid_with_diff + paid;
+              const final_calculated = activityRewards + frozen + available + paid + pending_with_diff;
               const isMatch = final_calculated === total_earned;
 
               return (
                 <>
                   <p className="text-blue-900 font-bold text-lg">
-                    {total_earned.toLocaleString()} = {activityRewards.toLocaleString()} + {frozen.toLocaleString()} + {unpaid_with_diff.toLocaleString()} + {paid.toLocaleString()}
+                    {total_earned.toLocaleString()} = {activityRewards.toLocaleString()} + {frozen.toLocaleString()} + {available.toLocaleString()} + {paid.toLocaleString()} + {pending_with_diff.toLocaleString()}
                   </p>
                   <p className="text-blue-700 text-sm mt-2">
                     = {final_calculated.toLocaleString()}
@@ -665,7 +666,7 @@ export default function UserProfile() {
                         💡 Số liệu này đã được tự động đưa vào mục "Chờ Duyệt Thanh Toán"
                       </p>
                       <p className="text-amber-600 text-xs mt-1">
-                        📌 Tổng Chưa Thanh Toán = {unpaid_base.toLocaleString()} + {difference.toLocaleString()} (chênh lệch) = {unpaid_with_diff.toLocaleString()}
+                        📌 Chờ Duyệt Thanh Toán = {pending.toLocaleString()} + {difference.toLocaleString()} (chênh lệch) = {pending_with_diff.toLocaleString()}
                       </p>
                     </div>
                   )}
