@@ -67,6 +67,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-yellow-400 to-orange-400'
     },
     { 
+      name: 'Rút Camlycoin', 
+      icon: Wallet, 
+      path: 'WithdrawCamlycoin',
+      gradient: 'from-green-400 to-emerald-400'
+    },
+    { 
       name: 'Analytics', 
       icon: TrendingUp, 
       path: 'Analytics',

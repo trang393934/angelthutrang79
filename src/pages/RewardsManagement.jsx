@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Coins, TrendingUp, TrendingDown, Clock, CheckCircle2, XCircle, DollarSign, Users, Filter, Search, Plus, Minus, Loader2, Award, History, Download, X } from 'lucide-react';
+import { ArrowLeft, Coins, TrendingUp, TrendingDown, Clock, CheckCircle2, XCircle, DollarSign, Users, Filter, Search, Plus, Minus, Loader2, Award, History, Download, X, Wallet, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -64,6 +64,14 @@ export default function RewardsManagement() {
     queryFn: () => base44.entities.CamlycoinBalance.list('-balance', 10000),
     enabled: isAdmin,
     refetchInterval: 5000, // Auto-refresh every 5 seconds
+  });
+
+  // Admin: Fetch all withdrawal requests
+  const { data: allWithdrawalRequests = [] } = useQuery({
+    queryKey: ['all-withdrawal-requests'],
+    queryFn: () => base44.entities.WithdrawalRequest.list('-created_date', 1000),
+    enabled: isAdmin,
+    refetchInterval: 5000,
   });
 
   // Fetch selected user transactions
@@ -194,6 +202,64 @@ export default function RewardsManagement() {
     const min = minBalance ? parseFloat(minBalance) : 0;
     const max = maxBalance ? parseFloat(maxBalance) : Infinity;
     return bal >= min && bal <= max;
+  });
+
+  // Approve withdrawal mutation
+  const approveWithdrawalMutation = useMutation({
+    mutationFn: async (request) => {
+      await base44.entities.WithdrawalRequest.update(request.id, {
+        status: 'approved',
+        processed_by: currentUser.email,
+        processed_date: new Date().toISOString()
+      });
+
+      // Deduct from user's available balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: request.user_email });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        await base44.entities.CamlycoinBalance.update(balance.id, {
+          available_balance: Math.max(0, (balance.available_balance || 0) - request.amount),
+          balance: Math.max(0, (balance.balance || 0) - request.amount)
+        });
+      }
+
+      // Send email notification
+      await base44.functions.invoke('sendNotificationEmail', {
+        type: 'withdrawal_approved',
+        recipient_email: request.user_email,
+        data: { amount: request.amount }
+      }).catch(err => console.error('Email failed:', err));
+
+      queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+    },
+    onSuccess: () => {
+      alert('✅ Đã duyệt yêu cầu rút tiền!');
+    }
+  });
+
+  // Reject withdrawal mutation
+  const rejectWithdrawalMutation = useMutation({
+    mutationFn: async ({ request, reason }) => {
+      await base44.entities.WithdrawalRequest.update(request.id, {
+        status: 'rejected',
+        rejection_reason: reason,
+        processed_by: currentUser.email,
+        processed_date: new Date().toISOString()
+      });
+
+      // Send email notification
+      await base44.functions.invoke('sendNotificationEmail', {
+        type: 'withdrawal_rejected',
+        recipient_email: request.user_email,
+        data: { amount: request.amount, reason }
+      }).catch(err => console.error('Email failed:', err));
+
+      queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+    },
+    onSuccess: () => {
+      alert('❌ Đã từ chối yêu cầu rút tiền!');
+    }
   });
 
   // Export to CSV function
@@ -411,10 +477,11 @@ export default function RewardsManagement() {
 
         {/* Tabs */}
         {isAdmin ? (
-          <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { id: 'overview', label: 'Lịch Sử', icon: History },
               { id: 'submissions', label: 'Duyệt Submissions', icon: CheckCircle2 },
+              { id: 'withdrawals', label: 'Yêu Cầu Rút', icon: Wallet },
               { id: 'manage', label: 'Quản Lý Balance', icon: Users }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -607,6 +674,125 @@ export default function RewardsManagement() {
                   <div className="text-center py-12">
                     <Filter className="w-12 h-12 text-purple-300 mx-auto mb-4" />
                     <p className="text-slate-700 font-medium">Không có submission nào</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Admin: Withdrawal Requests */}
+          {isAdmin && activeTab === 'withdrawals' && (
+            <motion.div
+              key="withdrawals"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl">
+                <h3 className="text-slate-900 font-bold text-xl mb-6 flex items-center gap-2">
+                  <Wallet className="w-6 h-6 text-amber-500" />
+                  Yêu Cầu Rút Tiền ({allWithdrawalRequests.filter(r => r.status === 'pending').length} chờ duyệt)
+                </h3>
+
+                {allWithdrawalRequests.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Wallet className="w-12 h-12 text-amber-300 mx-auto mb-4" />
+                    <p className="text-slate-700 font-medium">Chưa có yêu cầu rút tiền nào</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {allWithdrawalRequests.map((req, index) => {
+                      const statusConfigs = {
+                        pending: { label: '⏳ Chờ Duyệt', className: 'bg-yellow-100 text-yellow-800 border-yellow-300' },
+                        approved: { label: '✅ Đã Duyệt', className: 'bg-green-100 text-green-800 border-green-300' },
+                        processing: { label: '🔄 Đang Xử Lý', className: 'bg-blue-100 text-blue-800 border-blue-300' },
+                        completed: { label: '✅ Hoàn Tất', className: 'bg-green-100 text-green-800 border-green-300' },
+                        rejected: { label: '❌ Từ Chối', className: 'bg-red-100 text-red-800 border-red-300' },
+                        failed: { label: '❌ Thất Bại', className: 'bg-red-100 text-red-800 border-red-300' }
+                      };
+                      const statusConfig = statusConfigs[req.status] || statusConfigs.pending;
+
+                      return (
+                        <motion.div
+                          key={req.id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.05 }}
+                          className="bg-white border-2 border-amber-100 rounded-2xl p-5"
+                        >
+                          <div className="flex flex-col gap-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                                  <Badge className={`border ${statusConfig.className}`}>
+                                    {statusConfig.label}
+                                  </Badge>
+                                  <Badge className="bg-purple-100 text-purple-800 border-purple-300 font-bold">
+                                    🪙 {req.amount.toLocaleString()} Camlycoin
+                                  </Badge>
+                                </div>
+                                <p className="text-slate-900 font-semibold mb-2">
+                                  {req.user_email}
+                                </p>
+                                <p className="text-slate-700 text-sm mb-2 break-all">
+                                  <strong>Địa chỉ ví:</strong> {req.withdrawal_address}
+                                </p>
+                                <p className="text-xs text-slate-600">
+                                  Tạo: {new Date(req.created_date).toLocaleString('vi-VN')}
+                                </p>
+                                {req.processed_date && (
+                                  <p className="text-xs text-green-600 mt-1">
+                                    Xử lý: {new Date(req.processed_date).toLocaleString('vi-VN')} • {req.processed_by}
+                                  </p>
+                                )}
+                                {req.rejection_reason && (
+                                  <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                                    <p className="text-red-800 text-xs">
+                                      <strong>Lý do từ chối:</strong> {req.rejection_reason}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {req.status === 'pending' && (
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => approveWithdrawalMutation.mutate(req)}
+                                  disabled={approveWithdrawalMutation.isPending}
+                                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                                >
+                                  {approveWithdrawalMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                                  )}
+                                  Duyệt Rút Tiền
+                                </Button>
+                                <Button
+                                  onClick={() => {
+                                    const reason = prompt('Lý do từ chối:');
+                                    if (reason) {
+                                      rejectWithdrawalMutation.mutate({ request: req, reason });
+                                    }
+                                  }}
+                                  disabled={rejectWithdrawalMutation.isPending}
+                                  variant="outline"
+                                  className="flex-1 border-red-300 text-red-700 hover:bg-red-50 rounded-xl font-bold"
+                                >
+                                  {rejectWithdrawalMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                  )}
+                                  Từ Chối
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
