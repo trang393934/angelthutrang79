@@ -5,6 +5,7 @@ export default function AngelMascot() {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [showTooltip, setShowTooltip] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAutoMoving, setIsAutoMoving] = useState(true);
 
   // Generate random position within screen bounds
   const getRandomPosition = () => {
@@ -26,15 +27,60 @@ export default function AngelMascot() {
       y: window.innerHeight - 140,
     });
 
-    // Only auto-move if not being dragged
+    // Only auto-move if enabled and not being dragged
     const moveInterval = setInterval(() => {
-      if (!isDragging) {
+      if (!isDragging && isAutoMoving) {
         setPosition(getRandomPosition());
       }
-    }, Math.random() * 4000 + 8000); // 8-12 seconds
+    }, Math.random() * 3000 + 5000); // 5-8 seconds - faster movement
 
     return () => clearInterval(moveInterval);
-  }, [isDragging]);
+  }, [isDragging, isAutoMoving]);
+
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (isDragging) return;
+      
+      const step = e.shiftKey ? 100 : 20; // Shift = faster
+      const newPos = { ...position };
+
+      switch(e.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
+          newPos.y = Math.max(60, position.y - step);
+          break;
+        case 'arrowdown':
+        case 's':
+          newPos.y = Math.min(window.innerHeight - 140, position.y + step);
+          break;
+        case 'arrowleft':
+        case 'a':
+          newPos.x = Math.max(60, position.x - step);
+          break;
+        case 'arrowright':
+        case 'd':
+          newPos.x = Math.min(window.innerWidth - 140, position.x + step);
+          break;
+        case ' ':
+          // Spacebar = toggle auto-move
+          e.preventDefault();
+          setIsAutoMoving(!isAutoMoving);
+          return;
+        case 'r':
+          // R = random position
+          setPosition(getRandomPosition());
+          return;
+        default:
+          return;
+      }
+      
+      setPosition(newPos);
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [position, isDragging, isAutoMoving]);
 
   return (
     <motion.div
@@ -223,30 +269,46 @@ export default function AngelMascot() {
         )}
       </div>
 
-      {/* Tooltip */}
+      {/* Tooltip with controls hint */}
       <AnimatePresence>
         {showTooltip && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.8 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.8 }}
-            className="absolute -top-16 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400 text-white px-5 py-2.5 rounded-full shadow-2xl whitespace-nowrap text-sm font-bold"
+            className="absolute -top-24 left-1/2 -translate-x-1/2 pointer-events-none"
           >
-            <span className="relative z-10">Angel AI 💛</span>
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.4, 0.7, 0.4],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-              }}
-              className="absolute inset-0 rounded-full bg-white/30 blur-sm"
-            />
+            <div className="bg-gradient-to-r from-amber-400 via-rose-400 to-purple-400 text-white px-5 py-2.5 rounded-2xl shadow-2xl text-sm font-bold text-center">
+              <span className="relative z-10 block">Angel AI 💛</span>
+              <span className="relative z-10 block text-xs font-medium mt-1 opacity-90">
+                ⌨️ WASD/Arrows • Space=Pause • R=Random
+              </span>
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  opacity: [0.4, 0.7, 0.4],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                }}
+                className="absolute inset-0 rounded-2xl bg-white/30 blur-sm"
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Auto-move indicator */}
+      {!isAutoMoving && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 border-2 border-white shadow-lg flex items-center justify-center"
+        >
+          <span className="text-white text-xs font-bold">⏸</span>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
