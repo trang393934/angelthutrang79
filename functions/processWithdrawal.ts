@@ -69,6 +69,16 @@ Deno.serve(async (req) => {
         gas_fee_bnb: 0.0005 // Estimate
       });
 
+      // Send email notification to user
+      await base44.functions.invoke('sendNotificationEmail', {
+        type: 'withdrawal_requested',
+        recipient_email: user.email,
+        data: {
+          amount: amount,
+          address: address
+        }
+      }).catch(err => console.error('Email notification failed:', err));
+
       // If auto-approved (low risk), process immediately
       if (!eligibility.requires_manual_review) {
         // Deduct from available balance immediately
@@ -140,6 +150,19 @@ Deno.serve(async (req) => {
         processed_date: new Date().toISOString()
       });
 
+      // Send email notification to user
+      if (receipt.status === 1) {
+        await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+          type: 'withdrawal_completed',
+          recipient_email: withdrawal.user_email,
+          data: {
+            amount: withdrawal.amount,
+            address: withdrawal.withdrawal_address,
+            tx_hash: tx.hash
+          }
+        }).catch(err => console.error('Email notification failed:', err));
+      }
+
       // Create transaction log
       await base44.asServiceRole.entities.CamlycoinTransaction.create({
         user_email: withdrawal.user_email,
@@ -168,15 +191,16 @@ Deno.serve(async (req) => {
 
     // === ACTION: ADMIN APPROVE ===
     if (action === 'approve' && user.role === 'admin') {
+      // Get withdrawal first
+      const withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter({ id: withdrawal_id });
+      const withdrawal = withdrawals[0];
+
       await base44.asServiceRole.entities.WithdrawalRequest.update(withdrawal_id, {
         status: 'approved',
         processed_by: user.email
       });
 
       // Deduct balance
-      const withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter({ id: withdrawal_id });
-      const withdrawal = withdrawals[0];
-      
       const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ 
         user_email: withdrawal.user_email 
       });
@@ -189,17 +213,43 @@ Deno.serve(async (req) => {
         });
       }
 
+      // Send email notification to user
+      await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+        type: 'withdrawal_approved',
+        recipient_email: withdrawal.user_email,
+        data: {
+          amount: withdrawal.amount,
+          address: withdrawal.withdrawal_address
+        }
+      }).catch(err => console.error('Email notification failed:', err));
+
       return Response.json({ success: true, message: 'Approved - ready for processing' });
     }
 
     // === ACTION: REJECT ===
     if (action === 'reject' && user.role === 'admin') {
       const { reason } = await req.json();
+
+      // Get withdrawal first
+      const withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter({ id: withdrawal_id });
+      const withdrawal = withdrawals[0];
+
       await base44.asServiceRole.entities.WithdrawalRequest.update(withdrawal_id, {
         status: 'rejected',
         rejection_reason: reason,
         processed_by: user.email
       });
+
+      // Send email notification to user
+      await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
+        type: 'withdrawal_rejected',
+        recipient_email: withdrawal.user_email,
+        data: {
+          amount: withdrawal.amount,
+          address: withdrawal.withdrawal_address,
+          reason: reason
+        }
+      }).catch(err => console.error('Email notification failed:', err));
 
       return Response.json({ success: true });
     }
