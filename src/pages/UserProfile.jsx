@@ -567,9 +567,17 @@ export default function UserProfile() {
               <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.available_balance || 0).toLocaleString()}
+              {(() => {
+                const activityRewards = transactions.filter(tx => 
+                  tx.amount > 0 && 
+                  tx.type !== 'manual_add' && 
+                  (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
+                ).reduce((sum, tx) => sum + tx.amount, 0);
+
+                return ((userBalance?.available_balance || 0) + activityRewards).toLocaleString();
+              })()}
             </p>
-            <p className="text-amber-600 text-xs mt-1">⏳ 10 câu đầu/ngày</p>
+            <p className="text-amber-600 text-xs mt-1">⏳ 10 câu đầu/ngày + Thưởng hoạt động</p>
           </div>
 
           {/* Chờ Duyệt Thanh Toán */}
