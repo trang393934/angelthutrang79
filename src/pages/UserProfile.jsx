@@ -19,6 +19,7 @@ export default function UserProfile() {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEliminatedModal, setShowEliminatedModal] = useState(false);
+  const [showPendingReviewModal, setShowPendingReviewModal] = useState(false);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -252,6 +253,83 @@ export default function UserProfile() {
     }
   });
 
+  // Approve pending review question mutation
+  const approvePendingReviewMutation = useMutation({
+    mutationFn: async (logId) => {
+      const log = pendingReviewLogs.find(l => l.id === logId);
+      if (!log) return;
+
+      // Move coins to available_balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        const currentAvailable = balance.available_balance || 0;
+        const currentPending = balance.pending_review_balance || 0;
+
+        await base44.entities.CamlycoinBalance.update(balance.id, {
+          pending_review_balance: Math.max(0, currentPending - log.coins_earned),
+          available_balance: currentAvailable + log.coins_earned
+        });
+      }
+
+      // Update log
+      await base44.entities.QuestionAuditLog.update(logId, {
+        coin_category: 'pending_withdrawal',
+        exclusion_reason: 'valid'
+      });
+
+      // Create transaction
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `✅ Admin duyệt câu chờ review: "${log.question_text.substring(0, 50)}..."\n💰 +${log.coins_earned} → Available`,
+        processed_by: currentUser.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+    }
+  });
+
+  // Reject pending review question mutation
+  const rejectPendingReviewMutation = useMutation({
+    mutationFn: async (logId) => {
+      const log = pendingReviewLogs.find(l => l.id === logId);
+      if (!log) return;
+
+      // Move to frozen
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        await base44.entities.CamlycoinBalance.update(balance.id, {
+          pending_review_balance: Math.max(0, (balance.pending_review_balance || 0) - log.coins_earned),
+          frozen_balance: (balance.frozen_balance || 0) + log.coins_earned
+        });
+      }
+
+      await base44.entities.QuestionAuditLog.update(logId, {
+        coin_category: 'frozen'
+      });
+
+      // Create transaction
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: targetEmail,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `❌ Admin từ chối câu chờ review: "${log.question_text.substring(0, 50)}..."\n💰 ${log.coins_earned} → Frozen`,
+        processed_by: currentUser.email
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+    }
+  });
+
   // Approve eliminated question mutation
   const approveEliminatedMutation = useMutation({
     mutationFn: async (logId) => {
@@ -296,7 +374,7 @@ export default function UserProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
-      queryClient.invalidateQueries({ queryKey: ['eliminated-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
       queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
       alert('✅ Đã duyệt thưởng câu hỏi!');
     }
@@ -824,6 +902,122 @@ export default function UserProfile() {
             </Button>
           </motion.div>
         )}
+
+        {/* Pending Review Questions Modal */}
+        <AnimatePresence>
+          {showPendingReviewModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => setShowPendingReviewModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-4xl w-full shadow-2xl my-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex-1">
+                    <h3 className="text-slate-900 text-2xl font-bold">Câu Hỏi Chờ Duyệt Thanh Toán</h3>
+                    <p className="text-slate-600 text-sm mt-1">
+                      <strong>{pendingReviewLogs.length}</strong> câu hỏi từ câu 11+ mỗi ngày cần xem xét
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPendingReviewModal(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                {isLoadingLogs ? (
+                  <div className="text-center py-12">
+                    <Loader2 className="w-16 h-16 text-blue-300 mx-auto mb-4 animate-spin" />
+                    <p className="text-slate-700 font-medium">Đang tải câu hỏi...</p>
+                  </div>
+                ) : pendingReviewLogs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-16 h-16 text-green-300 mx-auto mb-4" />
+                    <p className="text-slate-700 font-bold text-lg mb-2">Không Có Câu Hỏi Chờ Duyệt</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    {pendingReviewLogs.map((log, idx) => (
+                      <motion.div
+                        key={log.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.03 }}
+                        className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-5"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <Badge className="bg-blue-100 text-blue-800 border border-blue-300">
+                                ⏳ Chờ Duyệt
+                              </Badge>
+                              <Badge className="bg-purple-100 text-purple-800 border border-purple-300">
+                                📊 Câu #{log.question_number_in_day}
+                              </Badge>
+                              <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold">
+                                🪙 {log.coins_earned?.toLocaleString()} Camlycoin
+                              </Badge>
+                            </div>
+
+                            <p className="text-slate-900 font-semibold mb-2 break-words leading-relaxed">
+                              {log.question_text}
+                            </p>
+
+                            <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {new Date(log.question_date).toLocaleString('vi-VN')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            onClick={() => approvePendingReviewMutation.mutate(log.id)}
+                            disabled={approvePendingReviewMutation.isPending}
+                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
+                          >
+                            {approvePendingReviewMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <CheckCircle2 className="w-4 h-4 mr-2" />
+                            )}
+                            Duyệt Thưởng
+                          </Button>
+                          <Button
+                            onClick={() => rejectPendingReviewMutation.mutate(log.id)}
+                            disabled={rejectPendingReviewMutation.isPending}
+                            className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
+                          >
+                            {rejectPendingReviewMutation.isPending ? (
+                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            ) : (
+                              <XCircle className="w-4 h-4 mr-2" />
+                            )}
+                            Từ Chối
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Eliminated Questions Modal */}
         <AnimatePresence>
