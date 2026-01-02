@@ -916,7 +916,6 @@ export default function UserProfile() {
                     <Button
                       onClick={() => {
                         setShowEliminatedModal(false);
-                        // Scroll to audit button
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
                       className="bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-bold"
@@ -924,49 +923,51 @@ export default function UserProfile() {
                       Đi Đến Audit Button
                     </Button>
                   </div>
-                ) : eliminatedLogs.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle2 className="w-16 h-16 text-green-300 mx-auto mb-4" />
-                    <p className="text-slate-700 font-bold text-lg mb-2">Không Có Câu Hỏi Bị Loại Bỏ</p>
-                    <p className="text-slate-600 text-sm">
-                      Tất cả {validLogs.length} câu hỏi đều hợp lệ! ✅
-                    </p>
-                  </div>
                 ) : (
                   <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    {eliminatedLogs.map((log, idx) => (
+                    {allUserLogs.map((log, idx) => (
                       <motion.div
                         key={log.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.03 }}
                         className={`border-2 rounded-2xl p-5 ${
-                          log.coin_category === 'frozen' 
+                          log.exclusion_reason === 'valid' 
+                            ? 'bg-green-50 border-green-300' 
+                            : log.coin_category === 'frozen' 
                             ? 'bg-red-50 border-red-300' 
                             : 'bg-blue-50 border-blue-300'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge className={
-                                log.coin_category === 'frozen' 
-                                  ? 'bg-red-100 text-red-800 border border-red-300' 
-                                  : 'bg-blue-100 text-blue-800 border border-blue-300'
-                              }>
-                                {log.coin_category === 'frozen' ? '❄️ Frozen' : '⏳ Pending Review'}
-                              </Badge>
-                              <Badge className={
-                                log.exclusion_reason === 'duplicate' ? 'bg-orange-100 text-orange-800' :
-                                log.exclusion_reason === 'greeting' ? 'bg-yellow-100 text-yellow-800' :
-                                'bg-purple-100 text-purple-800'
-                              }>
-                                {log.exclusion_reason === 'duplicate' ? '🔄 Duplicate' :
-                                 log.exclusion_reason === 'greeting' ? '👋 Greeting' :
-                                 log.exclusion_reason === 'exceeds_daily_limit' ? '📊 Câu 11+' :
-                                 log.exclusion_reason}
-                              </Badge>
-                              <Badge className="bg-amber-100 text-amber-800 border border-amber-300">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              {log.exclusion_reason === 'valid' ? (
+                                <Badge className="bg-green-100 text-green-800 border border-green-300">
+                                  ✅ Hợp Lệ
+                                </Badge>
+                              ) : (
+                                <>
+                                  <Badge className={
+                                    log.coin_category === 'frozen' 
+                                      ? 'bg-red-100 text-red-800 border border-red-300' 
+                                      : 'bg-blue-100 text-blue-800 border border-blue-300'
+                                  }>
+                                    {log.coin_category === 'frozen' ? '❄️ Frozen' : '⏳ Pending Review'}
+                                  </Badge>
+                                  <Badge className={
+                                    log.exclusion_reason === 'duplicate' ? 'bg-orange-100 text-orange-800' :
+                                    log.exclusion_reason === 'greeting' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-purple-100 text-purple-800'
+                                  }>
+                                    {log.exclusion_reason === 'duplicate' ? '🔄 Duplicate' :
+                                     log.exclusion_reason === 'greeting' ? '👋 Greeting' :
+                                     log.exclusion_reason === 'exceeds_daily_limit' ? '📊 Câu 11+' :
+                                     log.exclusion_reason}
+                                  </Badge>
+                                </>
+                              )}
+                              <Badge className="bg-amber-100 text-amber-800 border border-amber-300 font-bold">
                                 🪙 {log.coins_earned?.toLocaleString()} Camlycoin
                               </Badge>
                             </div>
@@ -996,32 +997,34 @@ export default function UserProfile() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2 mt-4">
-                          <Button
-                            onClick={() => approveEliminatedMutation.mutate(log.id)}
-                            disabled={approveEliminatedMutation.isPending}
-                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
-                          >
-                            {approveEliminatedMutation.isPending ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <CheckCircle2 className="w-4 h-4 mr-2" />
-                            )}
-                            Duyệt Thưởng
-                          </Button>
-                          <Button
-                            onClick={() => rejectEliminatedMutation.mutate(log.id)}
-                            disabled={rejectEliminatedMutation.isPending}
-                            className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
-                          >
-                            {rejectEliminatedMutation.isPending ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <XCircle className="w-4 h-4 mr-2" />
-                            )}
-                            Từ Chối
-                          </Button>
-                        </div>
+                        {log.exclusion_reason !== 'valid' && (
+                          <div className="flex gap-2 mt-4">
+                            <Button
+                              onClick={() => approveEliminatedMutation.mutate(log.id)}
+                              disabled={approveEliminatedMutation.isPending}
+                              className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
+                            >
+                              {approveEliminatedMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <CheckCircle2 className="w-4 h-4 mr-2" />
+                              )}
+                              Duyệt Thưởng
+                            </Button>
+                            <Button
+                              onClick={() => rejectEliminatedMutation.mutate(log.id)}
+                              disabled={rejectEliminatedMutation.isPending}
+                              className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-3"
+                            >
+                              {rejectEliminatedMutation.isPending ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <XCircle className="w-4 h-4 mr-2" />
+                              )}
+                              Từ Chối
+                            </Button>
+                          </div>
+                        )}
                       </motion.div>
                     ))}
                   </div>
