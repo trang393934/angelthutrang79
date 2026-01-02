@@ -579,7 +579,24 @@ export default function UserProfile() {
               <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.pending_review_balance || 0).toLocaleString()}
+              {(() => {
+                const activityRewards = transactions.filter(tx => 
+                  tx.amount > 0 && 
+                  tx.type !== 'manual_add' && 
+                  (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
+                ).reduce((sum, tx) => sum + tx.amount, 0);
+
+                const frozen = userBalance?.frozen_balance || 0;
+                const available = userBalance?.available_balance || 0;
+                const pending = userBalance?.pending_review_balance || 0;
+                const paid = userBalance?.paid_amount || 0;
+                const total_earned = userBalance?.total_earned || 0;
+
+                const calculated = activityRewards + frozen + available + paid + pending;
+                const difference = Math.max(0, total_earned - calculated);
+
+                return (pending + difference).toLocaleString();
+              })()}
             </p>
             <p className="text-blue-600 text-xs mt-1">👁️ Câu 11+ hợp lệ</p>
           </div>
@@ -625,74 +642,7 @@ export default function UserProfile() {
           </div>
         </motion.div>
 
-        {/* Formula Verification Box */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-3xl p-6 shadow-lg mb-8"
-        >
-          <h3 className="text-blue-900 font-bold mb-3 flex items-center gap-2">
-            📊 Kiểm Tra Công Thức
-          </h3>
-          <div className="bg-white/80 rounded-2xl p-4 border border-blue-200">
-            <p className="text-blue-800 text-sm font-semibold mb-2">
-              Tổng Đã Kiếm = Thưởng Hoạt Động + Tổng Bị Đóng Băng + Tổng Chưa Thanh Toán + Tổng Đã Thanh Toán + Chờ Duyệt Thanh Toán
-            </p>
-            {(() => {
-              const activityRewards = transactions.filter(tx => 
-                tx.amount > 0 && 
-                tx.type !== 'manual_add' && 
-                (tx.type === 'bounty_reward' || tx.type === 'build_reward' || tx.description?.includes('Community'))
-              ).reduce((sum, tx) => sum + tx.amount, 0);
 
-              const frozen = userBalance?.frozen_balance || 0;
-              const available = userBalance?.available_balance || 0;
-              const pending = userBalance?.pending_review_balance || 0;
-              const paid = userBalance?.paid_amount || 0;
-              const total_earned = userBalance?.total_earned || 0;
-
-              // Tính chênh lệch và thêm vào Chờ Duyệt
-              const calculated_without_diff = activityRewards + frozen + available + paid + pending;
-              const difference = total_earned - calculated_without_diff;
-              const pending_with_diff = pending + Math.max(0, difference);
-
-              const final_calculated = activityRewards + frozen + available + paid + pending_with_diff;
-              const isMatch = final_calculated === total_earned;
-
-              return (
-                <>
-                  <p className="text-blue-900 font-bold text-lg">
-                    {total_earned.toLocaleString()} = {activityRewards.toLocaleString()} + {frozen.toLocaleString()} + {available.toLocaleString()} + {paid.toLocaleString()} + {pending_with_diff.toLocaleString()}
-                  </p>
-                  <p className="text-blue-700 text-sm mt-2">
-                    = {final_calculated.toLocaleString()}
-                  </p>
-                  {difference > 0 && (
-                    <div className="mt-3 p-3 bg-amber-100 border border-amber-400 rounded-lg">
-                      <p className="text-amber-800 font-bold text-sm flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5" />
-                        ⚠️ Phát hiện chênh lệch: {difference.toLocaleString()} Camlycoin
-                      </p>
-                      <p className="text-amber-700 text-xs mt-1">
-                        💡 Số liệu này đã được tự động đưa vào mục "Chờ Duyệt Thanh Toán"
-                      </p>
-                      <p className="text-amber-600 text-xs mt-1">
-                        📌 Chờ Duyệt Thanh Toán = {pending.toLocaleString()} + {difference.toLocaleString()} (chênh lệch) = {pending_with_diff.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-                  {isMatch && difference === 0 && (
-                    <div className="mt-3 flex items-center gap-2 text-green-700">
-                      <CheckCircle2 className="w-5 h-5" />
-                      <span className="font-bold">✅ Số liệu chính xác!</span>
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-        </motion.div>
 
 
 
