@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, Sparkles, Sun, Heart, Filter, Tag, Calendar, Plus, Loader2, Send, SortAsc, X, Eye } from 'lucide-react';
+import { ArrowLeft, Search, Sparkles, Sun, Heart, Filter, Tag, Calendar, Plus, Loader2, Send, SortAsc, X, Eye, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -563,8 +563,8 @@ Trả về JSON với format:
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-6 pb-6 border-b border-purple-200">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg flex-shrink-0 ${
                     selectedMessage.type === 'chat' 
                       ? 'bg-gradient-to-br from-amber-300 to-rose-400' 
                       : 'bg-gradient-to-br from-rose-300 to-orange-400'
@@ -575,7 +575,13 @@ Trả về JSON với format:
                       <Sun className="w-6 h-6 text-white" />
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
+                    {currentUser?.role === 'admin' && selectedMessage.created_by && (
+                      <p className="text-xs text-indigo-600 font-semibold mb-1 flex items-center gap-1 truncate">
+                        <User className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{selectedMessage.created_by}</span>
+                      </p>
+                    )}
                     <p className="text-slate-900 text-lg font-semibold">
                       {selectedMessage.type === 'chat' ? 'Trò Chuyện' : 'Thông Điệp Ngày'}
                     </p>
@@ -730,8 +736,8 @@ Trả về JSON với format:
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
                         message.type === 'chat' 
                           ? 'bg-gradient-to-br from-amber-300 to-rose-400' 
                           : 'bg-gradient-to-br from-rose-300 to-orange-400'
@@ -742,7 +748,13 @@ Trả về JSON với format:
                           <Sun className="w-5 h-5 text-white" />
                         )}
                       </div>
-                      <div>
+                      <div className="flex-1 min-w-0">
+                        {currentUser?.role === 'admin' && message.created_by && (
+                          <p className="text-xs text-indigo-600 font-semibold mb-0.5 flex items-center gap-1 truncate">
+                            <User className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{message.created_by}</span>
+                          </p>
+                        )}
                         <p className="text-slate-900 text-sm font-semibold">
                           {message.type === 'chat' ? 'Trò Chuyện' : 'Thông Điệp Ngày'}
                         </p>
