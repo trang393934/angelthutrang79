@@ -53,12 +53,34 @@ export default function WithdrawCamlycoin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       setWithdrawalAddress('');
       setWithdrawalAmount('');
       alert('✅ Đã gửi yêu cầu rút tiền! Admin sẽ xem xét trong 24-48h.');
     },
     onError: (error) => {
       alert('❌ Lỗi: ' + error.message);
+    }
+  });
+
+  // Auto-claim mutation
+  const autoClaimMutation = useMutation({
+    mutationFn: async () => {
+      const response = await base44.functions.invoke('autoClaimCamlycoin', {});
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      alert(`✅ ${data.message}\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin\n📬 Địa chỉ: ${data.address}`);
+    },
+    onError: (error) => {
+      const errorData = error.response?.data || error;
+      if (errorData.needsManualSetup) {
+        alert('⚠️ ' + errorData.error + '\n\n💡 Hãy tạo yêu cầu rút tiền thủ công một lần để lưu địa chỉ ví.');
+      } else {
+        alert('❌ Lỗi: ' + errorData.error);
+      }
     }
   });
 
@@ -121,13 +143,13 @@ export default function WithdrawCamlycoin() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-4xl mx-auto">
-        {/* Balance Display */}
+        {/* Balance Display with Auto-Claim */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-white/90 text-sm mb-1">Số Dư Sẵn Sàng Thanh Toán</p>
               <p className="text-white text-4xl font-bold">
@@ -137,6 +159,26 @@ export default function WithdrawCamlycoin() {
             </div>
             <Coins className="w-16 h-16 text-white/30" />
           </div>
+          
+          {canWithdraw && (
+            <Button
+              onClick={() => autoClaimMutation.mutate()}
+              disabled={autoClaimMutation.isPending}
+              className="w-full bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50"
+            >
+              {autoClaimMutation.isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5 mr-2" />
+                  🚀 Auto-Claim Tự Động
+                </>
+              )}
+            </Button>
+          )}
         </motion.div>
 
         {/* Withdrawal Form */}
@@ -272,6 +314,10 @@ export default function WithdrawCamlycoin() {
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold mt-0.5">•</span>
                   <span>Bạn sẽ nhận email thông báo khi yêu cầu được xử lý</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-600 font-bold mt-0.5">🚀</span>
+                  <span><strong>Auto-Claim:</strong> Tự động tạo yêu cầu rút toàn bộ số dư về ví đã lưu (cần rút thủ công lần đầu)</span>
                 </li>
               </ul>
             </div>
