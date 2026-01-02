@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, X, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { base44 } from '@/api/base44Client';
 
 export default function ShareToFUNButton({ content, title = "Nội dung từ Angel AI" }) {
   const [showModal, setShowModal] = useState(false);
@@ -59,6 +60,12 @@ export default function ShareToFUNButton({ content, title = "Nội dung từ Ang
     setSharedTo(platform.name);
 
     try {
+      // Track quest progress
+      base44.functions.invoke('trackQuestProgress', { 
+        action: 'share_content',
+        metadata: { platform: platform.name }
+      }).catch(err => console.log('Quest tracking failed:', err));
+
       // Simulate sharing (in real implementation, this would call an API)
       await new Promise(resolve => setTimeout(resolve, 1500));
 
