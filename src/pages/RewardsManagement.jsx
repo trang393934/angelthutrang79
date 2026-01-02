@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Coins, TrendingUp, TrendingDown, Clock, CheckCircle2, XCircle, DollarSign, Users, Filter, Search, Plus, Minus, Loader2, Award, History } from 'lucide-react';
+import { ArrowLeft, Coins, TrendingUp, TrendingDown, Clock, CheckCircle2, XCircle, DollarSign, Users, Filter, Search, Plus, Minus, Loader2, Award, History, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,6 +18,10 @@ export default function RewardsManagement() {
   const [adjustDescription, setAdjustDescription] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [minBalance, setMinBalance] = useState('');
+  const [maxBalance, setMaxBalance] = useState('');
+  const [selectedUserEmail, setSelectedUserEmail] = useState(null);
+  const [showTransactionsModal, setShowTransactionsModal] = useState(false);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -59,6 +63,17 @@ export default function RewardsManagement() {
     queryKey: ['all-balances'],
     queryFn: () => base44.entities.CamlycoinBalance.list('-balance', 10000),
     enabled: isAdmin,
+    refetchInterval: 5000, // Auto-refresh every 5 seconds
+  });
+
+  // Fetch selected user transactions
+  const { data: selectedUserTransactions = [] } = useQuery({
+    queryKey: ['selected-user-transactions', selectedUserEmail],
+    queryFn: async () => {
+      if (!selectedUserEmail) return [];
+      return base44.entities.CamlycoinTransaction.filter({ user_email: selectedUserEmail }, '-created_date', 100);
+    },
+    enabled: !!selectedUserEmail && isAdmin,
   });
 
   // Approve submission mutation
@@ -171,6 +186,47 @@ export default function RewardsManagement() {
     manual_add: Plus,
     manual_deduct: Minus,
     purchase: TrendingDown
+  };
+
+  // Filter balances by balance range
+  const filteredBalances = allBalances.filter(balance => {
+    const bal = balance.balance || 0;
+    const min = minBalance ? parseFloat(minBalance) : 0;
+    const max = maxBalance ? parseFloat(maxBalance) : Infinity;
+    return bal >= min && bal <= max;
+  });
+
+  // Export to CSV function
+  const exportToCSV = () => {
+    // Prepare balance data
+    const balanceRows = allBalances.map(b => {
+      const total = b.total_earned || 0;
+      const available = b.available_balance || 0;
+      const frozen = b.frozen_balance || 0;
+      const paid = b.paid_amount || 0;
+      const pending = Math.max(0, total - available - frozen - paid);
+      
+      return [
+        b.user_email,
+        (b.balance || 0),
+        (b.total_earned || 0),
+        available,
+        pending,
+        (b.paid_amount || 0),
+        (b.frozen_balance || 0)
+      ].join(',');
+    });
+
+    const csvContent = [
+      'Email,Số Dư,Tổng Kiếm,Sẵn Sàng,Chờ Duyệt,Đã Thanh Toán,Đóng Băng',
+      ...balanceRows
+    ].join('\n');
+
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `camlycoin_balances_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
   };
 
   return (
@@ -630,44 +686,109 @@ export default function RewardsManagement() {
 
               {/* All Balances */}
               <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl">
-                <h3 className="text-slate-900 font-bold text-xl mb-6 flex items-center gap-2">
-                  <Users className="w-6 h-6 text-amber-500" />
-                  Danh Sách Balance
-                </h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-slate-900 font-bold text-xl flex items-center gap-2">
+                    <Users className="w-6 h-6 text-amber-500" />
+                    Danh Sách Balance
+                  </h3>
+                  <Button
+                    onClick={exportToCSV}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export CSV
+                  </Button>
+                </div>
+
+                {/* Balance Filter */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <Input
+                    type="number"
+                    value={minBalance}
+                    onChange={(e) => setMinBalance(e.target.value)}
+                    placeholder="Số dư tối thiểu..."
+                    className="bg-white border-2 border-amber-300 rounded-xl"
+                  />
+                  <Input
+                    type="number"
+                    value={maxBalance}
+                    onChange={(e) => setMaxBalance(e.target.value)}
+                    placeholder="Số dư tối đa..."
+                    className="bg-white border-2 border-amber-300 rounded-xl"
+                  />
+                </div>
+
+                <p className="text-sm text-slate-700 mb-4">
+                  Hiển thị <strong>{filteredBalances.length}</strong> / {allBalances.length} users
+                </p>
 
                 <div className="space-y-3">
-                  {allBalances.map((balance, index) => (
+                  {filteredBalances.map((balance, index) => (
                     <motion.div
                       key={balance.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="bg-white border-2 border-amber-100 rounded-2xl p-4 hover:shadow-lg transition-all cursor-pointer"
-                      onClick={() => window.location.href = createPageUrl('UserProfile') + `?email=${encodeURIComponent(balance.user_email)}`}
+                      className="bg-white border-2 border-amber-100 rounded-2xl p-4 hover:shadow-lg transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="text-slate-900 font-semibold hover:text-amber-600 transition-colors">{balance.user_email}</p>
-                          <div className="flex gap-3 mt-2">
+                          <p className="text-slate-900 font-semibold">{balance.user_email}</p>
+                          <div className="flex gap-2 mt-2 flex-wrap">
                             <Badge className="bg-green-100 text-green-800 text-xs">
                               ✅ Đã TT: {(balance.paid_amount || 0).toLocaleString()}
                             </Badge>
+                            <Badge className="bg-amber-100 text-amber-800 text-xs">
+                              ⏳ Sẵn Sàng: {(balance.available_balance || 0).toLocaleString()}
+                            </Badge>
                             <Badge className="bg-orange-100 text-orange-800 text-xs">
-                              ⏳ Chưa TT: {(balance.unpaid_amount || 0).toLocaleString()}
+                              🕐 Chờ: {(() => {
+                                const total = balance.total_earned || 0;
+                                const available = balance.available_balance || 0;
+                                const frozen = balance.frozen_balance || 0;
+                                const paid = balance.paid_amount || 0;
+                                return Math.max(0, total - available - frozen - paid).toLocaleString();
+                              })()}
+                            </Badge>
+                            <Badge className="bg-red-100 text-red-800 text-xs">
+                              ❄️ Đóng: {(balance.frozen_balance || 0).toLocaleString()}
                             </Badge>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold text-amber-600">
-                            {balance.balance.toLocaleString()}
-                          </p>
-                          <p className="text-xs text-slate-600">Số dư</p>
+                        <div className="text-right flex gap-2">
+                          <div>
+                            <p className="text-2xl font-bold text-amber-600">
+                              {balance.balance.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-slate-600">Số dư</p>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="sm"
+                              onClick={() => window.location.href = createPageUrl('UserProfile') + `?email=${encodeURIComponent(balance.user_email)}`}
+                              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-xs h-7"
+                            >
+                              Hồ Sơ
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedUserEmail(balance.user_email);
+                                setShowTransactionsModal(true);
+                              }}
+                              className="border-amber-300 text-amber-700 hover:bg-amber-50 rounded-lg text-xs h-7"
+                            >
+                              <History className="w-3 h-3 mr-1" />
+                              GD
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
                   ))}
 
-                  {allBalances.length === 0 && (
+                  {filteredBalances.length === 0 && (
                     <div className="text-center py-12">
                       <Users className="w-12 h-12 text-amber-300 mx-auto mb-4" />
                       <p className="text-slate-700 font-medium">Chưa có balance nào</p>
@@ -675,6 +796,99 @@ export default function RewardsManagement() {
                   )}
                 </div>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Transactions Modal */}
+        <AnimatePresence>
+          {showTransactionsModal && selectedUserEmail && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+              onClick={() => {
+                setShowTransactionsModal(false);
+                setSelectedUserEmail(null);
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-4xl w-full shadow-2xl my-8"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-slate-900 text-2xl font-bold">Lịch Sử Giao Dịch</h3>
+                    <p className="text-slate-600 text-sm mt-1">{selectedUserEmail}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setShowTransactionsModal(false);
+                      setSelectedUserEmail(null);
+                    }}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                  {selectedUserTransactions.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Clock className="w-12 h-12 text-amber-300 mx-auto mb-4" />
+                      <p className="text-slate-700 font-medium">Chưa có giao dịch nào</p>
+                    </div>
+                  ) : (
+                    selectedUserTransactions.map((tx, index) => {
+                      const Icon = transactionIcons[tx.type] || DollarSign;
+                      const isPositive = tx.amount > 0;
+                      
+                      return (
+                        <motion.div
+                          key={tx.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.03 }}
+                          className="bg-white border-2 border-amber-100 rounded-2xl p-4"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                isPositive ? 'bg-green-100' : 'bg-red-100'
+                              }`}>
+                                <Icon className={`w-5 h-5 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-slate-900 font-semibold break-words">{tx.description}</p>
+                                <p className="text-xs text-slate-600">
+                                  {new Date(tx.created_date).toLocaleString('vi-VN')}
+                                </p>
+                                {tx.processed_by && (
+                                  <p className="text-xs text-purple-600">
+                                    Bởi: {tx.processed_by}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right ml-4 flex-shrink-0">
+                              <p className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                                {isPositive ? '+' : ''}{tx.amount.toLocaleString()}
+                              </p>
+                              <p className="text-xs text-slate-600">Camlycoin</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
