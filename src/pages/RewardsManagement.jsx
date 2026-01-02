@@ -219,10 +219,11 @@ export default function RewardsManagement() {
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
         {/* Admin: Total Summary */}
         {isAdmin && (
+          <>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+            className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
           >
             <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
               <Users className="w-6 h-6" />
@@ -257,6 +258,59 @@ export default function RewardsManagement() {
               </div>
             </div>
           </motion.div>
+
+          {/* Chi Tiết Số Dư Tất Cả Users */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+          >
+            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+              <Coins className="w-6 h-6" />
+              CHI TIẾT SỐ DƯ TẤT CẢ USERS
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Sẵn Sàng Thanh Toán</p>
+                <p className="text-white text-xl md:text-2xl font-bold break-words">
+                  {allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">✅ Admin đã duyệt</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt Thanh Toán</p>
+                <p className="text-white text-xl md:text-2xl font-bold break-words">
+                  {(() => {
+                    const totalPending = allBalances.reduce((sum, b) => {
+                      const total = b.total_earned || 0;
+                      const available = b.available_balance || 0;
+                      const frozen = b.frozen_balance || 0;
+                      const paid = b.paid_amount || 0;
+                      return sum + Math.max(0, total - available - frozen - paid);
+                    }, 0);
+                    return totalPending.toLocaleString();
+                  })()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">⏳ Cần duyệt</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Đã Thanh Toán</p>
+                <p className="text-white text-xl md:text-2xl font-bold break-words">
+                  {allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">✅ Đã chuyển</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Tổng Đóng Băng</p>
+                <p className="text-white text-xl md:text-2xl font-bold break-words">
+                  {allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">❄️ Spam/Duplicate</p>
+              </div>
+            </div>
+          </motion.div>
+          </>
         )}
 
         {/* User Balance Overview */}
