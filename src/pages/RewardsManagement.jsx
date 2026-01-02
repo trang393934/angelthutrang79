@@ -223,9 +223,10 @@ export default function RewardsManagement() {
     return bal >= min && bal <= max;
   });
 
-  // Approve withdrawal mutation
+  // Approve withdrawal mutation with auto-transfer
   const approveWithdrawalMutation = useMutation({
     mutationFn: async (request) => {
+      // Update to approved status
       await base44.entities.WithdrawalRequest.update(request.id, {
         status: 'approved',
         processed_by: currentUser.email,
@@ -242,18 +243,26 @@ export default function RewardsManagement() {
         });
       }
 
-      // Send email notification
-      await base44.functions.invoke('sendNotificationEmail', {
-        type: 'withdrawal_approved',
-        recipient_email: request.user_email,
-        data: { amount: request.amount }
-      }).catch(err => console.error('Email failed:', err));
+      // Trigger auto-transfer
+      const transferResult = await base44.functions.invoke('autoTransferCamlycoin', {
+        withdrawalRequestId: request.id
+      });
 
+      if (transferResult.data.success) {
+        queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+        queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+        return transferResult.data;
+      } else {
+        throw new Error(transferResult.data.error || 'Transfer failed');
+      }
+    },
+    onSuccess: (data) => {
+      alert(`✅ Đã duyệt và chuyển tiền thành công!\n🔗 TX Hash: ${data.tx_hash}\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin`);
+    },
+    onError: (error) => {
+      alert('❌ Lỗi khi chuyển tiền: ' + error.message);
       queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
       queryClient.invalidateQueries({ queryKey: ['all-balances'] });
-    },
-    onSuccess: () => {
-      alert('✅ Đã duyệt yêu cầu rút tiền!');
     }
   });
 
@@ -281,37 +290,60 @@ export default function RewardsManagement() {
     }
   });
 
-  // Bulk approve withdrawals
+  // Bulk approve withdrawals with auto-transfer
   const bulkApproveWithdrawalsMutation = useMutation({
     mutationFn: async (requests) => {
+      const results = [];
       for (const req of requests) {
-        await base44.entities.WithdrawalRequest.update(req.id, {
-          status: 'approved',
-          processed_by: currentUser.email,
-          processed_date: new Date().toISOString()
-        });
+        try {
+          // Update to approved
+          await base44.entities.WithdrawalRequest.update(req.id, {
+            status: 'approved',
+            processed_by: currentUser.email,
+            processed_date: new Date().toISOString()
+          });
 
-        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: req.user_email });
-        if (balances.length > 0) {
-          const balance = balances[0];
-          await base44.entities.CamlycoinBalance.update(balance.id, {
-            available_balance: Math.max(0, (balance.available_balance || 0) - req.amount),
-            balance: Math.max(0, (balance.balance || 0) - req.amount)
+          // Deduct balance
+          const balances = await base44.entities.CamlycoinBalance.filter({ user_email: req.user_email });
+          if (balances.length > 0) {
+            const balance = balances[0];
+            await base44.entities.CamlycoinBalance.update(balance.id, {
+              available_balance: Math.max(0, (balance.available_balance || 0) - req.amount),
+              balance: Math.max(0, (balance.balance || 0) - req.amount)
+            });
+          }
+
+          // Auto-transfer
+          const transferResult = await base44.functions.invoke('autoTransferCamlycoin', {
+            withdrawalRequestId: req.id
+          });
+
+          results.push({ 
+            email: req.user_email, 
+            success: transferResult.data.success,
+            tx_hash: transferResult.data.tx_hash
+          });
+        } catch (error) {
+          results.push({ 
+            email: req.user_email, 
+            success: false, 
+            error: error.message 
           });
         }
-
-        await base44.functions.invoke('sendNotificationEmail', {
-          type: 'withdrawal_approved',
-          recipient_email: req.user_email,
-          data: { amount: req.amount }
-        }).catch(err => console.error('Email failed:', err));
       }
+      return results;
     },
-    onSuccess: () => {
+    onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
       queryClient.invalidateQueries({ queryKey: ['all-balances'] });
       setSelectedWithdrawals([]);
-      alert(`✅ Đã duyệt ${selectedWithdrawals.length} yêu cầu rút tiền!`);
+      
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.filter(r => !r.success).length;
+      
+      alert(`✅ Hoàn tất: ${successCount} thành công, ${failCount} thất bại\n\nChi tiết:\n${results.map(r => 
+        `${r.email}: ${r.success ? '✅ ' + r.tx_hash : '❌ ' + r.error}`
+      ).join('\n')}`);
     }
   });
 
