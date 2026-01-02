@@ -2026,8 +2026,8 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 </>
               ) : (
                 <>
-                  <Wand2 className="w-3 h-3 inline mr-1" />
-                  AI Tools • Enter để gửi • Shift + Enter để xuống dòng
+                  <Sparkles className="w-3 h-3 inline mr-1" />
+                  Gõ từ 10 ký tự để nhận AI gợi ý • Enter để gửi • Shift + Enter để xuống dòng
                 </>
               )}
             </p>
