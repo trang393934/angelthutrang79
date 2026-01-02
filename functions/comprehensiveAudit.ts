@@ -156,7 +156,7 @@ async function auditSingleUser(userEmail, base44) {
     questionsByDay[dayKey].push(q);
   });
 
-  // Audit each day
+  // Audit each day - NEW LOGIC
   for (const [day, dayQuestions] of Object.entries(questionsByDay)) {
     const seenQuestions = new Set();
 
@@ -168,44 +168,58 @@ async function auditSingleUser(userEmail, base44) {
       let similarityScore = 0;
       let auditReason = '';
 
-      // Check 1: Is it 11th+ question? (No coins, not frozen - just not rewarded)
-      if (i >= 10) {
-        exclusionReason = 'exceeds_daily_limit';
-        coinCategory = 'valid'; // Not frozen, just not rewarded
-        result.excess_count++;
-        // Don't add to any category - these questions don't get coins at all
-        continue;
+      // NEW RULE: First 10 questions of the day → ALL go to available_balance
+      if (i < 10) {
+        // Still check for duplicate/greeting for logging purposes
+        const duplicateCheck = await isDuplicateFast(question.text, Array.from(seenQuestions));
+        if (duplicateCheck.isDuplicate) {
+          exclusionReason = 'duplicate';
+          similarTo = duplicateCheck.similarTo;
+          similarityScore = duplicateCheck.similarity;
+          auditReason = `Trùng ${(duplicateCheck.similarity * 100).toFixed(0)}% nhưng nằm trong 10 câu đầu → Vẫn được thưởng`;
+        } else {
+          const greetingCheck = isGreetingFast(question.text);
+          if (greetingCheck.isGreeting) {
+            exclusionReason = 'greeting';
+            auditReason = `${greetingCheck.reason} nhưng nằm trong 10 câu đầu → Vẫn được thưởng`;
+          } else {
+            exclusionReason = 'valid';
+            auditReason = 'Câu hỏi hợp lệ trong 10 câu đầu ngày';
+            seenQuestions.add(question.text.toLowerCase().trim());
+          }
+        }
+
+        // ALL first 10 questions → valid_coins (available_balance)
+        coinCategory = 'pending_withdrawal';
+        result.valid_coins += question.coins;
       }
-      
-      // For first 10 questions only:
-      // Check 2: Fast duplicate detection (Jaccard only, skip AI to save time)
-      const duplicateCheck = await isDuplicateFast(question.text, Array.from(seenQuestions));
-      if (duplicateCheck.isDuplicate) {
-        exclusionReason = 'duplicate';
-        coinCategory = 'frozen';
-        result.frozen_coins += question.coins;
-        result.duplicate_count++;
-        similarTo = duplicateCheck.similarTo;
-        similarityScore = duplicateCheck.similarity;
-        auditReason = duplicateCheck.reason || `Trùng với: "${duplicateCheck.similarTo}"`;
-      }
-      // Check 3: Fast greeting detection (pattern only, skip AI)
+      // Questions 11+ → pending_review OR frozen
       else {
-        const greetingCheck = isGreetingFast(question.text);
-        if (greetingCheck.isGreeting) {
-          exclusionReason = 'greeting';
+        const duplicateCheck = await isDuplicateFast(question.text, Array.from(seenQuestions));
+        if (duplicateCheck.isDuplicate) {
+          exclusionReason = 'duplicate';
           coinCategory = 'frozen';
           result.frozen_coins += question.coins;
-          result.greeting_count++;
-          auditReason = greetingCheck.reason;
-        }
-        // Valid question - gets full reward
-        else {
-          exclusionReason = 'valid';
-          coinCategory = 'pending_withdrawal';
-          result.valid_coins += question.coins;
-          seenQuestions.add(question.text.toLowerCase().trim());
-          auditReason = 'Câu hỏi hợp lệ, có giá trị tri thức';
+          result.duplicate_count++;
+          similarTo = duplicateCheck.similarTo;
+          similarityScore = duplicateCheck.similarity;
+          auditReason = `Câu ${i + 1}: Trùng ${(duplicateCheck.similarity * 100).toFixed(0)}% → Đóng băng`;
+        } else {
+          const greetingCheck = isGreetingFast(question.text);
+          if (greetingCheck.isGreeting) {
+            exclusionReason = 'greeting';
+            coinCategory = 'frozen';
+            result.frozen_coins += question.coins;
+            result.greeting_count++;
+            auditReason = `Câu ${i + 1}: ${greetingCheck.reason} → Đóng băng`;
+          } else {
+            exclusionReason = 'exceeds_daily_limit';
+            coinCategory = 'pending_review';
+            result.pending_review_coins += question.coins;
+            result.excess_count++;
+            seenQuestions.add(question.text.toLowerCase().trim());
+            auditReason = `Câu ${i + 1}: Vượt giới hạn 10 câu/ngày → Chờ admin duyệt`;
+          }
         }
       }
 
