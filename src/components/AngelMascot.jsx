@@ -37,10 +37,23 @@ export default function AngelMascot() {
     return () => clearInterval(moveInterval);
   }, [isDragging, isAutoMoving]);
 
-  // Keyboard controls
+  // Keyboard controls - chỉ hoạt động khi KHÔNG focus vào input/textarea
   useEffect(() => {
     const handleKeyPress = (e) => {
+      // Bỏ qua nếu đang dragging
       if (isDragging) return;
+      
+      // QUAN TRỌNG: Bỏ qua nếu đang focus vào input/textarea/contenteditable
+      const activeElement = document.activeElement;
+      if (
+        activeElement && (
+          activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.isContentEditable
+        )
+      ) {
+        return; // Không xử lý keyboard khi đang gõ
+      }
       
       const step = e.shiftKey ? 100 : 20; // Shift = faster
       const newPos = { ...position };
@@ -48,18 +61,22 @@ export default function AngelMascot() {
       switch(e.key.toLowerCase()) {
         case 'arrowup':
         case 'w':
+          e.preventDefault();
           newPos.y = Math.max(60, position.y - step);
           break;
         case 'arrowdown':
         case 's':
+          e.preventDefault();
           newPos.y = Math.min(window.innerHeight - 140, position.y + step);
           break;
         case 'arrowleft':
         case 'a':
+          e.preventDefault();
           newPos.x = Math.max(60, position.x - step);
           break;
         case 'arrowright':
         case 'd':
+          e.preventDefault();
           newPos.x = Math.min(window.innerWidth - 140, position.x + step);
           break;
         case ' ':
@@ -69,6 +86,7 @@ export default function AngelMascot() {
           return;
         case 'r':
           // R = random position
+          e.preventDefault();
           setPosition(getRandomPosition());
           return;
         default:
