@@ -177,7 +177,25 @@ export default function CamlycoinHistory() {
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
         {/* Level Progress */}
         {userLevel && (
-          <LevelProgressCard userLevel={userLevel} />
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <LevelProgressCard userLevel={userLevel} />
+            </motion.div>
+
+            {/* Point Breakdown */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="mb-6"
+            >
+              <PointBreakdownCard userLevel={userLevel} />
+            </motion.div>
+          </>
         )}
 
         {/* Balance Summary */}
