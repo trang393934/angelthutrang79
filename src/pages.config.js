@@ -12,6 +12,7 @@ import Chat from './pages/Chat';
 import CommunityRewards from './pages/CommunityRewards';
 import DailyMessage from './pages/DailyMessage';
 import FUNUsers from './pages/FUNUsers';
+import Forum from './pages/Forum';
 import GratitudeJournal from './pages/GratitudeJournal';
 import Home from './pages/Home';
 import Imagine from './pages/Imagine';
@@ -29,11 +30,10 @@ import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
+import VisionBoard from './pages/VisionBoard';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import Forum from './pages/Forum';
-import VisionBoard from './pages/VisionBoard';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +52,7 @@ export const PAGES = {
     "CommunityRewards": CommunityRewards,
     "DailyMessage": DailyMessage,
     "FUNUsers": FUNUsers,
+    "Forum": Forum,
     "GratitudeJournal": GratitudeJournal,
     "Home": Home,
     "Imagine": Imagine,
@@ -69,11 +70,10 @@ export const PAGES = {
     "Settings": Settings,
     "TestR2Upload": TestR2Upload,
     "UserProfile": UserProfile,
+    "VisionBoard": VisionBoard,
     "WalletBreakdown": WalletBreakdown,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
-    "Forum": Forum,
-    "VisionBoard": VisionBoard,
 }
 
 export const pagesConfig = {

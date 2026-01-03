@@ -204,11 +204,42 @@ export default function Forum() {
     });
 
   const categories = [
-    { value: 'general', label: '💬 Tổng Hợp', color: 'from-blue-400 to-cyan-400' },
-    { value: 'qa', label: '❓ Hỏi Đáp', color: 'from-purple-400 to-indigo-400' },
-    { value: 'experience', label: '✨ Chia Sẻ', color: 'from-amber-400 to-orange-400' },
-    { value: 'feedback', label: '💡 Góp Ý', color: 'from-green-400 to-emerald-400' },
-    { value: 'announcement', label: '📢 Thông Báo', color: 'from-red-400 to-pink-400' }
+    { 
+      value: 'universal_light', 
+      label: '🌟 Ánh Sáng Vũ Trụ', 
+      color: 'from-yellow-400 to-amber-400',
+      description: 'Thảo luận về trí tuệ vũ trụ, năng lượng tích cực, và sứ mệnh nâng Trái Đất lên 5D'
+    },
+    { 
+      value: 'meditation_law', 
+      label: '🧘 Thiền & Luật Hấp Dẫn', 
+      color: 'from-purple-400 to-indigo-400',
+      description: 'Chia sẻ kinh nghiệm thiền định, thực hành luật hấp dẫn, và chuyển hóa năng lượng'
+    },
+    { 
+      value: 'ai_qa', 
+      label: '💬 Hỏi Đáp Angel AI', 
+      color: 'from-pink-400 to-rose-400',
+      description: 'Đặt câu hỏi công khai để Angel AI trả lời và cộng đồng cùng thảo luận'
+    },
+    { 
+      value: 'experience', 
+      label: '✨ Chia Sẻ Trải Nghiệm', 
+      color: 'from-emerald-400 to-green-400',
+      description: 'Kể về hành trình thức tỉnh, phép màu đã xảy ra, và bài học đã học'
+    },
+    { 
+      value: 'general', 
+      label: '💭 Tổng Hợp', 
+      color: 'from-blue-400 to-cyan-400',
+      description: 'Các chủ đề chung về cuộc sống, tâm linh, và cộng đồng'
+    },
+    { 
+      value: 'announcement', 
+      label: '📢 Thông Báo', 
+      color: 'from-red-400 to-orange-400',
+      description: 'Thông báo chính thức từ Angel AI và Ban quản trị'
+    }
   ];
 
   return (
@@ -256,10 +287,43 @@ export default function Forum() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
+        {/* Category Cards - Featured */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"
+        >
+          {categories.slice(0, 3).map((cat, idx) => (
+            <motion.button
+              key={cat.value}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              whileHover={{ scale: 1.02, y: -5 }}
+              onClick={() => setCategoryFilter(cat.value)}
+              className={`relative overflow-hidden rounded-2xl p-6 text-left shadow-lg transition-all ${
+                categoryFilter === cat.value 
+                  ? 'ring-4 ring-purple-400 shadow-2xl' 
+                  : 'hover:shadow-xl'
+              }`}
+            >
+              <div className={`absolute inset-0 bg-gradient-to-br ${cat.color} opacity-20`} />
+              <div className="relative z-10">
+                <div className="text-3xl mb-2">{cat.label.split(' ')[0]}</div>
+                <h3 className="text-slate-900 font-bold text-lg mb-2">
+                  {cat.label.split(' ').slice(1).join(' ')}
+                </h3>
+                <p className="text-slate-600 text-sm">{cat.description}</p>
+              </div>
+            </motion.button>
+          ))}
+        </motion.div>
+
         {/* Search and Filter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
           className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl mb-6"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
