@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
+import TagSelector from '@/components/TagSelector';
 
 export default function Forum() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -79,6 +80,20 @@ export default function Forum() {
         reply_count: (selectedPost.reply_count || 0) + 1
       });
 
+      // Create notification for post author
+      if (selectedPost.created_by !== currentUser.email) {
+        await base44.entities.Notification.create({
+          user_email: selectedPost.created_by,
+          type: 'forum_reply',
+          title: '💬 Có người trả lời bài viết của bạn',
+          content: `${currentUser.email} đã trả lời: "${content.substring(0, 100)}..."`,
+          reference_id: selectedPost.id,
+          reference_type: 'forum_post',
+          from_user: currentUser.email,
+          is_read: false
+        });
+      }
+
       return reply;
     },
     onSuccess: () => {
@@ -102,31 +117,41 @@ export default function Forum() {
       let newUpvotedBy = [...upvotedBy];
       let newDownvotedBy = [...downvotedBy];
       
+      const wasUpvoted = upvotedBy.includes(currentUser.email);
+      
       if (voteType === 'up') {
-        if (upvotedBy.includes(currentUser.email)) {
-          // Remove upvote
+        if (wasUpvoted) {
           newUpvotes--;
           newUpvotedBy = newUpvotedBy.filter(e => e !== currentUser.email);
         } else {
-          // Add upvote
           newUpvotes++;
           newUpvotedBy.push(currentUser.email);
-          // Remove downvote if exists
           if (downvotedBy.includes(currentUser.email)) {
             newDownvotes--;
             newDownvotedBy = newDownvotedBy.filter(e => e !== currentUser.email);
           }
+          
+          // Create notification for upvote (only on first upvote)
+          if (currentVotes.created_by !== currentUser.email) {
+            await base44.entities.Notification.create({
+              user_email: currentVotes.created_by,
+              type: 'forum_upvote',
+              title: '👍 Có người thích bài của bạn',
+              content: `${currentUser.email} đã upvote ${isPost ? 'bài đăng' : 'câu trả lời'} của bạn`,
+              reference_id: id,
+              reference_type: isPost ? 'forum_post' : 'forum_reply',
+              from_user: currentUser.email,
+              is_read: false
+            });
+          }
         }
       } else {
         if (downvotedBy.includes(currentUser.email)) {
-          // Remove downvote
           newDownvotes--;
           newDownvotedBy = newDownvotedBy.filter(e => e !== currentUser.email);
         } else {
-          // Add downvote
           newDownvotes++;
           newDownvotedBy.push(currentUser.email);
-          // Remove upvote if exists
           if (upvotedBy.includes(currentUser.email)) {
             newUpvotes--;
             newUpvotedBy = newUpvotedBy.filter(e => e !== currentUser.email);
@@ -552,11 +577,11 @@ export default function Forum() {
                 </div>
 
                 <div>
-                  <label className="text-slate-700 font-semibold mb-2 block">Tags (phân cách bằng dấu phẩy)</label>
-                  <Input
-                    value={newPost.tags}
-                    onChange={(e) => setNewPost({ ...newPost, tags: e.target.value })}
-                    placeholder="VD: angel-ai, tâm-linh, công-nghệ"
+                  <label className="text-slate-700 font-semibold mb-2 block">Tags</label>
+                  <TagSelector
+                    selectedTags={newPost.tags ? newPost.tags.split(',').map(t => t.trim()).filter(Boolean) : []}
+                    onChange={(tags) => setNewPost({ ...newPost, tags: tags.join(',') })}
+                    category={newPost.category}
                   />
                 </div>
 
