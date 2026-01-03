@@ -45,18 +45,53 @@ export default function CommunityRewards() {
   // Claim daily login mutation
   const claimDailyLoginMutation = useMutation({
     mutationFn: async () => {
-      return base44.functions.invoke('communityRewardEngine', {
-        action: 'award_community_reward',
+      // Create community reward
+      const reward = await base44.entities.CommunityReward.create({
+        user_email: currentUser.email,
         reward_type: 'daily_login',
-        activity_description: `Đăng nhập ngày ${new Date().toLocaleDateString('vi-VN')}`
+        activity_description: `Đăng nhập ngày ${new Date().toLocaleDateString('vi-VN')}`,
+        coins_awarded: 100,
+        status: 'approved',
+        auto_approved: true
       });
-    },
-    onSuccess: (response) => {
-      if (response.data.success) {
-        queryClient.invalidateQueries({ queryKey: ['my-community-rewards'] });
-        queryClient.invalidateQueries({ queryKey: ['daily-login-check'] });
-        alert(`🎉 ${response.data.message}`);
+
+      // Update balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        await base44.entities.CamlycoinBalance.update(balance.id, {
+          balance: (balance.balance || 0) + 100,
+          total_earned: (balance.total_earned || 0) + 100,
+          available_balance: (balance.available_balance || 0) + 100
+        });
+      } else {
+        await base44.entities.CamlycoinBalance.create({
+          user_email: currentUser.email,
+          balance: 100,
+          total_earned: 100,
+          available_balance: 100
+        });
       }
+
+      // Create transaction
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: currentUser.email,
+        amount: 100,
+        type: 'manual_add',
+        description: `📅 Thưởng Đăng Nhập Hàng Ngày\n💰 +100 Camlycoin\n🗓️ ${new Date().toLocaleDateString('vi-VN')}`,
+        reference_id: reward.id
+      });
+
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-community-rewards'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-login-check'] });
+      alert('🎉 Nhận thành công +100 Camlycoin!');
+    },
+    onError: (error) => {
+      alert('❌ Có lỗi xảy ra. Vui lòng thử lại!');
+      console.error(error);
     }
   });
 
