@@ -280,6 +280,57 @@ export default function RewardsManagement() {
     }
   });
 
+  // Cancel/Revert withdrawal mutation
+  const cancelWithdrawalMutation = useMutation({
+    mutationFn: async ({ request, reason }) => {
+      // If approved but not completed, refund the amount
+      if (request.status === 'approved' || request.status === 'processing') {
+        const balances = await base44.entities.CamlycoinBalance.filter({ 
+          user_email: request.user_email 
+        });
+        if (balances.length > 0) {
+          const balance = balances[0];
+          await base44.entities.CamlycoinBalance.update(balance.id, {
+            available_balance: (balance.available_balance || 0) + request.amount,
+            balance: (balance.balance || 0) + request.amount,
+            paid_amount: Math.max(0, (balance.paid_amount || 0) - request.amount)
+          });
+        }
+      }
+
+      // Update withdrawal request to cancelled
+      await base44.entities.WithdrawalRequest.update(request.id, {
+        status: 'rejected',
+        rejection_reason: reason || 'Admin hủy yêu cầu',
+        processed_by: currentUser.email,
+        processed_date: new Date().toISOString()
+      });
+
+      // Create transaction log
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: request.user_email,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `🔄 Admin hủy yêu cầu rút ${request.amount.toLocaleString()} Camlycoin. Lý do: ${reason || 'Không rõ'}`,
+        reference_id: request.id,
+        processed_by: currentUser.email
+      });
+
+      // Send email notification
+      await base44.functions.invoke('sendNotificationEmail', {
+        type: 'withdrawal_cancelled',
+        recipient_email: request.user_email,
+        data: { amount: request.amount, reason: reason || 'Admin hủy yêu cầu' }
+      }).catch(err => console.error('Email failed:', err));
+
+      queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+    },
+    onSuccess: () => {
+      alert('🔄 Đã hủy yêu cầu rút tiền và hoàn lại số dư!');
+    }
+  });
+
   // Bulk approve withdrawals with auto-transfer
   const bulkApproveWithdrawalsMutation = useMutation({
     mutationFn: async (requests) => {
@@ -1168,6 +1219,45 @@ export default function RewardsManagement() {
                                 </Button>
                               </div>
                             )}
+
+                            {(req.status === 'approved' || req.status === 'processing') && (
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => {
+                                    const reason = prompt('⚠️ Xác nhận HỦY yêu cầu rút tiền?\nSố dư sẽ được hoàn lại cho user.\n\nLý do hủy:');
+                                    if (reason) {
+                                      cancelWithdrawalMutation.mutate({ request: req, reason });
+                                    }
+                                  }}
+                                  disabled={cancelWithdrawalMutation.isPending}
+                                  variant="outline"
+                                  className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 rounded-xl font-bold"
+                                >
+                                  {cancelWithdrawalMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                  )}
+                                  Hủy & Hoàn Tiền
+                                </Button>
+                              </div>
+                            )}
+
+                            {req.status === 'completed' && (
+                              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                                <p className="text-green-800 text-sm font-semibold">✅ Đã chuyển tiền thành công</p>
+                                {req.tx_hash && (
+                                  <a 
+                                    href={`https://bscscan.com/tx/${req.tx_hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:underline mt-1 block"
+                                  >
+                                    Xem trên BSCScan →
+                                  </a>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       );
@@ -1586,6 +1676,45 @@ export default function RewardsManagement() {
                                   )}
                                   Từ Chối
                                 </Button>
+                              </div>
+                            )}
+
+                            {(req.status === 'approved' || req.status === 'processing') && (
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={() => {
+                                    const reason = prompt('⚠️ Xác nhận HỦY yêu cầu rút tiền?\nSố dư sẽ được hoàn lại cho user.\n\nLý do hủy:');
+                                    if (reason) {
+                                      cancelWithdrawalMutation.mutate({ request: req, reason });
+                                    }
+                                  }}
+                                  disabled={cancelWithdrawalMutation.isPending}
+                                  variant="outline"
+                                  className="flex-1 border-orange-300 text-orange-700 hover:bg-orange-50 rounded-xl font-bold"
+                                >
+                                  {cancelWithdrawalMutation.isPending ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  ) : (
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                  )}
+                                  Hủy & Hoàn Tiền
+                                </Button>
+                              </div>
+                            )}
+
+                            {req.status === 'completed' && (
+                              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                                <p className="text-green-800 text-sm font-semibold">✅ Đã chuyển tiền thành công</p>
+                                {req.tx_hash && (
+                                  <a 
+                                    href={`https://bscscan.com/tx/${req.tx_hash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-600 hover:underline mt-1 block"
+                                  >
+                                    Xem trên BSCScan →
+                                  </a>
+                                )}
                               </div>
                             )}
                           </motion.div>
