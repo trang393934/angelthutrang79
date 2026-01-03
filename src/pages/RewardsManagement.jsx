@@ -226,24 +226,14 @@ export default function RewardsManagement() {
   // Approve withdrawal mutation with auto-transfer
   const approveWithdrawalMutation = useMutation({
     mutationFn: async (request) => {
-      // Update to approved status
+      // Update to approved status ONLY
       await base44.entities.WithdrawalRequest.update(request.id, {
         status: 'approved',
         processed_by: currentUser.email,
         processed_date: new Date().toISOString()
       });
 
-      // Deduct from user's available balance
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: request.user_email });
-      if (balances.length > 0) {
-        const balance = balances[0];
-        await base44.entities.CamlycoinBalance.update(balance.id, {
-          available_balance: Math.max(0, (balance.available_balance || 0) - request.amount),
-          balance: Math.max(0, (balance.balance || 0) - request.amount)
-        });
-      }
-
-      // Trigger auto-transfer
+      // Trigger auto-transfer (balance will be deducted inside the function after successful transfer)
       const transferResult = await base44.functions.invoke('autoTransferCamlycoin', {
         withdrawalRequestId: request.id
       });
@@ -296,24 +286,14 @@ export default function RewardsManagement() {
       const results = [];
       for (const req of requests) {
         try {
-          // Update to approved
+          // Update to approved ONLY
           await base44.entities.WithdrawalRequest.update(req.id, {
             status: 'approved',
             processed_by: currentUser.email,
             processed_date: new Date().toISOString()
           });
 
-          // Deduct balance
-          const balances = await base44.entities.CamlycoinBalance.filter({ user_email: req.user_email });
-          if (balances.length > 0) {
-            const balance = balances[0];
-            await base44.entities.CamlycoinBalance.update(balance.id, {
-              available_balance: Math.max(0, (balance.available_balance || 0) - req.amount),
-              balance: Math.max(0, (balance.balance || 0) - req.amount)
-            });
-          }
-
-          // Auto-transfer
+          // Auto-transfer (balance will be deducted inside the function after successful transfer)
           const transferResult = await base44.functions.invoke('autoTransferCamlycoin', {
             withdrawalRequestId: req.id
           });
