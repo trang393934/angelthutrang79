@@ -9,15 +9,6 @@ import ReactMarkdown from 'react-markdown';
 import AngelMascot from '@/components/AngelMascot';
 import SupportChatWidget from '@/components/SupportChatWidget';
 
-// Lazy load NotificationBell
-React.useEffect(() => {
-  if (currentUser) {
-    import('@/components/NotificationBell').then(module => {
-      setNotificationBell(() => module.default);
-    });
-  }
-}, [currentUser]);
-
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -28,8 +19,17 @@ export default function Layout({ children, currentPageName }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const [currentUser, setCurrentUser] = useState(null);
-  const location = useLocation();
   const [NotificationBell, setNotificationBell] = useState(null);
+  const location = useLocation();
+
+  // Lazy load NotificationBell
+  useEffect(() => {
+    if (currentUser) {
+      import('@/components/NotificationBell').then(module => {
+        setNotificationBell(() => module.default);
+      });
+    }
+  }, [currentUser]);
 
   // Check user authentication and Light Law agreement
   useEffect(() => {
