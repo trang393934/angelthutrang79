@@ -34,13 +34,13 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // Get withdrawal request
-    const requests = await base44.asServiceRole.entities.WithdrawalRequest.filter({ id: withdrawalRequestId });
-    if (requests.length === 0) {
+    // Get withdrawal request by listing and finding
+    const allRequests = await base44.asServiceRole.entities.WithdrawalRequest.list();
+    const withdrawalRequest = allRequests.find(r => r.id === withdrawalRequestId);
+    
+    if (!withdrawalRequest) {
       return Response.json({ error: 'Withdrawal request not found' }, { status: 404 });
     }
-
-    const withdrawalRequest = requests[0];
 
     if (withdrawalRequest.status !== 'approved') {
       return Response.json({ 
