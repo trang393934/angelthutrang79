@@ -32,11 +32,11 @@ Deno.serve(async (req) => {
     // Determine level
     const levelThresholds = [
       { level: 'bronze', number: 1, min: 0, max: 500000, multiplier: 1.0, dailyBonus: 0 },
-      { level: 'silver', number: 2, min: 500000, max: 1500000, multiplier: 1.1, dailyBonus: 2 },
-      { level: 'gold', number: 3, min: 1500000, max: 3000000, multiplier: 1.2, dailyBonus: 5 },
-      { level: 'platinum', number: 4, min: 3000000, max: 6000000, multiplier: 1.5, dailyBonus: 10 },
-      { level: 'diamond', number: 5, min: 6000000, max: 10000000, multiplier: 2.0, dailyBonus: 15 },
-      { level: 'master', number: 6, min: 10000000, max: Infinity, multiplier: 3.0, dailyBonus: 20 }
+      { level: 'silver', number: 2, min: 500000, max: 1500000, multiplier: 1.0, dailyBonus: 2 },
+      { level: 'gold', number: 3, min: 1500000, max: 3000000, multiplier: 1.0, dailyBonus: 5 },
+      { level: 'platinum', number: 4, min: 3000000, max: 6000000, multiplier: 1.0, dailyBonus: 10 },
+      { level: 'diamond', number: 5, min: 6000000, max: 10000000, multiplier: 1.0, dailyBonus: 15 },
+      { level: 'master', number: 6, min: 10000000, max: Infinity, multiplier: 1.0, dailyBonus: 20 }
     ];
 
     const currentLevelData = levelThresholds.reverse().find(l => totalPoints >= l.min);

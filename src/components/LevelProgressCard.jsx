@@ -22,12 +22,12 @@ export default function LevelProgressCard({ userLevel }) {
     : ((userLevel.total_points - currentThreshold.min) / (currentThreshold.max - currentThreshold.min)) * 100;
 
   const benefits = {
-    bronze: ['10 câu thưởng/ngày', 'Hệ số x1.0'],
-    silver: ['12 câu thưởng/ngày', 'Hệ số x1.1', '🎁 Badge Bạc'],
-    gold: ['15 câu thưởng/ngày', 'Hệ số x1.2', '👑 Badge Vàng', '✨ Exclusive Content'],
-    platinum: ['20 câu thưởng/ngày', 'Hệ số x1.5', '💎 Badge Bạch Kim', '🌟 Priority Support'],
-    diamond: ['25 câu thưởng/ngày', 'Hệ số x2.0', '💠 Badge Kim Cương', '🎯 VIP Access'],
-    master: ['30 câu thưởng/ngày', 'Hệ số x3.0', '⚡ Badge Đại Minh Sư', '👑 Master Access', '🔮 Custom Features']
+    bronze: ['10 câu thưởng/ngày'],
+    silver: ['12 câu thưởng/ngày', '🎁 Badge Bạc'],
+    gold: ['15 câu thưởng/ngày', '👑 Badge Vàng', '✨ Exclusive Content'],
+    platinum: ['20 câu thưởng/ngày', '💎 Badge Bạch Kim', '🌟 Priority Support'],
+    diamond: ['25 câu thưởng/ngày', '💠 Badge Kim Cương', '🎯 VIP Access'],
+    master: ['30 câu thưởng/ngày', '⚡ Badge Đại Minh Sư', '👑 Master Access', '🔮 Custom Features']
   };
 
   return (
@@ -110,8 +110,9 @@ export default function LevelProgressCard({ userLevel }) {
           <p className="text-white/60 text-xs">feedbacks</p>
         </div>
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 text-center border border-white/20">
-          <p className="text-white/70 text-xs mb-1">Multiplier</p>
-          <p className="text-white text-xl font-bold">x{userLevel.reward_multiplier}</p>
+          <p className="text-white/70 text-xs mb-1">Bonus</p>
+          <p className="text-white text-xl font-bold">+{userLevel.daily_limit_bonus}</p>
+          <p className="text-white/60 text-xs">câu/ngày</p>
         </div>
       </div>
     </motion.div>
