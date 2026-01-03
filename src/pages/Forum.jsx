@@ -11,6 +11,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import TagSelector from '@/components/TagSelector';
+import ForumAITools from '@/components/forum/ForumAITools';
 
 export default function Forum() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -401,6 +402,9 @@ export default function Forum() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Quay Lại
             </Button>
+
+            {/* AI Tools for Forum */}
+            <ForumAITools post={selectedPost} replies={postReplies} />
 
             {/* Post Content */}
             <motion.div

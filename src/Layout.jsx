@@ -137,6 +137,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-rose-400 to-orange-400'
     },
     { 
+      name: 'Vision Board', 
+      icon: Target, 
+      path: 'VisionBoard',
+      gradient: 'from-purple-500 to-pink-500'
+    },
+    { 
       name: 'Lịch sử', 
       icon: History, 
       path: 'Library',

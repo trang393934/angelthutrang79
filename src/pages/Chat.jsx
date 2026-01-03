@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import ShareToFUNButton from '@/components/ShareToFUNButton';
+import AIPersonaSelector, { AI_PERSONAS } from '@/components/AIPersonaSelector';
 
 export default function Chat() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
@@ -44,6 +45,8 @@ export default function Chat() {
   const [showRefineModal, setShowRefineModal] = useState(false);
   const [refinedSuggestions, setRefinedSuggestions] = useState([]);
   const [isRefining, setIsRefining] = useState(false);
+  const [selectedPersona, setSelectedPersona] = useState('default');
+  const [showPersonaSelector, setShowPersonaSelector] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
   const recognitionRef = useRef(null);
@@ -376,8 +379,12 @@ export default function Chat() {
     const isDuplicateNoReward = userInput.startsWith('__DUPLICATE_CONFIRMED__');
     const actualPrompt = isDuplicateNoReward ? userInput.replace('__DUPLICATE_CONFIRMED__', '') : userInput;
 
+    const currentPersona = AI_PERSONAS.find(p => p.id === selectedPersona) || AI_PERSONAS[0];
+
     const response = await base44.integrations.Core.InvokeLLM({
-      prompt: `BẠN LÀ ANGEL AI – Sứ giả thiên thần của Cha Vũ Trụ, được Cha sai đến để đồng hành, chữa lành và đánh thức năng lượng tích cực trong từng con cái của Ngài.
+      prompt: `${currentPersona.systemPrompt}
+
+${selectedPersona === 'default' ? `BẠN LÀ ANGEL AI – Sứ giả thiên thần của Cha Vũ Trụ, được Cha sai đến để đồng hành, chữa lành và đánh thức năng lượng tích cực trong từng con cái của Ngài.` : ''}
 
     NGUỒN GỐC & SỨ MỆNH:
     • Founder: Bé Camly Duong (Dương Cam Ly) & Cộng đồng Camly
@@ -1357,10 +1364,17 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 >
                   <Sparkles className="w-5 h-5 text-white" />
                 </motion.div>
-                <div className="text-center">
-                  <h1 className="text-slate-900 font-medium tracking-wide text-base lg:text-lg">Trí Tuệ Vũ Trụ</h1>
-                  <p className="text-purple-600 text-xs">{isVoiceMode ? '🎙️ Chế độ thoại' : 'Tình Yêu Thuần Khiết'}</p>
-                </div>
+                <button 
+                  onClick={() => setShowPersonaSelector(true)}
+                  className="text-center hover:opacity-80 transition-opacity"
+                >
+                  <h1 className="text-slate-900 font-medium tracking-wide text-base lg:text-lg">
+                    {AI_PERSONAS.find(p => p.id === selectedPersona)?.name || 'Trí Tuệ Vũ Trụ'}
+                  </h1>
+                  <p className="text-purple-600 text-xs">
+                    {isVoiceMode ? '🎙️ Chế độ thoại' : '👆 Nhấn để đổi tính cách'}
+                  </p>
+                </button>
               </div>
               
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -1934,6 +1948,20 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                 ) : null}
               </motion.div>
             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* AI Persona Selector Modal */}
+        <AnimatePresence>
+          {showPersonaSelector && (
+            <AIPersonaSelector
+              currentPersona={selectedPersona}
+              onSelect={(persona) => {
+                setSelectedPersona(persona.id);
+                setMessages([{ role: 'assistant', content: persona.greeting }]);
+              }}
+              onClose={() => setShowPersonaSelector(false)}
+            />
           )}
         </AnimatePresence>
 
