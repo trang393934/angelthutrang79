@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Gift, Share2, BookOpen, Heart, CalendarDays, Lightbulb, Users, Coins, Clock, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Gift, Share2, BookOpen, Heart, CalendarDays, Lightbulb, Users, Coins, Clock, CheckCircle2, Loader2, Sparkles, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -305,46 +305,133 @@ export default function CommunityRewards() {
             </div>
           ) : (
             <div className="space-y-3">
-              {myRewards.map((reward, idx) => (
-                <motion.div
-                  key={reward.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: idx * 0.03 }}
-                  className="bg-white border-2 border-indigo-100 rounded-2xl p-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className={
-                          reward.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-300' :
-                          reward.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
-                          'bg-red-100 text-red-800 border border-red-300'
-                        }>
-                          {reward.status === 'approved' ? '✅ Đã Duyệt' :
-                           reward.status === 'pending' ? '⏳ Chờ Duyệt' :
-                           '❌ Từ Chối'}
-                        </Badge>
-                        {reward.auto_approved && (
-                          <Badge variant="outline" className="text-xs">
-                            🤖 Tự Động
-                          </Badge>
-                        )}
+              {myRewards.map((reward, idx) => {
+                const netVotes = (reward.upvotes || 0) - (reward.downvotes || 0);
+                
+                return (
+                  <motion.div
+                    key={reward.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.03 }}
+                    className="bg-white border-2 border-indigo-100 rounded-2xl p-4"
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      {/* Vote buttons */}
+                      <div className="flex flex-col items-center gap-1">
+                        <button
+                          onClick={async () => {
+                            const upvotedBy = reward.upvoted_by || [];
+                            const downvotedBy = reward.downvoted_by || [];
+                            let newUpvotes = reward.upvotes || 0;
+                            let newDownvotes = reward.downvotes || 0;
+                            let newUpvotedBy = [...upvotedBy];
+                            let newDownvotedBy = [...downvotedBy];
+                            
+                            if (upvotedBy.includes(currentUser.email)) {
+                              newUpvotes--;
+                              newUpvotedBy = newUpvotedBy.filter(e => e !== currentUser.email);
+                            } else {
+                              newUpvotes++;
+                              newUpvotedBy.push(currentUser.email);
+                              if (downvotedBy.includes(currentUser.email)) {
+                                newDownvotes--;
+                                newDownvotedBy = newDownvotedBy.filter(e => e !== currentUser.email);
+                              }
+                            }
+                            
+                            await base44.entities.CommunityReward.update(reward.id, {
+                              upvotes: newUpvotes,
+                              downvotes: newDownvotes,
+                              upvoted_by: newUpvotedBy,
+                              downvoted_by: newDownvotedBy
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['my-community-rewards'] });
+                          }}
+                          className={`p-1 rounded-lg transition-all ${
+                            reward.upvoted_by?.includes(currentUser?.email)
+                              ? 'bg-green-100 text-green-600'
+                              : 'hover:bg-green-50 text-slate-400'
+                          }`}
+                        >
+                          <ThumbsUp className="w-4 h-4" />
+                        </button>
+                        <span className={`font-bold text-sm ${
+                          netVotes > 0 ? 'text-green-600' : netVotes < 0 ? 'text-red-600' : 'text-slate-600'
+                        }`}>
+                          {netVotes}
+                        </span>
+                        <button
+                          onClick={async () => {
+                            const upvotedBy = reward.upvoted_by || [];
+                            const downvotedBy = reward.downvoted_by || [];
+                            let newUpvotes = reward.upvotes || 0;
+                            let newDownvotes = reward.downvotes || 0;
+                            let newUpvotedBy = [...upvotedBy];
+                            let newDownvotedBy = [...downvotedBy];
+                            
+                            if (downvotedBy.includes(currentUser.email)) {
+                              newDownvotes--;
+                              newDownvotedBy = newDownvotedBy.filter(e => e !== currentUser.email);
+                            } else {
+                              newDownvotes++;
+                              newDownvotedBy.push(currentUser.email);
+                              if (upvotedBy.includes(currentUser.email)) {
+                                newUpvotes--;
+                                newUpvotedBy = newUpvotedBy.filter(e => e !== currentUser.email);
+                              }
+                            }
+                            
+                            await base44.entities.CommunityReward.update(reward.id, {
+                              upvotes: newUpvotes,
+                              downvotes: newDownvotes,
+                              upvoted_by: newUpvotedBy,
+                              downvoted_by: newDownvotedBy
+                            });
+                            queryClient.invalidateQueries({ queryKey: ['my-community-rewards'] });
+                          }}
+                          className={`p-1 rounded-lg transition-all ${
+                            reward.downvoted_by?.includes(currentUser?.email)
+                              ? 'bg-red-100 text-red-600'
+                              : 'hover:bg-red-50 text-slate-400'
+                          }`}
+                        >
+                          <ThumbsDown className="w-4 h-4" />
+                        </button>
                       </div>
-                      <p className="text-slate-900 font-semibold mb-1">{reward.activity_description}</p>
-                      <p className="text-xs text-slate-600">
-                        {new Date(reward.created_date).toLocaleString('vi-VN')}
-                      </p>
+
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className={
+                            reward.status === 'approved' ? 'bg-green-100 text-green-800 border border-green-300' :
+                            reward.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-300' :
+                            'bg-red-100 text-red-800 border border-red-300'
+                          }>
+                            {reward.status === 'approved' ? '✅ Đã Duyệt' :
+                             reward.status === 'pending' ? '⏳ Chờ Duyệt' :
+                             '❌ Từ Chối'}
+                          </Badge>
+                          {reward.auto_approved && (
+                            <Badge variant="outline" className="text-xs">
+                              🤖 Tự Động
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-slate-900 font-semibold mb-1">{reward.activity_description}</p>
+                        <p className="text-xs text-slate-600">
+                          {new Date(reward.created_date).toLocaleString('vi-VN')}
+                        </p>
+                      </div>
+                      <div className="text-right ml-4">
+                        <p className="text-2xl font-bold text-amber-600">
+                          +{reward.coins_awarded.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-600">Camlycoin</p>
+                      </div>
                     </div>
-                    <div className="text-right ml-4">
-                      <p className="text-2xl font-bold text-amber-600">
-                        +{reward.coins_awarded.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-slate-600">Camlycoin</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           )}
         </motion.div>

@@ -32,6 +32,7 @@ import UserProfile from './pages/UserProfile';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
+import Forum from './pages/Forum';
 import __Layout from './Layout.jsx';
 
 
@@ -70,6 +71,7 @@ export const PAGES = {
     "WalletBreakdown": WalletBreakdown,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
+    "Forum": Forum,
 }
 
 export const pagesConfig = {

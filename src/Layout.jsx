@@ -145,6 +145,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-purple-400 to-pink-400'
     },
     { 
+      name: 'Diễn Đàn', 
+      icon: MessageSquare, 
+      path: 'Forum',
+      gradient: 'from-indigo-400 to-purple-400'
+    },
+    { 
       name: 'Camlycoin', 
       icon: Globe, 
       path: 'RewardsManagement',
