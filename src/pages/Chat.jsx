@@ -1539,31 +1539,40 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                     <ReactMarkdown className="prose prose-invert prose-sm max-w-none font-semibold leading-relaxed [&>p]:mb-3 [&>p:last-child]:mb-0 text-slate-900">
                      {message.content}
                     </ReactMarkdown>
-
-                    {/* Copy button at bottom right corner */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyMessageToClipboard(message.content, index)}
-                      className={`absolute bottom-2 right-2 text-xs rounded-full h-7 px-3 ${
-                        message.role === 'user' 
-                          ? 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100' 
-                          : 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
-                      }`}
-                    >
-                      {copiedMessageIndex === index ? (
-                        <>
-                          <Check className="w-3 h-3 mr-1" />
-                          Đã copy
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3 mr-1" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
                     </motion.div>
+
+                    {/* Copy & Share buttons - Always visible for both user and AI */}
+                    <div className="flex gap-2 mt-2 ml-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyMessageToClipboard(message.content, index)}
+                        className={`text-xs rounded-full h-7 px-3 ${
+                          copiedMessageIndex === index
+                            ? 'bg-green-100 text-green-700 border border-green-300'
+                            : message.role === 'user'
+                            ? 'text-indigo-600 hover:text-indigo-900 hover:bg-indigo-100 border border-indigo-200'
+                            : 'text-purple-600 hover:text-purple-900 hover:bg-purple-100 border border-purple-200'
+                        }`}
+                      >
+                        {copiedMessageIndex === index ? (
+                          <>
+                            <Check className="w-3 h-3 mr-1" />
+                            Đã copy
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                      
+                      <ShareToFUNButton 
+                        content={message.content}
+                        title={message.role === 'user' ? 'Câu hỏi của tôi' : 'Tri thức từ Angel AI'}
+                      />
+                    </div>
 
                     {/* Voice playback button for assistant messages */}
                     {message.role === 'assistant' && isVoiceMode && (
@@ -1622,7 +1631,7 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                         </Button>
                       </div>
 
-                      {/* Feedback & Share buttons */}
+                      {/* Feedback buttons */}
                       <div className="flex gap-2 items-center flex-wrap">
                         <Button
                           variant="ghost"
@@ -1652,10 +1661,6 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                           <ThumbsDown className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'not_helpful' ? 'fill-amber-400' : ''}`} />
                           Cần cải thiện
                         </Button>
-                        <ShareToFUNButton 
-                          content={message.content}
-                          title="Tri thức từ Angel AI"
-                        />
                       </div>
 
                       {/* Feedback input form */}
