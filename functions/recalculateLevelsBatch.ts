@@ -36,8 +36,32 @@ Deno.serve(async (req) => {
         const feedbacks = await base44.asServiceRole.entities.Feedback.filter({ created_by: userEmail });
         const qualityCount = feedbacks.filter(f => f.rating === 'helpful').length;
 
-        // Total Points = Total Earned + (Quality Feedback × 100)
-        const totalPoints = totalEarned + (qualityCount * 100);
+        // Enhanced Point Calculation
+        // Base: Total Earned Camlycoin
+        let totalPoints = totalEarned;
+
+        // Quality Feedback Bonus: +100 per helpful feedback
+        const qualityBonus = qualityCount * 100;
+        totalPoints += qualityBonus;
+
+        // Streak Bonus: +50 per day of continuous activity
+        const streakBonus = streakDays * 50;
+        totalPoints += streakBonus;
+
+        // Activity Bonus: Based on recent activity count
+        const recentActivities = activities.filter(a => {
+          const activityDate = new Date(a.timestamp);
+          const daysSince = (new Date() - activityDate) / (1000 * 60 * 60 * 24);
+          return daysSince <= 30; // Last 30 days
+        });
+        const activityBonus = recentActivities.length * 10;
+        totalPoints += activityBonus;
+
+        // Quality Ratio Bonus: If >70% helpful feedback
+        const totalFeedbacks = feedbacks.length;
+        const qualityRatio = totalFeedbacks > 0 ? (qualityCount / totalFeedbacks) : 0;
+        const qualityRatioBonus = qualityRatio >= 0.7 && totalFeedbacks >= 5 ? 500 : 0;
+        totalPoints += qualityRatioBonus;
 
         // Find correct level
         const currentLevelData = levelThresholds.reverse().find(l => totalPoints >= l.min);
@@ -107,7 +131,18 @@ Deno.serve(async (req) => {
             daily_limit_bonus: currentLevelData.dailyBonus,
             reward_multiplier: 1.0,
             next_level_points: nextLevelPoints,
-            last_level_up_date: levelChanged ? new Date().toISOString() : oldLevel.last_level_up_date
+            last_level_up_date: levelChanged ? new Date().toISOString() : oldLevel.last_level_up_date,
+            // Point breakdown for transparency
+            point_breakdown: {
+              base_earned: totalEarned,
+              quality_bonus: qualityBonus,
+              streak_bonus: streakBonus,
+              activity_bonus: activityBonus,
+              quality_ratio_bonus: qualityRatioBonus,
+              quality_ratio: qualityRatio,
+              total_feedbacks: totalFeedbacks,
+              recent_activities_count: recentActivities.length
+            }
           });
 
           if (levelChanged) {
@@ -131,7 +166,18 @@ Deno.serve(async (req) => {
             daily_limit_bonus: currentLevelData.dailyBonus,
             reward_multiplier: 1.0,
             next_level_points: nextLevelPoints,
-            last_level_up_date: new Date().toISOString()
+            last_level_up_date: new Date().toISOString(),
+            // Point breakdown for transparency
+            point_breakdown: {
+              base_earned: totalEarned,
+              quality_bonus: qualityBonus,
+              streak_bonus: streakBonus,
+              activity_bonus: activityBonus,
+              quality_ratio_bonus: qualityRatioBonus,
+              quality_ratio: qualityRatio,
+              total_feedbacks: totalFeedbacks,
+              recent_activities_count: recentActivities.length
+            }
           });
         }
 

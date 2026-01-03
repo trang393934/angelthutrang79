@@ -10,6 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 import LevelProgressCard from '@/components/LevelProgressCard';
+import PointBreakdownCard from '@/components/PointBreakdownCard';
 
 export default function CamlycoinHistory() {
   const [currentUser, setCurrentUser] = useState(null);
