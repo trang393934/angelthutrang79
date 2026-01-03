@@ -38,6 +38,7 @@ export default function Chat() {
   const [copiedMessageIndex, setCopiedMessageIndex] = useState(null);
   const [messageReadTimes, setMessageReadTimes] = useState({});
   const [dailyLimit, setDailyLimit] = useState(null);
+  const [submittingFeedback, setSubmittingFeedback] = useState(null);
   const [showLimitReached, setShowLimitReached] = useState(false);
   const [showDuplicateWarning, setShowDuplicateWarning] = useState(false);
   const [duplicateQuestion, setDuplicateQuestion] = useState(null);
@@ -1040,12 +1041,15 @@ Trả về JSON:`,
   };
 
   const submitFeedback = async (messageContent, messageIndex, rating, feedbackTextInput = '') => {
-    const conversationContext = messages.slice(Math.max(0, messageIndex - 2), messageIndex + 1)
-      .map(m => `${m.role === 'user' ? 'Người dùng' : 'Angel AI'}: ${m.content}`)
-      .join('\n\n');
+    setSubmittingFeedback(messageIndex);
+    
+    try {
+      const conversationContext = messages.slice(Math.max(0, messageIndex - 2), messageIndex + 1)
+        .map(m => `${m.role === 'user' ? 'Người dùng' : 'Angel AI'}: ${m.content}`)
+        .join('\n\n');
 
-    // AI analyzes the feedback
-    const analysis = await base44.integrations.Core.InvokeLLM({
+      // AI analyzes the feedback
+      const analysis = await base44.integrations.Core.InvokeLLM({
       prompt: `Phân tích feedback từ người dùng về câu trả lời của Angel AI.
 
 Câu trả lời: ${messageContent}
@@ -1151,8 +1155,17 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
       });
     }
 
-    setFeedbackIndex(null);
-    setFeedbackText('');
+      setFeedbackIndex(null);
+      setFeedbackText('');
+      setSubmittingFeedback(null);
+      
+      // Show success message
+      alert(rating === 'helpful' ? '✅ Cảm ơn! Đánh giá "Hữu ích" đã được ghi nhận!' : '✅ Cảm ơn góp ý! Chúng tôi sẽ cải thiện!');
+    } catch (error) {
+      console.error('Feedback error:', error);
+      alert('❌ Lỗi khi gửi feedback. Vui lòng thử lại!');
+      setSubmittingFeedback(null);
+    }
   };
 
   return (
@@ -1637,21 +1650,25 @@ Viết bằng tiếng Việt, súc tích và chuyên nghiệp.`,
                           variant="ghost"
                           size="sm"
                           onClick={() => submitFeedback(message.content, index, 'helpful')}
-                          disabled={messageFeedbacks[index]}
+                          disabled={messageFeedbacks[index] || submittingFeedback === index}
                           className={`text-xs rounded-full h-7 px-3 ${
                             messageFeedbacks[index] === 'helpful'
                               ? 'text-green-700 bg-green-100 border border-green-300'
                               : 'text-purple-600 hover:text-green-700 hover:bg-green-50 border border-purple-200'
                           }`}
                         >
-                          <ThumbsUp className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'helpful' ? 'fill-green-400' : ''}`} />
+                          {submittingFeedback === index ? (
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          ) : (
+                            <ThumbsUp className={`w-3 h-3 mr-1 ${messageFeedbacks[index] === 'helpful' ? 'fill-green-400' : ''}`} />
+                          )}
                           Hữu ích
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setFeedbackIndex(feedbackIndex === index ? null : index)}
-                          disabled={messageFeedbacks[index]}
+                          disabled={messageFeedbacks[index] || submittingFeedback === index}
                           className={`text-xs rounded-full h-7 px-3 ${
                             messageFeedbacks[index] === 'not_helpful'
                               ? 'text-amber-700 bg-amber-100 border border-amber-300'
