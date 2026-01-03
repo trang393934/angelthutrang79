@@ -8,12 +8,12 @@ export default function LevelProgressCard({ userLevel }) {
   if (!userLevel) return null;
 
   const levelThresholds = {
-    bronze: { min: 0, max: 50000, next: 'silver' },
-    silver: { min: 50000, max: 150000, next: 'gold' },
-    gold: { min: 150000, max: 300000, next: 'platinum' },
-    platinum: { min: 300000, max: 600000, next: 'diamond' },
-    diamond: { min: 600000, max: 1000000, next: 'master' },
-    master: { min: 1000000, max: Infinity, next: null }
+    bronze: { min: 0, max: 500000, next: 'silver' },
+    silver: { min: 500000, max: 1500000, next: 'gold' },
+    gold: { min: 1500000, max: 3000000, next: 'platinum' },
+    platinum: { min: 3000000, max: 6000000, next: 'diamond' },
+    diamond: { min: 6000000, max: 10000000, next: 'master' },
+    master: { min: 10000000, max: Infinity, next: null }
   };
 
   const currentThreshold = levelThresholds[userLevel.current_level];
