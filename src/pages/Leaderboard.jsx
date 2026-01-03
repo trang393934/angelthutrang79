@@ -35,6 +35,7 @@ export default function Leaderboard() {
   const rankedUsers = React.useMemo(() => {
     let users = allBalances.map(balance => {
       let earned = balance.total_earned || 0;
+      let questionsCount = 0;
 
       // Apply time filter
       if (timeFilter !== 'all' && allTransactions.length > 0) {
@@ -60,17 +61,22 @@ export default function Leaderboard() {
             new Date(tx.created_date) >= startDate
           );
           earned = userTx.reduce((sum, tx) => sum + tx.amount, 0);
+          // Count questions in time period
+          questionsCount = userTx.filter(tx => tx.type === 'manual_add').length;
         }
+      } else {
+        // All time - count all questions
+        questionsCount = allTransactions.filter(tx => 
+          tx.user_email === balance.user_email && 
+          tx.amount > 0 &&
+          tx.type === 'manual_add'
+        ).length;
       }
 
       return {
         ...balance,
         displayed_earned: earned,
-        questions_count: allTransactions.filter(tx => 
-          tx.user_email === balance.user_email && 
-          tx.amount > 0 &&
-          tx.type === 'manual_add'
-        ).length
+        questions_count: questionsCount
       };
     });
 
