@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wallet, Coins, AlertCircle, CheckCircle2, Clock, Send, Loader2, Info } from 'lucide-react';
+import { ArrowLeft, Wallet, Coins, AlertCircle, CheckCircle2, Clock, Send, Loader2, Info, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -208,6 +208,20 @@ export default function WithdrawCamlycoin() {
               <Send className="w-6 h-6 text-amber-500" />
               Tạo Yêu Cầu Rút Tiền
             </h3>
+
+            {/* Gas Fee Estimate */}
+            <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 mb-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="w-5 h-5 text-blue-600" />
+                <p className="text-blue-900 font-bold text-sm">Phí Gas Ước Tính</p>
+              </div>
+              <p className="text-blue-800 text-xs">
+                Mỗi giao dịch rút Camlycoin mất khoảng <strong>~0.0005 BNB</strong> phí gas trên BSC (khoảng $0.30 USD)
+              </p>
+              <p className="text-blue-700 text-xs mt-1">
+                💡 Phí này do mạng BSC thu, không phải Angel AI
+              </p>
+            </div>
 
             <div className="space-y-4">
               <div>
@@ -420,9 +434,15 @@ export default function WithdrawCamlycoin() {
                         )}
                         {req.tx_hash && (
                           <div className="bg-green-50 border border-green-200 rounded-lg p-2 mt-2">
-                            <p className="text-green-800 text-xs break-all">
-                              <strong>TX Hash:</strong> {req.tx_hash}
-                            </p>
+                            <a
+                              href={`https://bscscan.com/tx/${req.tx_hash}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-green-800 text-xs break-all hover:underline flex items-center gap-1"
+                            >
+                              <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                              <span><strong>Xem TX:</strong> {req.tx_hash}</span>
+                            </a>
                           </div>
                         )}
                       </div>

@@ -132,9 +132,16 @@ Deno.serve(async (req) => {
       const decimals = await tokenContract.decimals();
       const amountWei = ethers.parseUnits(withdrawal.amount.toString(), decimals);
 
+      // Estimate gas fee
+      const gasPrice = await provider.getFeeData();
+      const estimatedGas = await tokenContract.transfer.estimateGas(withdrawal.withdrawal_address, amountWei);
+      const gasFeeWei = estimatedGas * gasPrice.gasPrice;
+      const gasFeeEth = ethers.formatEther(gasFeeWei);
+
       // Send transaction
       await base44.asServiceRole.entities.WithdrawalRequest.update(withdrawal_id, {
-        status: 'processing'
+        status: 'processing',
+        gas_fee_bnb: parseFloat(gasFeeEth)
       });
 
       const tx = await tokenContract.transfer(withdrawal.withdrawal_address, amountWei);
@@ -150,7 +157,7 @@ Deno.serve(async (req) => {
         processed_date: new Date().toISOString()
       });
 
-      // Send email notification to user
+      // Send email + in-app notification to user
       if (receipt.status === 1) {
         await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
           type: 'withdrawal_completed',
@@ -161,6 +168,19 @@ Deno.serve(async (req) => {
             tx_hash: tx.hash
           }
         }).catch(err => console.error('Email notification failed:', err));
+
+        // Create in-app notification
+        await base44.asServiceRole.entities.Notification.create({
+          user_email: withdrawal.user_email,
+          type: 'system',
+          title: '🎉 Rút Tiền Thành Công!',
+          content: `${withdrawal.amount.toLocaleString()} Camlycoin đã được chuyển đến ví của bạn. TX: ${tx.hash}`,
+          reference_id: withdrawal_id,
+          reference_type: 'withdrawal',
+          from_user: user.email,
+          is_read: false,
+          action_url: `https://bscscan.com/tx/${tx.hash}`
+        }).catch(err => console.error('In-app notification failed:', err));
       }
 
       // Create transaction log
@@ -213,7 +233,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Send email notification to user
+      // Send email + in-app notification to user
       await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
         type: 'withdrawal_approved',
         recipient_email: withdrawal.user_email,
@@ -222,6 +242,18 @@ Deno.serve(async (req) => {
           address: withdrawal.withdrawal_address
         }
       }).catch(err => console.error('Email notification failed:', err));
+
+      // Create in-app notification
+      await base44.asServiceRole.entities.Notification.create({
+        user_email: withdrawal.user_email,
+        type: 'system',
+        title: '✅ Yêu Cầu Rút Tiền Được Duyệt',
+        content: `Yêu cầu rút ${withdrawal.amount.toLocaleString()} Camlycoin đã được admin phê duyệt. Giao dịch sẽ được thực thi trong vòng 1-24h.`,
+        reference_id: withdrawal_id,
+        reference_type: 'withdrawal',
+        from_user: user.email,
+        is_read: false
+      }).catch(err => console.error('In-app notification failed:', err));
 
       return Response.json({ success: true, message: 'Approved - ready for processing' });
     }
@@ -240,7 +272,7 @@ Deno.serve(async (req) => {
         processed_by: user.email
       });
 
-      // Send email notification to user
+      // Send email + in-app notification to user
       await base44.asServiceRole.functions.invoke('sendNotificationEmail', {
         type: 'withdrawal_rejected',
         recipient_email: withdrawal.user_email,
@@ -250,6 +282,18 @@ Deno.serve(async (req) => {
           reason: reason
         }
       }).catch(err => console.error('Email notification failed:', err));
+
+      // Create in-app notification
+      await base44.asServiceRole.entities.Notification.create({
+        user_email: withdrawal.user_email,
+        type: 'system',
+        title: '❌ Yêu Cầu Rút Tiền Bị Từ Chối',
+        content: `Yêu cầu rút ${withdrawal.amount.toLocaleString()} Camlycoin bị từ chối. Lý do: ${reason}`,
+        reference_id: withdrawal_id,
+        reference_type: 'withdrawal',
+        from_user: user.email,
+        is_read: false
+      }).catch(err => console.error('In-app notification failed:', err));
 
       return Response.json({ success: true });
     }

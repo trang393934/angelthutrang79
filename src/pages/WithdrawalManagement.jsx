@@ -218,6 +218,11 @@ export default function WithdrawalManagement() {
                   <p className="text-xs text-slate-500">
                     {new Date(withdrawal.created_date).toLocaleString('vi-VN')}
                   </p>
+                  {withdrawal.gas_fee_bnb && (
+                    <p className="text-xs text-slate-600 mt-1">
+                      <strong>Gas Fee:</strong> ~{withdrawal.gas_fee_bnb.toFixed(6)} BNB
+                    </p>
+                  )}
                 </div>
               </div>
 
