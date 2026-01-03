@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { ethers } from 'npm:ethers@6.9.0';
 
-// ERC20 ABI (chỉ cần transfer function)
+// ERC20 ABI for Camlycoin token transfers
 const ERC20_ABI = [
   "function transfer(address to, uint256 amount) returns (bool)",
   "function balanceOf(address owner) view returns (uint256)",
