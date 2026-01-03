@@ -40,9 +40,24 @@ export default function WithdrawCamlycoin() {
     enabled: !!currentUser,
   });
 
+  // Check for pending/approved withdrawals
+  const hasPendingWithdrawal = withdrawalRequests.some(
+    req => req.status === 'pending' || req.status === 'approved' || req.status === 'processing'
+  );
+
   // Submit withdrawal request
   const submitWithdrawalMutation = useMutation({
     mutationFn: async ({ address, amount }) => {
+      // Double check for pending withdrawals
+      const pendingCheck = await base44.entities.WithdrawalRequest.filter({ 
+        user_email: currentUser.email,
+        status: 'pending'
+      });
+      
+      if (pendingCheck.length > 0) {
+        throw new Error('Bạn đã có yêu cầu đang chờ xử lý. Vui lòng đợi admin duyệt trước khi tạo yêu cầu mới.');
+      }
+
       await base44.entities.WithdrawalRequest.create({
         user_email: currentUser.email,
         withdrawal_address: address,
@@ -228,6 +243,22 @@ export default function WithdrawCamlycoin() {
                 </p>
               </div>
 
+              {hasPendingWithdrawal && (
+                <div className="bg-orange-100 border-2 border-orange-300 rounded-xl p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-orange-900 font-bold text-sm mb-1">
+                        ⚠️ Bạn đã có yêu cầu đang chờ xử lý
+                      </p>
+                      <p className="text-orange-800 text-xs">
+                        Vui lòng đợi admin duyệt yêu cầu hiện tại trước khi tạo yêu cầu mới.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button
                 onClick={() => submitWithdrawalMutation.mutate({ 
                   address: withdrawalAddress, 
@@ -238,7 +269,8 @@ export default function WithdrawCamlycoin() {
                   !withdrawalAmount || 
                   parseFloat(withdrawalAmount) < 100000 || 
                   parseFloat(withdrawalAmount) > availableBalance ||
-                  submitWithdrawalMutation.isPending
+                  submitWithdrawalMutation.isPending ||
+                  hasPendingWithdrawal
                 }
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-6 font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
               >
@@ -246,6 +278,11 @@ export default function WithdrawCamlycoin() {
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Đang gửi...
+                  </>
+                ) : hasPendingWithdrawal ? (
+                  <>
+                    <Clock className="w-5 h-5 mr-2" />
+                    Đang Có Yêu Cầu Chờ Duyệt
                   </>
                 ) : (
                   <>
