@@ -746,7 +746,7 @@ export default function Home() {
               { name: 'FUN Market', url: '#', icon: '🛍️', color: 'from-fuchsia-400 to-purple-400' },
               { name: 'FUN Wallet', url: '#', icon: '👛', color: 'from-violet-400 to-purple-400' },
               { name: 'FUN Money', url: '#', icon: '💵', color: 'from-green-400 to-teal-400' },
-              { name: 'Camly Coin', url: '#', icon: '🪙', color: 'from-amber-300 to-yellow-400' },
+              { name: 'Camly Coin', url: '#', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/ef7e3390c_image.png', color: 'from-amber-300 to-yellow-400' },
               { name: 'Cosmic Game', url: '#', icon: '🎯', color: 'from-purple-400 to-pink-400' },
             ].map((platform, index) => (
               <motion.a
@@ -764,7 +764,11 @@ export default function Home() {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${platform.color} opacity-20 rounded-2xl blur-xl group-hover:blur-2xl transition-all`} />
                 <div className="relative bg-white/60 backdrop-blur-sm border border-white/50 rounded-2xl p-4 text-center h-full flex flex-col items-center justify-center hover:border-white/80 hover:shadow-xl transition-all">
-                  <div className="text-3xl mb-2">{platform.icon}</div>
+                  {platform.icon.startsWith('http') ? (
+                    <img src={platform.icon} alt={platform.name} className="w-12 h-12 mb-2 object-contain" />
+                  ) : (
+                    <div className="text-3xl mb-2">{platform.icon}</div>
+                  )}
                   <h3 className="text-sm font-semibold text-slate-900 tracking-wide" style={{ fontFamily: "'Inter', 'Segoe UI', 'Roboto', sans-serif" }}>
                     {platform.name}
                   </h3>
