@@ -733,7 +733,7 @@ export default function Home() {
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
           >
             {[
-              { name: 'FUN Profile', url: 'https://funprofile.lovable.app/', icon: '👤', color: 'from-blue-400 to-cyan-400' },
+              { name: 'FUN Profile', url: 'https://funprofile.lovable.app/', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/d6da3a480_image.png', color: 'from-blue-400 to-cyan-400' },
               { name: 'FUN Play', url: 'https://play.fun.rich/', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/5272deca2_image.png', color: 'from-purple-400 to-pink-400' },
               { name: 'FUN Planet', url: 'https://Planet.fun.rich', icon: '🌍', color: 'from-green-400 to-emerald-400' },
               { name: 'FUN Charity', url: '#', icon: '💝', color: 'from-rose-400 to-pink-400' },
