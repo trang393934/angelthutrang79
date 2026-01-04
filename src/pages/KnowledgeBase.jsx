@@ -1315,7 +1315,51 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
             </Button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <>
+            {/* Category Header */}
+            {selectedCategory && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`bg-gradient-to-r ${colorMap[selectedCategory.color]} rounded-2xl p-6 mb-6 shadow-lg`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">{selectedCategory.icon}</span>
+                    <div>
+                      <h3 className="text-white text-2xl font-bold mb-1">{selectedCategory.name}</h3>
+                      <p className="text-white/90 text-sm">{selectedCategory.description}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white text-3xl font-bold">{filteredDocs.length}</p>
+                    <p className="text-white/80 text-xs">Tài Liệu</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            {!selectedCategory && uncategorizedCount > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-slate-100 to-slate-200 rounded-2xl p-6 mb-6 shadow-lg border-2 border-slate-300"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl">📦</span>
+                    <div>
+                      <h3 className="text-slate-900 text-2xl font-bold mb-1">Tổng Hợp</h3>
+                      <p className="text-slate-700 text-sm">Các tài liệu chưa phân loại</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-slate-900 text-3xl font-bold">{filteredDocs.length}</p>
+                    <p className="text-slate-600 text-xs">Tài Liệu</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <AnimatePresence mode="popLayout">
               {filteredDocs.map((doc, index) => (
                 <motion.div
@@ -1344,7 +1388,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                         <BookOpen className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-slate-900 font-semibold line-clamp-2 leading-snug">{doc.title}</h3>
+                        <h3 className="text-slate-900 font-bold text-base leading-snug mb-2">{doc.title}</h3>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge className={`text-xs ${typeColors[doc.type]}`}>
                             {typeLabels[doc.type]}
@@ -1464,6 +1508,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               ))}
             </AnimatePresence>
           </div>
+          </>
         )}
       </div>
 
