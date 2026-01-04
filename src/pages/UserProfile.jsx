@@ -150,11 +150,12 @@ export default function UserProfile() {
 
   // Phân loại logs
   const eliminatedLogs = allUserLogs.filter(log => 
-    log.exclusion_reason !== 'valid' && 
-    (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
+    log.exclusion_reason !== 'valid' && log.coin_category === 'frozen'
   );
   const validLogs = allUserLogs.filter(log => log.exclusion_reason === 'valid');
-  const pendingReviewLogs = allUserLogs.filter(log => log.coin_category === 'pending_review');
+  const pendingReviewLogs = allUserLogs.filter(log => 
+    log.coin_category === 'pending_review' || log.exclusion_reason === 'exceeds_daily_limit'
+  );
 
   // Fetch user level
   const { data: userLevel } = useQuery({
