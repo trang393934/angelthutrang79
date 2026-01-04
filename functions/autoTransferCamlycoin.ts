@@ -111,14 +111,14 @@ Deno.serve(async (req) => {
     // Wait for confirmation
     const receipt = await tx.wait();
 
-    // ONLY NOW deduct from user's balance (after successful transfer)
+    // Update balance after successful transfer
+    // (available_balance đã bị trừ khi user tạo withdrawal request)
     const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ 
       user_email: withdrawalRequest.user_email 
     });
     if (balances.length > 0) {
       const balance = balances[0];
       await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-        available_balance: Math.max(0, (balance.available_balance || 0) - withdrawalRequest.amount),
         balance: Math.max(0, (balance.balance || 0) - withdrawalRequest.amount),
         paid_amount: (balance.paid_amount || 0) + withdrawalRequest.amount
       });
