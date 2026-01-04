@@ -49,6 +49,33 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    // SECURITY CHECK: Verify daily limit (500k max per day)
+    const today = new Date().toISOString().split('T')[0];
+    const dailyLimits = await base44.asServiceRole.entities.DailyAutoClaimLimit.filter({
+      user_email: withdrawalRequest.user_email,
+      date: today
+    });
+    
+    const dailyLimit = dailyLimits[0];
+    if (dailyLimit) {
+      const remaining = dailyLimit.remaining_limit || 0;
+      if (withdrawalRequest.amount > remaining) {
+        return Response.json({ 
+          error: `Vượt quá giới hạn rút hôm nay. Còn lại: ${remaining.toLocaleString()} CAMLY`,
+          remaining: remaining,
+          requested: withdrawalRequest.amount
+        }, { status: 400 });
+      }
+    }
+
+    // SECURITY CHECK: Validate wallet address format
+    if (!/^0x[a-fA-F0-9]{40}$/.test(withdrawalRequest.withdrawal_address)) {
+      return Response.json({ 
+        error: 'Invalid BEP-20 wallet address format',
+        address: withdrawalRequest.withdrawal_address
+      }, { status: 400 });
+    }
+
     // Connect to BSC
     const provider = new ethers.JsonRpcProvider(rpcUrl);
     const wallet = new ethers.Wallet(privateKey, provider);
@@ -104,6 +131,23 @@ Deno.serve(async (req) => {
       processed_date: new Date().toISOString()
     });
 
+    // Update daily limit tracking
+    if (dailyLimit) {
+      await base44.asServiceRole.entities.DailyAutoClaimLimit.update(dailyLimit.id, {
+        total_claimed_today: (dailyLimit.total_claimed_today || 0) + withdrawalRequest.amount,
+        claim_count: (dailyLimit.claim_count || 0) + 1,
+        remaining_limit: Math.max(0, (dailyLimit.remaining_limit || 500000) - withdrawalRequest.amount)
+      });
+    } else {
+      await base44.asServiceRole.entities.DailyAutoClaimLimit.create({
+        user_email: withdrawalRequest.user_email,
+        date: today,
+        total_claimed_today: withdrawalRequest.amount,
+        claim_count: 1,
+        remaining_limit: Math.max(0, 500000 - withdrawalRequest.amount)
+      });
+    }
+
     // Create transaction log
     await base44.asServiceRole.entities.CamlycoinTransaction.create({
       user_email: withdrawalRequest.user_email,
@@ -111,7 +155,7 @@ Deno.serve(async (req) => {
       type: 'admin_adjustment',
       description: `✅ Đã chuyển ${withdrawalRequest.amount.toLocaleString()} Camlycoin về ví tự động\n🔗 TX: ${receipt.hash}`,
       reference_id: withdrawalRequest.id,
-      processed_by: user.email
+      processed_by: user?.email || 'auto_claim_system'
     });
 
     // Send email notification

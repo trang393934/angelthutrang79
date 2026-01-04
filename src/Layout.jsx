@@ -586,6 +586,21 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                         </Link>
 
                         <Link
+                          to={createPageUrl('AutoClaimSettings')}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
+                            isActivePage('AutoClaimSettings')
+                              ? 'bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 shadow-sm'
+                              : 'hover:bg-amber-50 border border-transparent'
+                          }`}
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shadow-md">
+                            <span className="text-white text-sm">⚡</span>
+                          </div>
+                          <span className="font-semibold text-slate-700 text-xs">Auto-Claim</span>
+                        </Link>
+
+                        <Link
                           to={createPageUrl('Settings')}
                           onClick={() => setSidebarOpen(false)}
                           className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
