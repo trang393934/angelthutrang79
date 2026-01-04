@@ -489,18 +489,12 @@ export default function RewardsManagement() {
   const exportToCSV = () => {
     // Prepare balance data
     const balanceRows = allBalances.map(b => {
-      const total = b.total_earned || 0;
-      const available = b.available_balance || 0;
-      const frozen = b.frozen_balance || 0;
-      const paid = b.paid_amount || 0;
-      const pending = Math.max(0, total - available - frozen - paid);
-      
       return [
         b.user_email,
         (b.balance || 0),
         (b.total_earned || 0),
-        available,
-        pending,
+        (b.available_balance || 0),
+        (b.unpaid_amount || 0),
         (b.paid_amount || 0),
         (b.frozen_balance || 0)
       ].join(',');
@@ -631,16 +625,7 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {(() => {
-                    const totalPending = allBalances.reduce((sum, b) => {
-                      const total = b.total_earned || 0;
-                      const available = b.available_balance || 0;
-                      const frozen = b.frozen_balance || 0;
-                      const paid = b.paid_amount || 0;
-                      return sum + Math.max(0, total - available - frozen - paid);
-                    }, 0);
-                    return totalPending.toLocaleString();
-                  })()}
+                  {allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">⏳ Cần duyệt</p>
               </div>
@@ -1397,13 +1382,7 @@ export default function RewardsManagement() {
                               ⏳ Sẵn Sàng: {(balance.available_balance || 0).toLocaleString()}
                             </Badge>
                             <Badge className="bg-orange-100 text-orange-800 text-xs">
-                              🕐 Chờ: {(() => {
-                                const total = balance.total_earned || 0;
-                                const available = balance.available_balance || 0;
-                                const frozen = balance.frozen_balance || 0;
-                                const paid = balance.paid_amount || 0;
-                                return Math.max(0, total - available - frozen - paid).toLocaleString();
-                              })()}
+                              🕐 Chờ: {(balance.unpaid_amount || 0).toLocaleString()}
                             </Badge>
                             <Badge className="bg-red-100 text-red-800 text-xs">
                               ❄️ Đóng: {(balance.frozen_balance || 0).toLocaleString()}
