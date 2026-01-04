@@ -31,6 +31,7 @@ export default function KnowledgeBase() {
   const [categoryIcon, setCategoryIcon] = useState('📁');
   const [categoryColor, setCategoryColor] = useState('blue');
   const [editingCategory, setEditingCategory] = useState(null);
+  const [movingDoc, setMovingDoc] = useState(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -221,6 +222,15 @@ Trả về JSON với format:
     mutationFn: (id) => base44.entities.KnowledgeBase.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['knowledge-base'] });
+    },
+  });
+
+  const moveDocMutation = useMutation({
+    mutationFn: ({ docId, categoryId }) => 
+      base44.entities.KnowledgeBase.update(docId, { category_id: categoryId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['knowledge-base-all'] });
+      setMovingDoc(null);
     },
   });
 
@@ -945,6 +955,71 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
         )}
       </AnimatePresence>
 
+      {/* Move Document Modal */}
+      <AnimatePresence>
+        {movingDoc && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-30 flex items-center justify-center p-4"
+            onClick={() => setMovingDoc(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-lg w-full shadow-2xl"
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
+                  <FolderOpen className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-slate-900 text-xl font-semibold tracking-wide">Di Chuyển Tài Liệu</h3>
+                  <p className="text-purple-700 text-sm font-medium">Chọn thư mục đích</p>
+                </div>
+              </div>
+
+              <div className="bg-indigo-50 border-2 border-indigo-200 rounded-2xl p-4 mb-6">
+                <p className="text-slate-900 font-semibold text-sm mb-1">📄 {movingDoc.title}</p>
+                <Badge className={`text-xs ${typeColors[movingDoc.type]}`}>
+                  {typeLabels[movingDoc.type]}
+                </Badge>
+              </div>
+
+              <div className="space-y-2 mb-6 max-h-[300px] overflow-y-auto">
+                {categories.map((cat) => (
+                  <motion.button
+                    key={cat.id}
+                    whileHover={{ scale: 1.02, x: 4 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => moveDocMutation.mutate({ docId: movingDoc.id, categoryId: cat.id })}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all bg-gradient-to-r ${colorMap[cat.color]} border-transparent text-white hover:shadow-lg`}
+                  >
+                    <span className="text-2xl">{cat.icon}</span>
+                    <div className="flex-1 text-left">
+                      <p className="font-bold text-sm">{cat.name}</p>
+                      <p className="text-xs text-white/80">{cat.description}</p>
+                    </div>
+                    <Folder className="w-5 h-5" />
+                  </motion.button>
+                ))}
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => setMovingDoc(null)}
+                className="w-full bg-white border-2 border-purple-300 text-slate-900 hover:bg-purple-50 rounded-full"
+              >
+                Hủy
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* FAQ Modal */}
       <AnimatePresence>
         {showFAQ && (
@@ -1305,19 +1380,35 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                       </div>
                     </div>
                     {isAdmin && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (confirm('Xóa tài liệu này?')) {
-                            deleteMutation.mutate(doc.id);
-                          }
-                        }}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        {!doc.category_id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMovingDoc(doc);
+                            }}
+                            className="text-indigo-500 hover:text-indigo-700 hover:bg-indigo-100"
+                            title="Di chuyển vào thư mục"
+                          >
+                            <FolderOpen className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('Xóa tài liệu này?')) {
+                              deleteMutation.mutate(doc.id);
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     )}
                   </div>
 
