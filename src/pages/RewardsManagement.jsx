@@ -655,35 +655,81 @@ export default function RewardsManagement() {
               <Coins className="w-6 h-6" />
               CHI TIẾT SỐ DƯ TẤT CẢ USERS
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-white/90 text-xs font-medium mb-1">Sẵn Sàng Thanh Toán</p>
+                <p className="text-white/90 text-xs font-medium mb-1">Sẵn Sàng TT</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
                   {allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0).toLocaleString()}
                 </p>
-                <p className="text-white/80 text-xs mt-1">✅ Admin đã duyệt</p>
+                <p className="text-white/80 text-xs mt-1">✅ Đã duyệt</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt Thanh Toán</p>
+                <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt TT</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
                   {allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">⏳ Cần duyệt</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-white/90 text-xs font-medium mb-1">Đã Thanh Toán</p>
+                <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
+                <p className="text-white text-xl md:text-2xl font-bold break-words">
+                  {allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0).toLocaleString()}
+                </p>
+                <p className="text-white/80 text-xs mt-1">🔍 Câu 11+</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/90 text-xs font-medium mb-1">Đã TT</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
                   {allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">✅ Đã chuyển</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-white/90 text-xs font-medium mb-1">Tổng Đóng Băng</p>
+                <p className="text-white/90 text-xs font-medium mb-1">Đóng Băng</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
                   {allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0).toLocaleString()}
                 </p>
-                <p className="text-white/80 text-xs mt-1">❄️ Spam/Duplicate</p>
+                <p className="text-white/80 text-xs mt-1">❄️ Spam</p>
               </div>
+            </div>
+            
+            {/* Validation Check */}
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 mt-4">
+              <p className="text-white/90 text-sm font-bold mb-2">✅ Kiểm Tra Công Thức:</p>
+              <p className="text-white text-xs leading-relaxed">
+                <strong>Tổng Kiếm:</strong> {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0).toLocaleString()}<br/>
+                <strong>Tổng Chi Tiết:</strong> {(
+                  allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
+                  allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0) +
+                  allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0) +
+                  allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
+                  allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0)
+                ).toLocaleString()}<br/>
+                <strong className={
+                  allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0) === 
+                  (allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
+                   allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0) +
+                   allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0) +
+                   allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
+                   allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
+                  ? 'text-green-300' : 'text-red-300'
+                }>
+                  {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0) === 
+                   (allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
+                    allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0) +
+                    allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0) +
+                    allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
+                    allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
+                   ? '✅ CHÍNH XÁC' : '❌ SAI LỆCH: ' + (
+                    allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0) -
+                    (allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
+                     allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0) +
+                     allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0) +
+                     allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
+                     allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
+                   ).toLocaleString()}
+                </strong>
+              </p>
             </div>
           </motion.div>
           </>
