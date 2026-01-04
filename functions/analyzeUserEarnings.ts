@@ -41,6 +41,13 @@ Deno.serve(async (req) => {
 
     let totalFromOtherSources = 0;
 
+    // Group audit logs by question number for quick lookup
+    const questionNumberMap = {};
+    for (const log of allLogs) {
+      const key = `${new Date(log.question_date).toISOString().split('T')[0]}_${log.question_number_in_day}`;
+      questionNumberMap[key] = log;
+    }
+
     for (const tx of allTxs) {
       // Skip negative amounts (spending)
       if (tx.amount <= 0) continue;
@@ -53,6 +60,13 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Try to extract question number from description
+      let questionNumber = null;
+      const match = tx.description?.match(/\((\d+)\/30\)/);
+      if (match) {
+        questionNumber = parseInt(match[1]);
+      }
+
       // Categorize by type
       const category = tx.type || 'other';
       const amount = tx.amount;
@@ -62,14 +76,16 @@ Deno.serve(async (req) => {
           amount: amount,
           description: tx.description,
           date: tx.created_date,
-          type: tx.type
+          type: tx.type,
+          question_number: questionNumber
         });
       } else {
         otherSources.other.push({
           amount: amount,
           description: tx.description,
           date: tx.created_date,
-          type: tx.type
+          type: tx.type,
+          question_number: questionNumber
         });
       }
 
