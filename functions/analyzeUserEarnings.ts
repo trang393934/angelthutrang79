@@ -98,10 +98,24 @@ Deno.serve(async (req) => {
     for (const [category, items] of Object.entries(otherSources)) {
       if (items.length > 0) {
         const categoryTotal = items.reduce((sum, item) => sum + item.amount, 0);
+        
+        // Count questions by number
+        const questionStats = {};
+        for (const item of items) {
+          if (item.question_number) {
+            if (!questionStats[item.question_number]) {
+              questionStats[item.question_number] = { count: 0, total: 0 };
+            }
+            questionStats[item.question_number].count++;
+            questionStats[item.question_number].total += item.amount;
+          }
+        }
+        
         breakdown[category] = {
           total: categoryTotal,
           count: items.length,
-          items: items
+          items: items,
+          by_question_number: questionStats
         };
         grandTotal += categoryTotal;
       }
