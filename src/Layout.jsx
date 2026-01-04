@@ -350,20 +350,27 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
       const accounts = await window.ethereum.request({ 
         method: 'eth_requestAccounts' 
       });
-      setWalletAddress(accounts[0]);
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
       
-      // Handle specific MetaMask errors
-      if (error.code === 4001) {
-        alert('❌ Bạn đã từ chối kết nối ví.\n\n💡 Vui lòng chấp nhận yêu cầu kết nối từ MetaMask để tiếp tục.');
-      } else if (error.code === -32002) {
-        alert('⏳ Đã có yêu cầu kết nối đang chờ xử lý.\n\n💡 Vui lòng kiểm tra popup MetaMask và hoàn tất kết nối.');
-      } else {
-        alert('❌ Không thể kết nối ví!\n\n💡 Vui lòng:\n1. Mở MetaMask extension\n2. Đảm bảo đã đăng nhập\n3. Thử lại\n\nLỗi: ' + (error.message || 'Unknown error'));
+      if (accounts && accounts.length > 0) {
+        setWalletAddress(accounts[0]);
       }
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      
+      // Handle specific MetaMask errors - only alert for user-actionable errors
+      if (error.code === 4001) {
+        // User rejected - no alert needed
+        console.log('User rejected wallet connection');
+      } else if (error.code === -32002) {
+        // Already pending - no alert needed
+        console.log('Connection request already pending');
+      } else {
+        // Log other errors silently
+        console.error('MetaMask error:', error.message || error);
+      }
+    } finally {
+      setIsConnecting(false);
     }
-    setIsConnecting(false);
   };
 
   const disconnectWallet = () => {
