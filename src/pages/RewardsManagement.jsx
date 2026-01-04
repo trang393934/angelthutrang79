@@ -31,6 +31,9 @@ export default function RewardsManagement() {
   const [withdrawalDateFrom, setWithdrawalDateFrom] = useState('');
   const [withdrawalDateTo, setWithdrawalDateTo] = useState('');
   const [selectedWithdrawals, setSelectedWithdrawals] = useState([]);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState('');
+  const [scheduleTime, setScheduleTime] = useState('09:00');
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -1012,16 +1015,30 @@ export default function RewardsManagement() {
                         <> • <strong className="text-purple-600">{selectedWithdrawals.length}</strong> đã chọn</>
                       )}
                     </p>
-                    {filteredWithdrawals.filter(r => r.status === 'pending').length > 0 && (
-                      <Button
-                        onClick={selectAllWithdrawals}
-                        size="sm"
-                        variant="outline"
-                        className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-lg"
-                      >
-                        Chọn tất cả pending
-                      </Button>
-                    )}
+                    <div className="flex gap-2">
+                      {filteredWithdrawals.filter(r => r.status === 'pending').length > 0 && (
+                        <>
+                          <Button
+                            onClick={selectAllWithdrawals}
+                            size="sm"
+                            variant="outline"
+                            className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-lg"
+                          >
+                            Chọn tất cả pending
+                          </Button>
+                          {selectedWithdrawals.length > 0 && (
+                            <Button
+                              onClick={() => setShowScheduleModal(true)}
+                              size="sm"
+                              className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg"
+                            >
+                              <Clock className="w-3 h-3 mr-1" />
+                              Đặt Lịch Duyệt
+                            </Button>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1115,6 +1132,35 @@ export default function RewardsManagement() {
                       };
                       const statusConfig = statusConfigs[req.status] || statusConfigs.pending;
 
+                      // Get user balance for risk calculation
+                      const userBal = allBalances.find(b => b.user_email === req.user_email);
+                      
+                      // Auto risk assessment
+                      const riskWarnings = [];
+                      if (userBal) {
+                        // Warning 1: Rút quá 80% available balance
+                        if (req.amount > (userBal.available_balance || 0) * 0.8) {
+                          riskWarnings.push({ level: 'high', msg: '⚠️ Rút >80% số dư khả dụng' });
+                        }
+                        // Warning 2: Frozen balance cao
+                        if ((userBal.frozen_balance || 0) > req.amount * 0.5) {
+                          riskWarnings.push({ level: 'medium', msg: '🔶 Frozen balance cao' });
+                        }
+                        // Warning 3: Spam score cao
+                        if ((userBal.spam_score || 0) > 50) {
+                          riskWarnings.push({ level: 'high', msg: '🚨 Spam score cao: ' + userBal.spam_score });
+                        }
+                        // Warning 4: Rút số tiền lớn (>500k)
+                        if (req.amount > 500000) {
+                          riskWarnings.push({ level: 'medium', msg: '💰 Số tiền lớn: ' + req.amount.toLocaleString() });
+                        }
+                        // Warning 5: User mới (< 7 ngày)
+                        const userAge = (Date.now() - new Date(userBal.created_date).getTime()) / (1000 * 60 * 60 * 24);
+                        if (userAge < 7) {
+                          riskWarnings.push({ level: 'medium', msg: '🆕 User mới (<7 ngày)' });
+                        }
+                      }
+
                       return (
                         <motion.div
                           key={req.id}
@@ -1167,40 +1213,78 @@ export default function RewardsManagement() {
                                     </p>
                                   </div>
                                 )}
+
+                                {/* Risk Warnings */}
+                                {riskWarnings.length > 0 && (
+                                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 mt-2 space-y-1">
+                                    {riskWarnings.map((warning, wIdx) => (
+                                      <div key={wIdx} className={`flex items-center gap-2 text-xs ${
+                                        warning.level === 'high' ? 'text-red-700 font-bold' : 'text-orange-700'
+                                      }`}>
+                                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                                        <span>{warning.msg}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* User Balance Info */}
+                                {userBal && (
+                                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mt-2">
+                                    <div className="grid grid-cols-2 gap-1 text-xs">
+                                      <p className="text-purple-700">Available: <strong>{(userBal.available_balance || 0).toLocaleString()}</strong></p>
+                                      <p className="text-purple-700">Frozen: <strong>{(userBal.frozen_balance || 0).toLocaleString()}</strong></p>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             </div>
 
                             {req.status === 'pending' && (
-                              <div className="flex gap-2">
-                                <Button
-                                  onClick={() => approveWithdrawalMutation.mutate(req)}
-                                  disabled={approveWithdrawalMutation.isPending}
-                                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
-                                >
-                                  {approveWithdrawalMutation.isPending ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  ) : (
-                                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                                  )}
-                                  Duyệt Rút Tiền
-                                </Button>
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <Button
+                                    onClick={() => approveWithdrawalMutation.mutate(req)}
+                                    disabled={approveWithdrawalMutation.isPending}
+                                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
+                                  >
+                                    {approveWithdrawalMutation.isPending ? (
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                                    )}
+                                    Duyệt Rút Tiền
+                                  </Button>
+                                  <Button
+                                    onClick={() => {
+                                      const reason = prompt('Lý do từ chối:');
+                                      if (reason) {
+                                        rejectWithdrawalMutation.mutate({ request: req, reason });
+                                      }
+                                    }}
+                                    disabled={rejectWithdrawalMutation.isPending}
+                                    variant="outline"
+                                    className="flex-1 border-red-300 text-red-700 hover:bg-red-50 rounded-xl font-bold"
+                                  >
+                                    {rejectWithdrawalMutation.isPending ? (
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <XCircle className="w-4 h-4 mr-2" />
+                                    )}
+                                    Từ Chối
+                                  </Button>
+                                </div>
                                 <Button
                                   onClick={() => {
-                                    const reason = prompt('Lý do từ chối:');
-                                    if (reason) {
-                                      rejectWithdrawalMutation.mutate({ request: req, reason });
-                                    }
+                                    setSelectedUserEmail(req.user_email);
+                                    setShowTransactionsModal(true);
+                                    setModalTab('transactions');
                                   }}
-                                  disabled={rejectWithdrawalMutation.isPending}
                                   variant="outline"
-                                  className="flex-1 border-red-300 text-red-700 hover:bg-red-50 rounded-xl font-bold"
+                                  className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 rounded-xl font-bold"
                                 >
-                                  {rejectWithdrawalMutation.isPending ? (
-                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                  ) : (
-                                    <XCircle className="w-4 h-4 mr-2" />
-                                  )}
-                                  Từ Chối
+                                  <History className="w-4 h-4 mr-2" />
+                                  Xem Lịch Sử Giao Dịch
                                 </Button>
                               </div>
                             )}
@@ -1702,6 +1786,117 @@ export default function RewardsManagement() {
                     )}
                   </div>
                 )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Schedule Modal */}
+        <AnimatePresence>
+          {showScheduleModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowScheduleModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-slate-900 text-xl font-bold">Đặt Lịch Duyệt Rút Tiền</h3>
+                    <p className="text-slate-600 text-sm mt-1">
+                      {selectedWithdrawals.length} yêu cầu được chọn
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowScheduleModal(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">Ngày duyệt</label>
+                    <Input
+                      type="date"
+                      value={scheduleDate}
+                      onChange={(e) => setScheduleDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="bg-white border-2 border-purple-300 rounded-xl"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">Giờ duyệt</label>
+                    <Input
+                      type="time"
+                      value={scheduleTime}
+                      onChange={(e) => setScheduleTime(e.target.value)}
+                      className="bg-white border-2 border-purple-300 rounded-xl"
+                    />
+                  </div>
+
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3">
+                    <p className="text-indigo-900 text-sm font-semibold mb-2">Xem trước:</p>
+                    <p className="text-indigo-800 text-sm">
+                      Hệ thống sẽ tự động duyệt và chuyển {selectedWithdrawals.length} yêu cầu vào lúc <strong>{scheduleTime}</strong> ngày <strong>{scheduleDate ? new Date(scheduleDate).toLocaleDateString('vi-VN') : '...'}</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowScheduleModal(false)}
+                    className="flex-1 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl"
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!scheduleDate || !scheduleTime) {
+                        alert('Vui lòng chọn ngày và giờ!');
+                        return;
+                      }
+
+                      const scheduledDateTime = `${scheduleDate}T${scheduleTime}:00`;
+                      const selectedReqs = allWithdrawalRequests.filter(r => selectedWithdrawals.includes(r.id));
+                      
+                      try {
+                        // Create scheduled task
+                        await base44.functions.invoke('createScheduledBatchApproval', {
+                          withdrawalIds: selectedWithdrawals,
+                          scheduledDateTime: scheduledDateTime,
+                          scheduledBy: currentUser.email
+                        });
+
+                        alert(`✅ Đã đặt lịch duyệt ${selectedWithdrawals.length} yêu cầu!\n📅 Thời gian: ${scheduleTime} ngày ${new Date(scheduleDate).toLocaleDateString('vi-VN')}`);
+                        setShowScheduleModal(false);
+                        setSelectedWithdrawals([]);
+                        setScheduleDate('');
+                        setScheduleTime('09:00');
+                      } catch (error) {
+                        alert('❌ Lỗi khi đặt lịch: ' + error.message);
+                      }
+                    }}
+                    disabled={!scheduleDate || !scheduleTime}
+                    className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    <Clock className="w-4 h-4 mr-2" />
+                    Đặt Lịch
+                  </Button>
+                </div>
               </motion.div>
             </motion.div>
           )}
