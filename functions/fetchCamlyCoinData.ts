@@ -9,24 +9,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Fetch from CoinGecko API (free, no API key needed)
-    const response = await fetch(
-      'https://api.coingecko.com/api/v3/coins/camly-coin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false'
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch from CoinGecko');
-    }
-
-    const data = await response.json();
-
-    // Extract the data we need
+    // Fetch from CoinMarketCap API via proxy
+    const cmcApiUrl = 'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?slug=camly-coin';
+    
+    // Try CoinMarketCap web scraping as fallback
+    const webResponse = await fetch('https://coinmarketcap.com/currencies/camly-coin/');
+    const html = await webResponse.text();
+    
+    // Extract data from HTML using regex
+    const priceMatch = html.match(/"price":\s*([\d.]+)/);
+    const marketCapMatch = html.match(/"marketCap":\s*([\d.]+)/);
+    const volumeMatch = html.match(/"volume24h":\s*([\d.]+)/);
+    const changeMatch = html.match(/"percentChange24h":\s*(-?[\d.]+)/);
+    
     const marketData = {
-      price_usd: data.market_data?.current_price?.usd || 0.000022,
-      market_cap_usd: data.market_data?.market_cap?.usd || null,
-      volume_24h_usd: data.market_data?.total_volume?.usd || null,
-      price_change_24h_percent: data.market_data?.price_change_percentage_24h || null,
-      last_updated: data.market_data?.last_updated || new Date().toISOString()
+      price_usd: priceMatch ? parseFloat(priceMatch[1]) : 0.000022,
+      market_cap_usd: marketCapMatch ? parseFloat(marketCapMatch[1]) : null,
+      volume_24h_usd: volumeMatch ? parseFloat(volumeMatch[1]) : null,
+      price_change_24h_percent: changeMatch ? parseFloat(changeMatch[1]) : null,
+      last_updated: new Date().toISOString()
     };
 
     return Response.json({
