@@ -36,6 +36,7 @@ import VisionBoard from './pages/VisionBoard';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
+import Whitepaper from './pages/Whitepaper';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +79,7 @@ export const PAGES = {
     "WalletBreakdown": WalletBreakdown,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
+    "Whitepaper": Whitepaper,
 }
 
 export const pagesConfig = {

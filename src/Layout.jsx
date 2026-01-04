@@ -167,6 +167,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-indigo-400 to-purple-400'
     },
     { 
+      name: 'Whitepaper', 
+      icon: Sparkles, 
+      path: 'Whitepaper',
+      gradient: 'from-amber-400 to-orange-400'
+    },
+    { 
       name: 'Camlycoin', 
       icon: Globe, 
       path: 'RewardsManagement',
