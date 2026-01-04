@@ -752,6 +752,29 @@ export default function UserProfile() {
             <p className="text-green-600 text-xs mt-1">✅ Admin đã chuyển</p>
           </div>
 
+          {/* Chờ Admin Review - TRỰC TIẾP TỪ DATABASE */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-3xl p-6 shadow-lg">
+            <div className="flex items-center gap-3 mb-2">
+              <Eye className="w-6 h-6 text-orange-500" />
+              <span className="text-slate-700 text-xs font-medium">Chờ Admin Review</span>
+            </div>
+            <p className="text-slate-900 text-3xl font-bold break-words">
+              {(userBalance?.pending_review_balance || 0).toLocaleString()}
+            </p>
+            <p className="text-orange-600 text-xs mt-1">🔍 Câu 11+ mỗi ngày</p>
+
+            {/* Button Xem Danh Sách */}
+            {(userBalance?.pending_review_balance || 0) > 0 && (
+              <Button
+                onClick={() => setShowPendingReviewModal(true)}
+                size="sm"
+                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
+              >
+                Xem Danh Sách ({pendingReviewLogs.length} câu)
+              </Button>
+            )}
+          </div>
+
           {/* Tổng Bị Đóng Băng - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-red-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
@@ -762,6 +785,15 @@ export default function UserProfile() {
               {(userBalance?.frozen_balance || 0).toLocaleString()}
             </p>
             <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
+
+            {/* Button Xem Lịch Sử */}
+            <Button
+              onClick={() => setShowEliminatedModal(true)}
+              size="sm"
+              className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
+            >
+              Xem Lịch Sử ({allUserLogs.length} câu)
+            </Button>
           </div>
 
 
