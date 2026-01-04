@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { base44 } from '@/api/base44Client';
 import HonorBoard from '@/components/HonorBoard';
+import CamlyCoinWidget from '@/components/CamlyCoinWidget';
 
 export default function Home() {
   const [particles, setParticles] = useState([]);
@@ -318,54 +319,7 @@ export default function Home() {
           {currentUser && currentUser.light_law_agreed && (
             <div className="flex flex-col gap-6">
               {/* CoinMarketCap Widget */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl"
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center">
-                    <span className="text-white text-lg font-bold">₵</span>
-                  </div>
-                  <div>
-                    <h3 className="text-slate-900 text-lg font-bold">Camly Coin</h3>
-                    <p className="text-amber-600 text-xs font-medium">Live Market Data</p>
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 mb-3 border border-amber-200">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">Price (USD)</p>
-                      <p className="text-slate-900 text-lg font-bold">$0.000022</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">Market Cap</p>
-                      <p className="text-slate-900 text-lg font-bold">--</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">24h Volume</p>
-                      <p className="text-slate-900 text-lg font-bold">--</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-slate-600 mb-1">24h Change</p>
-                      <p className="text-green-600 text-lg font-bold">--</p>
-                    </div>
-                  </div>
-                </div>
-
-                <a 
-                  href="https://coinmarketcap.com/currencies/camly-coin/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="block text-center"
-                >
-                  <Button className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-bold hover:from-amber-600 hover:to-orange-600 shadow-lg">
-                    <span className="mr-2">📊</span>
-                    View on CoinMarketCap
-                  </Button>
-                </a>
-              </motion.div>
+              <CamlyCoinWidget />
 
               <HonorBoard />
             </div>
