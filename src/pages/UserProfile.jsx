@@ -206,30 +206,27 @@ export default function UserProfile() {
     }
   };
 
-  // Approve percentage mutation - NEW
+  // Approve percentage mutation - SỬA LẠI DÙNG UNPAID_AMOUNT
   const approvePercentageMutation = useMutation({
     mutationFn: async (percentage) => {
       if (!userBalance) return;
       
-      const total = userBalance.total_earned || 0;
-      const available = userBalance.available_balance || 0;
-      const frozen = userBalance.frozen_balance || 0;
-      const paid = userBalance.paid_amount || 0;
-      const pending = Math.max(0, total - available - frozen - paid);
+      const unpaidAmount = userBalance.unpaid_amount || 0;
       
-      if (pending <= 0) return;
+      if (unpaidAmount <= 0) return;
 
-      const approveAmount = Math.floor(pending * percentage / 100);
+      const approveAmount = Math.floor(unpaidAmount * percentage / 100);
       
       await base44.entities.CamlycoinBalance.update(userBalance.id, {
-        available_balance: available + approveAmount
+        unpaid_amount: unpaidAmount - approveAmount,
+        available_balance: (userBalance.available_balance || 0) + approveAmount
       });
 
       await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
-        description: `✅ Admin duyệt ${percentage}% (${approveAmount.toLocaleString()}/${pending.toLocaleString()}) Camlycoin → Sẵn Sàng Thanh Toán`,
+        description: `✅ Admin duyệt ${percentage}% (${approveAmount.toLocaleString()}/${unpaidAmount.toLocaleString()}) Camlycoin → Sẵn Sàng Thanh Toán`,
         processed_by: currentUser.email
       });
 
@@ -714,51 +711,33 @@ export default function UserProfile() {
             <p className="text-amber-600 text-xs mt-1">⏳ Admin sẽ thanh toán ngày 1/10/20</p>
           </div>
 
-          {/* Chờ Duyệt Thanh Toán - CÔNG THỨC MỚI */}
+          {/* Chờ Duyệt Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-orange-500" />
               <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(() => {
-                const total = userBalance?.total_earned || 0;
-                const available = userBalance?.available_balance || 0;
-                const frozen = userBalance?.frozen_balance || 0;
-                const paid = userBalance?.paid_amount || 0;
-                const pending = Math.max(0, total - available - frozen - paid);
-                return pending.toLocaleString();
-              })()}
+              {(userBalance?.unpaid_amount || 0).toLocaleString()}
             </p>
             <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
             
             {/* Quick Approve Buttons - 10%, 20%, 30%, 50% */}
-            {(() => {
-              const total = userBalance?.total_earned || 0;
-              const available = userBalance?.available_balance || 0;
-              const frozen = userBalance?.frozen_balance || 0;
-              const paid = userBalance?.paid_amount || 0;
-              const pending = Math.max(0, total - available - frozen - paid);
-              
-              if (pending > 0) {
-                return (
-                  <div className="grid grid-cols-2 gap-2 mt-3">
-                    {[10, 20, 30, 50].map(percent => (
-                      <Button
-                        key={percent}
-                        onClick={() => approvePercentageMutation.mutate(percent)}
-                        disabled={approvePercentageMutation.isPending}
-                        size="sm"
-                        className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
-                      >
-                        Duyệt {percent}%
-                      </Button>
-                    ))}
-                  </div>
-                );
-              }
-              return null;
-            })()}
+            {(userBalance?.unpaid_amount || 0) > 0 && (
+              <div className="grid grid-cols-2 gap-2 mt-3">
+                {[10, 20, 30, 50].map(percent => (
+                  <Button
+                    key={percent}
+                    onClick={() => approvePercentageMutation.mutate(percent)}
+                    disabled={approvePercentageMutation.isPending}
+                    size="sm"
+                    className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
+                  >
+                    Duyệt {percent}%
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
@@ -844,7 +823,7 @@ export default function UserProfile() {
                 </div>
                 <div className="flex items-start gap-2">
                   <Clock className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Chờ Duyệt Thanh Toán:</strong> Tổng Đã Kiếm - Sẵn Sàng - Đóng Băng - Đã Thanh Toán (cần admin duyệt từng phần)</p>
+                  <p><strong>Chờ Duyệt Thanh Toán:</strong> Số coins đang chờ admin xét duyệt để chuyển vào Sẵn Sàng Thanh Toán</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Lock className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
