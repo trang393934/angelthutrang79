@@ -803,10 +803,10 @@ Trả về JSON:`;
             </p>
             <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
             
-            {/* Quick Approve Buttons - 10%, 20%, 30%, 50% */}
+            {/* Quick Approve Buttons - 10%, 20%, 30%, 50%, 100% */}
             {(userBalance?.unpaid_amount || 0) > 0 && (
               <div className="grid grid-cols-2 gap-2 mt-3">
-                {[10, 20, 30, 50].map(percent => (
+                {[10, 20, 30, 50, 100].map(percent => (
                   <Button
                     key={percent}
                     onClick={() => approvePercentageMutation.mutate(percent)}
