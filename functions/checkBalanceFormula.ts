@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
     const currentBalance = balance.balance || 0;
 
     // Calculate expected unpaid_amount using formula:
-    // unpaid_amount = total_earned - available_balance - paid_amount - frozen_balance
-    const calculatedUnpaidAmount = totalEarned - availableBalance - paidAmount - frozenBalance;
+    // unpaid_amount = total_earned - available_balance - paid_amount - frozen_balance - pending_review_balance
+    const calculatedUnpaidAmount = totalEarned - availableBalance - paidAmount - frozenBalance - pendingReviewBalance;
 
     // Check if formula is correct
     const isCorrect = Math.abs(calculatedUnpaidAmount - unpaidAmount) < 1;
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     console.log(`Pending Review: ${pendingReviewBalance.toLocaleString()}`);
     console.log(`Current Balance: ${currentBalance.toLocaleString()}`);
     console.log(`\n🧮 Formula Check:`);
-    console.log(`${totalEarned.toLocaleString()} - ${availableBalance.toLocaleString()} - ${paidAmount.toLocaleString()} - ${frozenBalance.toLocaleString()} = ${calculatedUnpaidAmount.toLocaleString()}`);
+    console.log(`${totalEarned.toLocaleString()} - ${availableBalance.toLocaleString()} - ${paidAmount.toLocaleString()} - ${frozenBalance.toLocaleString()} - ${pendingReviewBalance.toLocaleString()} = ${calculatedUnpaidAmount.toLocaleString()}`);
     console.log(`Actual Unpaid Amount: ${unpaidAmount.toLocaleString()}`);
     console.log(`Difference: ${(calculatedUnpaidAmount - unpaidAmount).toLocaleString()}`);
 
@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
         actual_unpaid_amount: unpaidAmount,
         difference: calculatedUnpaidAmount - unpaidAmount,
         is_correct: isCorrect,
-        formula: 'total_earned - available_balance - paid_amount - frozen_balance = unpaid_amount'
+        formula: 'total_earned - available_balance - paid_amount - frozen_balance - pending_review_balance = unpaid_amount'
       }
     });
 
