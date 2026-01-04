@@ -76,6 +76,8 @@ export default function UserProfile() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEliminatedModal, setShowEliminatedModal] = useState(false);
   const [showPendingReviewModal, setShowPendingReviewModal] = useState(false);
+  const [aiAnalysisResults, setAiAnalysisResults] = useState({});
+  const [analyzingQuestions, setAnalyzingQuestions] = useState(new Set());
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -471,6 +473,85 @@ export default function UserProfile() {
       alert('❌ Đã từ chối câu hỏi!');
     }
   });
+
+  // AI Analysis for questions
+  const analyzeQuestionWithAI = async (log) => {
+    const logId = log.id;
+    if (analyzingQuestions.has(logId)) return;
+
+    setAnalyzingQuestions(prev => new Set(prev).add(logId));
+
+    try {
+      // Lấy các câu hỏi khác của user để so sánh
+      const otherQuestions = allUserLogs
+        .filter(l => l.id !== logId)
+        .slice(0, 20)
+        .map(l => l.question_text);
+
+      const prompt = `Phân tích câu hỏi sau và đưa ra đề xuất:
+
+CÂU HỎI: "${log.question_text}"
+
+THÔNG TIN:
+- Ngày hỏi: ${new Date(log.question_date).toLocaleDateString('vi-VN')}
+- Câu thứ: ${log.question_number_in_day} trong ngày
+- Coins: ${log.coins_earned}
+- Phân loại hiện tại: ${log.exclusion_reason}
+${log.similar_to_question ? `- Tương tự câu: "${log.similar_to_question}" (${((log.similarity_score || 0) * 100).toFixed(0)}%)` : ''}
+
+CÁC CÂU HỎI KHÁC CỦA USER:
+${otherQuestions.slice(0, 10).map((q, i) => `${i + 1}. "${q}"`).join('\n')}
+
+YÊU CẦU:
+1. Phân tích xem câu hỏi có phải là:
+   - Trùng lặp/tương tự với câu khác? (confidence: 0-100%)
+   - Chào hỏi/xã giao không có nội dung? (confidence: 0-100%)
+   - Spam/câu hỏi chất lượng thấp? (confidence: 0-100%)
+   - Hợp lệ và có giá trị? (confidence: 0-100%)
+
+2. Đề xuất hành động: "approve" (duyệt thưởng), "reject" (từ chối/frozen), hoặc "review" (cần xem xét thêm)
+
+3. Lý do chi tiết cho đề xuất
+
+Trả về JSON:`;
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            is_duplicate: { type: "boolean" },
+            duplicate_confidence: { type: "number" },
+            is_greeting: { type: "boolean" },
+            greeting_confidence: { type: "number" },
+            is_spam: { type: "boolean" },
+            spam_confidence: { type: "number" },
+            is_valid: { type: "boolean" },
+            valid_confidence: { type: "number" },
+            recommendation: { type: "string" },
+            reason: { type: "string" },
+            similar_questions: { 
+              type: "array",
+              items: { type: "string" }
+            }
+          }
+        }
+      });
+
+      setAiAnalysisResults(prev => ({
+        ...prev,
+        [logId]: result
+      }));
+    } catch (error) {
+      console.error('AI analysis error:', error);
+    } finally {
+      setAnalyzingQuestions(prev => {
+        const next = new Set(prev);
+        next.delete(logId);
+        return next;
+      });
+    }
+  };
 
   const handleAvatarUpload = async (event) => {
     const file = event.target.files[0];
@@ -1161,6 +1242,106 @@ export default function UserProfile() {
                             )}
                           </div>
                         </div>
+
+                        {/* AI Analysis Section */}
+                        {!aiAnalysisResults[log.id] && !analyzingQuestions.has(log.id) && (
+                          <Button
+                            onClick={() => analyzeQuestionWithAI(log)}
+                            size="sm"
+                            className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl py-2 mt-3"
+                          >
+                            <Activity className="w-4 h-4 mr-2" />
+                            Phân Tích AI
+                          </Button>
+                        )}
+
+                        {analyzingQuestions.has(log.id) && (
+                          <div className="bg-purple-50 border border-purple-300 rounded-xl p-3 mt-3">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+                              <p className="text-purple-800 text-sm font-medium">AI đang phân tích...</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {aiAnalysisResults[log.id] && (
+                          <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-xl p-4 mt-3">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Activity className="w-5 h-5 text-purple-600" />
+                              <h4 className="text-purple-900 font-bold">Phân Tích AI</h4>
+                            </div>
+
+                            {/* Confidence Scores */}
+                            <div className="grid grid-cols-2 gap-2 mb-3">
+                              {aiAnalysisResults[log.id].is_duplicate && (
+                                <div className="bg-orange-100 border border-orange-300 rounded-lg p-2">
+                                  <p className="text-orange-900 text-xs font-semibold">🔄 Trùng lặp</p>
+                                  <p className="text-orange-700 text-lg font-bold">
+                                    {aiAnalysisResults[log.id].duplicate_confidence}%
+                                  </p>
+                                </div>
+                              )}
+                              {aiAnalysisResults[log.id].is_greeting && (
+                                <div className="bg-yellow-100 border border-yellow-300 rounded-lg p-2">
+                                  <p className="text-yellow-900 text-xs font-semibold">👋 Chào hỏi</p>
+                                  <p className="text-yellow-700 text-lg font-bold">
+                                    {aiAnalysisResults[log.id].greeting_confidence}%
+                                  </p>
+                                </div>
+                              )}
+                              {aiAnalysisResults[log.id].is_spam && (
+                                <div className="bg-red-100 border border-red-300 rounded-lg p-2">
+                                  <p className="text-red-900 text-xs font-semibold">🚫 Spam</p>
+                                  <p className="text-red-700 text-lg font-bold">
+                                    {aiAnalysisResults[log.id].spam_confidence}%
+                                  </p>
+                                </div>
+                              )}
+                              {aiAnalysisResults[log.id].is_valid && (
+                                <div className="bg-green-100 border border-green-300 rounded-lg p-2">
+                                  <p className="text-green-900 text-xs font-semibold">✅ Hợp lệ</p>
+                                  <p className="text-green-700 text-lg font-bold">
+                                    {aiAnalysisResults[log.id].valid_confidence}%
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* AI Recommendation */}
+                            <div className={`border-2 rounded-lg p-3 mb-3 ${
+                              aiAnalysisResults[log.id].recommendation === 'approve' ? 'bg-green-100 border-green-300' :
+                              aiAnalysisResults[log.id].recommendation === 'reject' ? 'bg-red-100 border-red-300' :
+                              'bg-blue-100 border-blue-300'
+                            }`}>
+                              <p className={`font-bold text-sm mb-1 ${
+                                aiAnalysisResults[log.id].recommendation === 'approve' ? 'text-green-900' :
+                                aiAnalysisResults[log.id].recommendation === 'reject' ? 'text-red-900' :
+                                'text-blue-900'
+                              }`}>
+                                🤖 Đề xuất: {
+                                  aiAnalysisResults[log.id].recommendation === 'approve' ? '✅ Duyệt thưởng' :
+                                  aiAnalysisResults[log.id].recommendation === 'reject' ? '❌ Từ chối' :
+                                  '🔍 Cần xem xét thêm'
+                                }
+                              </p>
+                              <p className="text-slate-700 text-xs leading-relaxed">
+                                {aiAnalysisResults[log.id].reason}
+                              </p>
+                            </div>
+
+                            {/* Similar Questions from AI */}
+                            {aiAnalysisResults[log.id].similar_questions && aiAnalysisResults[log.id].similar_questions.length > 0 && (
+                              <div className="bg-white/80 border border-purple-300 rounded-lg p-2">
+                                <p className="text-purple-900 text-xs font-semibold mb-2">Câu tương tự tìm được:</p>
+                                <div className="space-y-1">
+                                  {aiAnalysisResults[log.id].similar_questions.slice(0, 3).map((q, i) => (
+                                    <p key={i} className="text-purple-800 text-xs italic">• "{q}"</p>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {log.exclusion_reason !== 'valid' && (
                           <div className="flex gap-2 mt-4">
