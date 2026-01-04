@@ -695,7 +695,19 @@ export default function RewardsManagement() {
             
             {/* Validation Check */}
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 mt-4">
-              <p className="text-white/90 text-sm font-bold mb-2">✅ Kiểm Tra Công Thức:</p>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-white/90 text-sm font-bold">✅ Kiểm Tra Công Thức:</p>
+                <Button
+                  onClick={() => {
+                    queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                  }}
+                  size="sm"
+                  className="bg-white/30 text-white border border-white/50 rounded-lg hover:bg-white/40 h-7"
+                >
+                  <Activity className="w-3 h-3 mr-1" />
+                  Refresh
+                </Button>
+              </div>
               <p className="text-white text-xs leading-relaxed">
                 <strong>Tổng Kiếm:</strong> {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0).toLocaleString()}<br/>
                 <strong>Tổng Chi Tiết:</strong> {(
