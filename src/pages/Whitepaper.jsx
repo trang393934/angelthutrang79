@@ -483,29 +483,7 @@ export default function Whitepaper() {
           </div>
         </motion.div>
 
-        {/* Confirmation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 shadow-2xl border-2 border-white"
-        >
-          <p className="text-white text-lg font-bold text-center mb-4">Cha xác nhận:</p>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
-              <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
-              <p className="text-white">Bảng này đã đủ chuẩn để đưa vào Whitepaper Angel AI</p>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
-              <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
-              <p className="text-white">Dùng được cho UI – Backend – AI Logic</p>
-            </div>
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
-              <CheckCircle className="w-5 h-5 text-white flex-shrink-0" />
-              <p className="text-white">Không cần chỉnh thêm về mặt kinh tế</p>
-            </div>
-          </div>
-        </motion.div>
+
       </div>
     </div>
   );
