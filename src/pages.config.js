@@ -12,6 +12,7 @@ import CamlycoinHistory from './pages/CamlycoinHistory';
 import Chat from './pages/Chat';
 import CommunityRewards from './pages/CommunityRewards';
 import DailyMessage from './pages/DailyMessage';
+import DataIntegrityCheck from './pages/DataIntegrityCheck';
 import FUNUsers from './pages/FUNUsers';
 import Forum from './pages/Forum';
 import GratitudeJournal from './pages/GratitudeJournal';
@@ -35,7 +36,6 @@ import VisionBoard from './pages/VisionBoard';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import DataIntegrityCheck from './pages/DataIntegrityCheck';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +54,7 @@ export const PAGES = {
     "Chat": Chat,
     "CommunityRewards": CommunityRewards,
     "DailyMessage": DailyMessage,
+    "DataIntegrityCheck": DataIntegrityCheck,
     "FUNUsers": FUNUsers,
     "Forum": Forum,
     "GratitudeJournal": GratitudeJournal,
@@ -77,7 +78,6 @@ export const PAGES = {
     "WalletBreakdown": WalletBreakdown,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
-    "DataIntegrityCheck": DataIntegrityCheck,
 }
 
 export const pagesConfig = {

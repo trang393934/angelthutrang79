@@ -30,6 +30,8 @@ export default function RewardsManagement() {
   const [withdrawalStatusFilter, setWithdrawalStatusFilter] = useState('all');
   const [withdrawalDateFrom, setWithdrawalDateFrom] = useState('');
   const [withdrawalDateTo, setWithdrawalDateTo] = useState('');
+  const [withdrawalAdminFilter, setWithdrawalAdminFilter] = useState('all');
+  const [withdrawalWalletFilter, setWithdrawalWalletFilter] = useState('all');
   const [selectedWithdrawals, setSelectedWithdrawals] = useState([]);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
@@ -84,6 +86,13 @@ export default function RewardsManagement() {
     queryFn: () => base44.entities.WithdrawalRequest.list('-created_date', 1000),
     enabled: isAdmin,
     refetchInterval: 5000,
+  });
+
+  // Fetch all auto-claim configs for quick info
+  const { data: allAutoClaimConfigs = [] } = useQuery({
+    queryKey: ['all-auto-claim-configs'],
+    queryFn: () => base44.entities.AutoClaimConfig.list('-created_date', 1000),
+    enabled: isAdmin,
   });
 
   // Fetch selected user transactions
@@ -444,6 +453,10 @@ export default function RewardsManagement() {
     }
   };
 
+  // Get unique admins and wallets for filters
+  const uniqueAdmins = [...new Set(allWithdrawalRequests.map(r => r.processed_by).filter(Boolean))];
+  const uniqueWallets = [...new Set(allWithdrawalRequests.map(r => r.withdrawal_address).filter(Boolean))];
+
   // Filter withdrawal requests
   const filteredWithdrawals = allWithdrawalRequests.filter(req => {
     // Status filter
@@ -456,6 +469,12 @@ export default function RewardsManagement() {
       const addressMatch = req.withdrawal_address.toLowerCase().includes(searchLower);
       if (!emailMatch && !addressMatch) return false;
     }
+    
+    // Admin filter
+    if (withdrawalAdminFilter !== 'all' && req.processed_by !== withdrawalAdminFilter) return false;
+    
+    // Wallet filter
+    if (withdrawalWalletFilter !== 'all' && req.withdrawal_address !== withdrawalWalletFilter) return false;
     
     // Date filter
     if (withdrawalDateFrom) {
@@ -963,26 +982,32 @@ export default function RewardsManagement() {
                     />
                   </div>
 
-                  {/* Status Filter */}
+                  {/* Status Filter with Count */}
                   <div className="flex flex-wrap gap-2">
-                    {['all', 'pending', 'approved', 'processing', 'completed', 'rejected', 'failed'].map((status) => (
-                      <Button
-                        key={status}
-                        onClick={() => setWithdrawalStatusFilter(status)}
-                        size="sm"
-                        className={withdrawalStatusFilter === status 
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full'
-                          : 'bg-white border-2 border-amber-300 text-amber-700 hover:bg-amber-50 rounded-full'
-                        }
-                      >
-                        {status === 'all' ? 'Tất cả' : 
-                         status === 'pending' ? '⏳ Chờ duyệt' :
-                         status === 'approved' ? '✅ Đã duyệt' :
-                         status === 'processing' ? '🔄 Đang xử lý' :
-                         status === 'completed' ? '✅ Hoàn tất' :
-                         status === 'rejected' ? '❌ Từ chối' : '❌ Thất bại'}
-                      </Button>
-                    ))}
+                    {['all', 'pending', 'approved', 'processing', 'completed', 'rejected', 'failed'].map((status) => {
+                      const count = status === 'all' 
+                        ? allWithdrawalRequests.length 
+                        : allWithdrawalRequests.filter(r => r.status === status).length;
+                      
+                      return (
+                        <Button
+                          key={status}
+                          onClick={() => setWithdrawalStatusFilter(status)}
+                          size="sm"
+                          className={withdrawalStatusFilter === status 
+                            ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full shadow-lg'
+                            : 'bg-white border-2 border-amber-300 text-amber-700 hover:bg-amber-50 rounded-full'
+                          }
+                        >
+                          {status === 'all' ? `Tất cả (${count})` : 
+                           status === 'pending' ? `⏳ Chờ (${count})` :
+                           status === 'approved' ? `✅ Duyệt (${count})` :
+                           status === 'processing' ? `🔄 Xử lý (${count})` :
+                           status === 'completed' ? `✅ Xong (${count})` :
+                           status === 'rejected' ? `❌ Từ chối (${count})` : `❌ Lỗi (${count})`}
+                        </Button>
+                      );
+                    })}
                   </div>
 
                   {/* Date Range Filter */}
@@ -1004,6 +1029,38 @@ export default function RewardsManagement() {
                         onChange={(e) => setWithdrawalDateTo(e.target.value)}
                         className="bg-white border-2 border-amber-300 rounded-xl"
                       />
+                    </div>
+                  </div>
+
+                  {/* Admin and Wallet Filters */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-slate-700 text-sm font-semibold mb-2 block">Admin xử lý</label>
+                      <select
+                        value={withdrawalAdminFilter}
+                        onChange={(e) => setWithdrawalAdminFilter(e.target.value)}
+                        className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-slate-900"
+                      >
+                        <option value="all">Tất cả admin</option>
+                        {uniqueAdmins.map(admin => (
+                          <option key={admin} value={admin}>{admin}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-slate-700 text-sm font-semibold mb-2 block">Địa chỉ ví</label>
+                      <select
+                        value={withdrawalWalletFilter}
+                        onChange={(e) => setWithdrawalWalletFilter(e.target.value)}
+                        className="w-full bg-white border-2 border-amber-300 rounded-xl px-3 py-2 text-slate-900"
+                      >
+                        <option value="all">Tất cả ví</option>
+                        {uniqueWallets.slice(0, 20).map(wallet => (
+                          <option key={wallet} value={wallet}>
+                            {wallet.substring(0, 10)}...{wallet.substring(wallet.length - 8)}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -1132,32 +1189,55 @@ export default function RewardsManagement() {
                       };
                       const statusConfig = statusConfigs[req.status] || statusConfigs.pending;
 
-                      // Get user balance for risk calculation
+                      // Get user balance and auto-claim config for comprehensive info
                       const userBal = allBalances.find(b => b.user_email === req.user_email);
+                      const userAutoClaimConfig = allAutoClaimConfigs.find(c => c.user_email === req.user_email);
                       
                       // Auto risk assessment
                       const riskWarnings = [];
+                      let overallRiskLevel = 'low';
+                      
                       if (userBal) {
                         // Warning 1: Rút quá 80% available balance
                         if (req.amount > (userBal.available_balance || 0) * 0.8) {
-                          riskWarnings.push({ level: 'high', msg: '⚠️ Rút >80% số dư khả dụng' });
+                          riskWarnings.push({ level: 'high', msg: 'Rút >80% số dư khả dụng', icon: '⚠️' });
+                          overallRiskLevel = 'high';
                         }
                         // Warning 2: Frozen balance cao
                         if ((userBal.frozen_balance || 0) > req.amount * 0.5) {
-                          riskWarnings.push({ level: 'medium', msg: '🔶 Frozen balance cao' });
+                          riskWarnings.push({ level: 'medium', msg: `Frozen balance cao: ${(userBal.frozen_balance || 0).toLocaleString()}`, icon: '❄️' });
+                          if (overallRiskLevel === 'low') overallRiskLevel = 'medium';
                         }
                         // Warning 3: Spam score cao
                         if ((userBal.spam_score || 0) > 50) {
-                          riskWarnings.push({ level: 'high', msg: '🚨 Spam score cao: ' + userBal.spam_score });
+                          riskWarnings.push({ level: 'high', msg: 'Spam score: ' + userBal.spam_score, icon: '🚨' });
+                          overallRiskLevel = 'high';
                         }
                         // Warning 4: Rút số tiền lớn (>500k)
                         if (req.amount > 500000) {
-                          riskWarnings.push({ level: 'medium', msg: '💰 Số tiền lớn: ' + req.amount.toLocaleString() });
+                          riskWarnings.push({ level: 'medium', msg: 'Số tiền lớn: ' + req.amount.toLocaleString(), icon: '💰' });
+                          if (overallRiskLevel === 'low') overallRiskLevel = 'medium';
                         }
                         // Warning 5: User mới (< 7 ngày)
                         const userAge = (Date.now() - new Date(userBal.created_date).getTime()) / (1000 * 60 * 60 * 24);
                         if (userAge < 7) {
-                          riskWarnings.push({ level: 'medium', msg: '🆕 User mới (<7 ngày)' });
+                          riskWarnings.push({ level: 'medium', msg: `User mới: ${Math.floor(userAge)} ngày`, icon: '🆕' });
+                          if (overallRiskLevel === 'low') overallRiskLevel = 'medium';
+                        }
+                        // Warning 6: Pending review balance cao
+                        if ((userBal.pending_review_balance || 0) > 100000) {
+                          riskWarnings.push({ level: 'medium', msg: `Pending review: ${(userBal.pending_review_balance || 0).toLocaleString()}`, icon: '⏳' });
+                          if (overallRiskLevel === 'low') overallRiskLevel = 'medium';
+                        }
+                        // Warning 7: Audit status under review
+                        if (userBal.audit_status === 'under_review') {
+                          riskWarnings.push({ level: 'high', msg: 'Đang trong quá trình audit', icon: '🔍' });
+                          overallRiskLevel = 'high';
+                        }
+                        // Warning 8: Rút không đủ available balance
+                        if (req.amount > (userBal.available_balance || 0)) {
+                          riskWarnings.push({ level: 'high', msg: 'Không đủ available balance!', icon: '🛑' });
+                          overallRiskLevel = 'high';
                         }
                       }
 
@@ -1214,26 +1294,94 @@ export default function RewardsManagement() {
                                   </div>
                                 )}
 
-                                {/* Risk Warnings */}
+                                {/* Risk Assessment Badge */}
                                 {riskWarnings.length > 0 && (
-                                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-2 mt-2 space-y-1">
-                                    {riskWarnings.map((warning, wIdx) => (
-                                      <div key={wIdx} className={`flex items-center gap-2 text-xs ${
-                                        warning.level === 'high' ? 'text-red-700 font-bold' : 'text-orange-700'
+                                  <div className={`border-2 rounded-xl p-3 mt-3 ${
+                                    overallRiskLevel === 'high' ? 'bg-red-50 border-red-300' :
+                                    overallRiskLevel === 'medium' ? 'bg-orange-50 border-orange-300' :
+                                    'bg-green-50 border-green-300'
+                                  }`}>
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Shield className={`w-4 h-4 ${
+                                        overallRiskLevel === 'high' ? 'text-red-600' :
+                                        overallRiskLevel === 'medium' ? 'text-orange-600' :
+                                        'text-green-600'
+                                      }`} />
+                                      <span className={`font-bold text-xs uppercase ${
+                                        overallRiskLevel === 'high' ? 'text-red-900' :
+                                        overallRiskLevel === 'medium' ? 'text-orange-900' :
+                                        'text-green-900'
                                       }`}>
-                                        <AlertCircle className="w-3 h-3 flex-shrink-0" />
-                                        <span>{warning.msg}</span>
-                                      </div>
-                                    ))}
+                                        Mức Độ Rủi Ro: {overallRiskLevel}
+                                      </span>
+                                    </div>
+                                    <div className="space-y-1">
+                                      {riskWarnings.map((warning, wIdx) => (
+                                        <div key={wIdx} className={`flex items-center gap-2 text-xs ${
+                                          warning.level === 'high' ? 'text-red-800 font-bold' : 'text-orange-800'
+                                        }`}>
+                                          <span className="flex-shrink-0">{warning.icon}</span>
+                                          <span>{warning.msg}</span>
+                                        </div>
+                                      ))}
+                                    </div>
                                   </div>
                                 )}
 
-                                {/* User Balance Info */}
+                                {/* User Quick Info Card */}
                                 {userBal && (
-                                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 mt-2">
-                                    <div className="grid grid-cols-2 gap-1 text-xs">
-                                      <p className="text-purple-700">Available: <strong>{(userBal.available_balance || 0).toLocaleString()}</strong></p>
-                                      <p className="text-purple-700">Frozen: <strong>{(userBal.frozen_balance || 0).toLocaleString()}</strong></p>
+                                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-300 rounded-xl p-3 mt-3">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <Activity className="w-4 h-4 text-indigo-600" />
+                                      <span className="text-indigo-900 font-bold text-xs">Thông Tin User</span>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2 text-xs">
+                                      <div className="bg-white/60 rounded-lg p-2">
+                                        <p className="text-slate-600">Available</p>
+                                        <p className="text-slate-900 font-bold">{(userBal.available_balance || 0).toLocaleString()}</p>
+                                      </div>
+                                      <div className="bg-white/60 rounded-lg p-2">
+                                        <p className="text-slate-600">Frozen</p>
+                                        <p className="text-red-700 font-bold">{(userBal.frozen_balance || 0).toLocaleString()}</p>
+                                      </div>
+                                      <div className="bg-white/60 rounded-lg p-2">
+                                        <p className="text-slate-600">Pending Review</p>
+                                        <p className="text-orange-700 font-bold">{(userBal.pending_review_balance || 0).toLocaleString()}</p>
+                                      </div>
+                                      <div className="bg-white/60 rounded-lg p-2">
+                                        <p className="text-slate-600">Total Earned</p>
+                                        <p className="text-purple-700 font-bold">{(userBal.total_earned || 0).toLocaleString()}</p>
+                                      </div>
+                                      {userAutoClaimConfig && (
+                                        <>
+                                          <div className="bg-white/60 rounded-lg p-2">
+                                            <p className="text-slate-600">Auto-Claim</p>
+                                            <p className={`font-bold ${userAutoClaimConfig.enabled ? 'text-green-700' : 'text-gray-500'}`}>
+                                              {userAutoClaimConfig.enabled ? '✅ Bật' : '❌ Tắt'}
+                                            </p>
+                                          </div>
+                                          <div className="bg-white/60 rounded-lg p-2">
+                                            <p className="text-slate-600">Total Auto-Claimed</p>
+                                            <p className="text-indigo-700 font-bold">{(userAutoClaimConfig.total_auto_claimed || 0).toLocaleString()}</p>
+                                          </div>
+                                        </>
+                                      )}
+                                      <div className="bg-white/60 rounded-lg p-2">
+                                        <p className="text-slate-600">Spam Score</p>
+                                        <p className={`font-bold ${(userBal.spam_score || 0) > 50 ? 'text-red-700' : 'text-green-700'}`}>
+                                          {userBal.spam_score || 0}
+                                        </p>
+                                      </div>
+                                      <div className="bg-white/60 rounded-lg p-2">
+                                        <p className="text-slate-600">Audit Status</p>
+                                        <p className={`font-bold text-xs ${
+                                          userBal.audit_status === 'clean' ? 'text-green-700' :
+                                          userBal.audit_status === 'under_review' ? 'text-orange-700' :
+                                          'text-red-700'
+                                        }`}>
+                                          {userBal.audit_status || 'N/A'}
+                                        </p>
+                                      </div>
                                     </div>
                                   </div>
                                 )}
