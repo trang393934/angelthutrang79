@@ -32,8 +32,18 @@ Deno.serve(async (req) => {
     report.audit_logs_deleted = auditLogs.length;
 
     if (!dryRun) {
-      for (const log of auditLogs) {
-        await base44.asServiceRole.entities.QuestionAuditLog.delete(log.id);
+      // Delete in batches of 10 to avoid rate limits
+      const batchSize = 10;
+      for (let i = 0; i < auditLogs.length; i += batchSize) {
+        const batch = auditLogs.slice(i, i + batchSize);
+        await Promise.all(batch.map(log => 
+          base44.asServiceRole.entities.QuestionAuditLog.delete(log.id)
+        ));
+        console.log(`✅ Deleted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(auditLogs.length / batchSize)}`);
+        // Wait 1 second between batches
+        if (i + batchSize < auditLogs.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
       console.log(`✅ Deleted ${auditLogs.length} audit logs`);
     }
@@ -47,8 +57,18 @@ Deno.serve(async (req) => {
     report.transactions_deleted = transactions.length;
 
     if (!dryRun) {
-      for (const tx of transactions) {
-        await base44.asServiceRole.entities.CamlycoinTransaction.delete(tx.id);
+      // Delete in batches of 10 to avoid rate limits
+      const batchSize = 10;
+      for (let i = 0; i < transactions.length; i += batchSize) {
+        const batch = transactions.slice(i, i + batchSize);
+        await Promise.all(batch.map(tx => 
+          base44.asServiceRole.entities.CamlycoinTransaction.delete(tx.id)
+        ));
+        console.log(`✅ Deleted batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(transactions.length / batchSize)}`);
+        // Wait 1 second between batches
+        if (i + batchSize < transactions.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
       console.log(`✅ Deleted ${transactions.length} transactions`);
     }
