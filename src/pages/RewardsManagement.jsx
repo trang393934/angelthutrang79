@@ -698,14 +698,22 @@ export default function RewardsManagement() {
               <div className="flex items-center justify-between mb-3">
                 <p className="text-white/90 text-sm font-bold">✅ Kiểm Tra Công Thức:</p>
                 <Button
-                  onClick={() => {
-                    queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                  onClick={async () => {
+                    if (confirm('Chạy lại validation và fix toàn bộ balances?')) {
+                      try {
+                        await base44.functions.invoke('validateAndFixAllBalances', {});
+                        queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                        alert('✅ Đã chạy validation và refresh dữ liệu!');
+                      } catch (error) {
+                        alert('❌ Lỗi: ' + error.message);
+                      }
+                    }
                   }}
                   size="sm"
                   className="bg-white/30 text-white border border-white/50 rounded-lg hover:bg-white/40 h-7"
                 >
                   <Activity className="w-3 h-3 mr-1" />
-                  Refresh
+                  Fix & Refresh
                 </Button>
               </div>
               <p className="text-white text-xs leading-relaxed">
