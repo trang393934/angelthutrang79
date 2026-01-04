@@ -328,7 +328,8 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
   const connectWallet = async () => {
     if (typeof window.ethereum === 'undefined') {
-      alert('Vui lòng cài đặt MetaMask để kết nối ví!');
+      alert('❌ MetaMask chưa được cài đặt!\n\n✅ Vui lòng:\n1. Cài đặt MetaMask extension\n2. Tạo hoặc import ví\n3. Thử kết nối lại\n\nTải MetaMask tại: metamask.io');
+      window.open('https://metamask.io/download/', '_blank');
       return;
     }
 
@@ -340,7 +341,15 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
       setWalletAddress(accounts[0]);
     } catch (error) {
       console.error('Error connecting wallet:', error);
-      alert('Không thể kết nối ví. Vui lòng thử lại!');
+      
+      // Handle specific MetaMask errors
+      if (error.code === 4001) {
+        alert('❌ Bạn đã từ chối kết nối ví.\n\n💡 Vui lòng chấp nhận yêu cầu kết nối từ MetaMask để tiếp tục.');
+      } else if (error.code === -32002) {
+        alert('⏳ Đã có yêu cầu kết nối đang chờ xử lý.\n\n💡 Vui lòng kiểm tra popup MetaMask và hoàn tất kết nối.');
+      } else {
+        alert('❌ Không thể kết nối ví!\n\n💡 Vui lòng:\n1. Mở MetaMask extension\n2. Đảm bảo đã đăng nhập\n3. Thử lại\n\nLỗi: ' + (error.message || 'Unknown error'));
+      }
     }
     setIsConnecting(false);
   };
