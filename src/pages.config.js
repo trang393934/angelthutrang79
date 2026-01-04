@@ -34,9 +34,9 @@ import TestR2Upload from './pages/TestR2Upload';
 import UserProfile from './pages/UserProfile';
 import VisionBoard from './pages/VisionBoard';
 import WalletBreakdown from './pages/WalletBreakdown';
+import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import Whitepaper from './pages/Whitepaper';
 import __Layout from './Layout.jsx';
 
 
@@ -77,9 +77,9 @@ export const PAGES = {
     "UserProfile": UserProfile,
     "VisionBoard": VisionBoard,
     "WalletBreakdown": WalletBreakdown,
+    "Whitepaper": Whitepaper,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
-    "Whitepaper": Whitepaper,
 }
 
 export const pagesConfig = {
