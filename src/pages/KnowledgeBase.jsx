@@ -398,9 +398,20 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-indigo-50 to-purple-50 relative">
       {/* Background glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-20 pointer-events-none">
+      <motion.div 
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-20 pointer-events-none"
+        animate={{
+          scale: [1, 1.1, 1],
+          opacity: [0.15, 0.25, 0.15],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
         <div className="absolute inset-0 bg-gradient-to-b from-indigo-300/50 via-purple-400/30 to-transparent blur-3xl" />
-      </div>
+      </motion.div>
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-indigo-200 shadow-lg">
@@ -472,17 +483,33 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           
           {/* Search Bar */}
           {knowledgeBase.length > 0 && (
-            <div className="mt-4 px-4 pb-3">
+            <motion.div 
+              className="mt-4 px-4 pb-3"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                <motion.div
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                  }}
+                  transition={{ 
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatDelay: 3
+                  }}
+                >
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400" />
+                </motion.div>
                 <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Tìm kiếm theo tiêu đề, nội dung, từ khóa..."
-                  className="pl-10 bg-white border-2 border-indigo-200 text-slate-900 placeholder:text-purple-400 rounded-xl focus:border-indigo-400"
+                  className="pl-10 bg-white border-2 border-indigo-200 text-slate-900 placeholder:text-purple-400 rounded-xl focus:border-indigo-400 transition-all focus:ring-2 focus:ring-indigo-200"
                 />
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       </div>
@@ -1036,6 +1063,7 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
             className="mb-6"
           >
             <div className="flex items-center gap-2 mb-2">
@@ -1061,8 +1089,9 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               `}</style>
               {/* Uncategorized documents */}
               <motion.button
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 onClick={() => setSelectedCategory(null)}
                 className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${
                   !selectedCategory 
@@ -1079,8 +1108,9 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               {categories.map((cat) => (
                 <motion.div
                   key={cat.id}
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   className="relative group inline-block"
                 >
                   <button
@@ -1227,15 +1257,27 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AnimatePresence>
+            <AnimatePresence mode="popLayout">
               {filteredDocs.map((doc, index) => (
                 <motion.div
                   key={doc.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="group relative bg-white backdrop-blur-sm border-2 border-indigo-200 rounded-3xl p-6 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-200 transition-all"
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                  transition={{ 
+                    delay: index * 0.05,
+                    duration: 0.3,
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 25
+                  }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    y: -5,
+                    transition: { duration: 0.2 }
+                  }}
+                  className="group relative bg-white backdrop-blur-sm border-2 border-indigo-200 rounded-3xl p-6 hover:border-indigo-400 hover:shadow-xl hover:shadow-indigo-200 transition-all cursor-pointer"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3 flex-1">
@@ -1295,32 +1337,48 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                     </div>
                   )}
 
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setSelectedDoc(doc)}
-                      size="sm"
-                      className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 rounded-full hover:from-indigo-600 hover:to-purple-600 shadow-md hover:shadow-lg"
+                  <motion.div 
+                    className="flex gap-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="flex-1"
                     >
-                      <Eye className="w-3 h-3 mr-2" />
-                      Xem
-                    </Button>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const link = document.createElement('a');
-                        link.href = doc.file_url;
-                        link.download = doc.title;
-                        link.target = '_blank';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                      size="sm"
-                      className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 rounded-full hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg"
+                      <Button
+                        onClick={() => setSelectedDoc(doc)}
+                        size="sm"
+                        className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-0 rounded-full hover:from-indigo-600 hover:to-purple-600 shadow-md hover:shadow-lg"
+                      >
+                        <Eye className="w-3 h-3 mr-2" />
+                        Xem
+                      </Button>
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      <Download className="w-3 h-3" />
-                    </Button>
-                  </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const link = document.createElement('a');
+                          link.href = doc.file_url;
+                          link.download = doc.title;
+                          link.target = '_blank';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        size="sm"
+                        className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 rounded-full hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg"
+                      >
+                        <Download className="w-3 h-3" />
+                      </Button>
+                    </motion.div>
+                  </motion.div>
 
                   {doc.is_active && (
                     <div className="absolute top-3 right-3">
