@@ -48,6 +48,8 @@ export default function WithdrawCamlycoin() {
   // Submit withdrawal request
   const submitWithdrawalMutation = useMutation({
     mutationFn: async ({ address, amount }) => {
+      const requestAmount = parseFloat(amount);
+      
       // Double check for pending withdrawals
       const pendingCheck = await base44.entities.WithdrawalRequest.filter({ 
         user_email: currentUser.email,
@@ -58,12 +60,41 @@ export default function WithdrawCamlycoin() {
         throw new Error('Bạn đã có yêu cầu đang chờ xử lý. Vui lòng đợi admin duyệt trước khi tạo yêu cầu mới.');
       }
 
+      // Get current balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+      if (balances.length === 0) {
+        throw new Error('Không tìm thấy thông tin số dư!');
+      }
+
+      const balance = balances[0];
+      const currentAvailable = balance.available_balance || 0;
+
+      // CRITICAL CHECK: Đảm bảo available_balance đủ
+      if (requestAmount > currentAvailable) {
+        throw new Error(`Không đủ số dư! Available: ${currentAvailable.toLocaleString()}, Yêu cầu: ${requestAmount.toLocaleString()}`);
+      }
+
+      // TRỪ NGAY available_balance khi tạo request (để tránh spam requests)
+      await base44.entities.CamlycoinBalance.update(balance.id, {
+        available_balance: currentAvailable - requestAmount
+      });
+
+      // Create withdrawal request
       await base44.entities.WithdrawalRequest.create({
         user_email: currentUser.email,
         withdrawal_address: address,
-        amount: parseFloat(amount),
+        amount: requestAmount,
         status: 'pending',
         verification_status: 'email_verified'
+      });
+
+      // Create transaction log
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: currentUser.email,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `📤 Tạo yêu cầu rút ${requestAmount.toLocaleString()} Camlycoin\n💰 Available balance: ${currentAvailable.toLocaleString()} → ${(currentAvailable - requestAmount).toLocaleString()}`,
+        processed_by: currentUser.email
       });
     },
     onSuccess: () => {

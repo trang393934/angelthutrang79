@@ -271,6 +271,24 @@ export default function RewardsManagement() {
   // Reject withdrawal mutation
   const rejectWithdrawalMutation = useMutation({
     mutationFn: async ({ request, reason }) => {
+      // HOÀN LẠI available_balance khi reject
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: request.user_email });
+      if (balances.length > 0) {
+        const balance = balances[0];
+        await base44.entities.CamlycoinBalance.update(balance.id, {
+          available_balance: (balance.available_balance || 0) + request.amount
+        });
+
+        // Create transaction log
+        await base44.entities.CamlycoinTransaction.create({
+          user_email: request.user_email,
+          amount: 0,
+          type: 'admin_adjustment',
+          description: `❌ Từ chối yêu cầu rút ${request.amount.toLocaleString()} Camlycoin\n💰 Hoàn lại available balance\nLý do: ${reason}`,
+          processed_by: currentUser.email
+        });
+      }
+
       await base44.entities.WithdrawalRequest.update(request.id, {
         status: 'rejected',
         rejection_reason: reason,
@@ -286,6 +304,7 @@ export default function RewardsManagement() {
       }).catch(err => console.error('Email failed:', err));
 
       queryClient.invalidateQueries({ queryKey: ['all-withdrawal-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
     },
     onSuccess: () => {
       alert('❌ Đã từ chối yêu cầu rút tiền!');
