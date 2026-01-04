@@ -87,9 +87,9 @@ export default function CamlyCoinWidget() {
           <div>
             <p className="text-xs text-slate-600 mb-1">24h Change</p>
             <p className={`text-lg font-bold flex items-center gap-1 ${
-              coinData?.price_change_24h_percent >= 0 ? 'text-green-600' : 'text-red-600'
+              coinData && coinData.price_change_24h_percent !== null && coinData.price_change_24h_percent >= 0 ? 'text-green-600' : 'text-slate-900'
             }`}>
-              {coinData?.price_change_24h_percent !== null ? (
+              {coinData && coinData.price_change_24h_percent !== null ? (
                 <>
                   {coinData.price_change_24h_percent >= 0 ? (
                     <TrendingUp className="w-4 h-4" />
