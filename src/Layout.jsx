@@ -198,6 +198,12 @@ export default function Layout({ children, currentPageName }) {
         gradient: 'from-indigo-500 to-purple-600'
       },
       { 
+        name: 'Data Integrity', 
+        icon: Shield, 
+        path: 'DataIntegrityCheck',
+        gradient: 'from-purple-500 to-pink-600'
+      },
+      { 
         name: 'Review Pending', 
         icon: Shield, 
         path: 'ReviewPendingActions',

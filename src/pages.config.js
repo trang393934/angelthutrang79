@@ -4,6 +4,7 @@ import AdminCommunityRewards from './pages/AdminCommunityRewards';
 import AdminDashboard from './pages/AdminDashboard';
 import Analytics from './pages/Analytics';
 import AuditDashboard from './pages/AuditDashboard';
+import AutoClaimSettings from './pages/AutoClaimSettings';
 import BlogEditor from './pages/BlogEditor';
 import BuildAndBounty from './pages/BuildAndBounty';
 import CamlyWithdrawal from './pages/CamlyWithdrawal';
@@ -34,7 +35,7 @@ import VisionBoard from './pages/VisionBoard';
 import WalletBreakdown from './pages/WalletBreakdown';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import AutoClaimSettings from './pages/AutoClaimSettings';
+import DataIntegrityCheck from './pages/DataIntegrityCheck';
 import __Layout from './Layout.jsx';
 
 
@@ -45,6 +46,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "Analytics": Analytics,
     "AuditDashboard": AuditDashboard,
+    "AutoClaimSettings": AutoClaimSettings,
     "BlogEditor": BlogEditor,
     "BuildAndBounty": BuildAndBounty,
     "CamlyWithdrawal": CamlyWithdrawal,
@@ -75,7 +77,7 @@ export const PAGES = {
     "WalletBreakdown": WalletBreakdown,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
-    "AutoClaimSettings": AutoClaimSettings,
+    "DataIntegrityCheck": DataIntegrityCheck,
 }
 
 export const pagesConfig = {
