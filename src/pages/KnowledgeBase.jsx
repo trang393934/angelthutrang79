@@ -1141,41 +1141,25 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
             transition={{ duration: 0.4, ease: "easeOut" }}
             className="mb-6"
           >
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-3">
               <Folder className="w-4 h-4 text-indigo-600" />
               <h2 className="text-slate-900 font-bold text-sm">Thư Mục</h2>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-indigo-300 scrollbar-track-indigo-100">
-              <style>{`
-                .scrollbar-thin::-webkit-scrollbar {
-                  height: 6px;
-                }
-                .scrollbar-thin::-webkit-scrollbar-track {
-                  background: rgba(199, 210, 254, 0.3);
-                  border-radius: 3px;
-                }
-                .scrollbar-thin::-webkit-scrollbar-thumb {
-                  background: rgba(129, 140, 248, 0.5);
-                  border-radius: 3px;
-                }
-                .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-                  background: rgba(129, 140, 248, 0.7);
-                }
-              `}</style>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {/* Uncategorized documents */}
               <motion.button
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 onClick={() => setSelectedCategory(null)}
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${
+                className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-xl border-2 transition-all w-full ${
                   !selectedCategory 
                     ? 'bg-gradient-to-br from-slate-100 to-slate-200 border-slate-400 shadow-md' 
                     : 'bg-white border-slate-200 hover:border-slate-300'
                 }`}
               >
-                <span className="text-lg">📦</span>
-                <span className="text-slate-900 font-bold text-sm">Tổng Hợp</span>
+                <span className="text-3xl">📦</span>
+                <span className="text-slate-900 font-bold text-xs text-center leading-tight">Tổng Hợp</span>
                 <span className="text-slate-600 text-xs">({uncategorizedCount})</span>
               </motion.button>
 
@@ -1183,21 +1167,21 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               {categories.map((cat) => (
                 <motion.div
                   key={cat.id}
-                  whileHover={{ scale: 1.05, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  className="relative group inline-block"
+                  className="relative group"
                 >
                   <button
                     onClick={() => setSelectedCategory(selectedCategory?.id === cat.id ? null : cat)}
-                    className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all ${
+                    className={`w-full flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-xl border-2 transition-all ${
                       selectedCategory?.id === cat.id 
                         ? `bg-gradient-to-br ${colorMap[cat.color]} border-transparent shadow-md text-white` 
                         : 'bg-white border-indigo-200 hover:border-indigo-300'
                     }`}
                   >
-                    <span className="text-lg">{selectedCategory?.id === cat.id ? '📂' : cat.icon}</span>
-                    <span className={`font-bold text-sm ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-900'}`}>
+                    <span className="text-3xl">{selectedCategory?.id === cat.id ? '📂' : cat.icon}</span>
+                    <span className={`font-bold text-xs text-center leading-tight ${selectedCategory?.id === cat.id ? 'text-white' : 'text-slate-900'}`}>
                       {cat.name}
                     </span>
                     <span className={`text-xs ${selectedCategory?.id === cat.id ? 'text-white/80' : 'text-slate-600'}`}>
