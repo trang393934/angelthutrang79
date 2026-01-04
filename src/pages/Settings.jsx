@@ -8,9 +8,11 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import AffirmationsCard from '@/components/AffirmationsCard';
 
 export default function Settings() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [activeTab, setActiveTab] = useState('profile');
   const [preferences, setPreferences] = useState({
     response_style: ['friendly'],
     tone: ['gentle'],
@@ -253,6 +255,45 @@ export default function Settings() {
             </motion.div>
           </div>
         ) : (
+          <>
+            {/* Tabs */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+              <Button
+                onClick={() => setActiveTab('profile')}
+                className={`rounded-2xl py-6 font-bold transition-all ${
+                  activeTab === 'profile'
+                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-2xl'
+                    : 'bg-white border-2 border-purple-200 text-slate-900 hover:border-purple-400'
+                }`}
+              >
+                <User className="w-5 h-5 mr-2" />
+                Cài Đặt
+              </Button>
+              <Button
+                onClick={() => setActiveTab('affirmations')}
+                className={`rounded-2xl py-6 font-bold transition-all ${
+                  activeTab === 'affirmations'
+                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xl'
+                    : 'bg-white border-2 border-amber-200 text-slate-900 hover:border-amber-400'
+                }`}
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                8 Câu
+              </Button>
+              <Button
+                onClick={() => setActiveTab('logout')}
+                className={`rounded-2xl py-6 font-bold transition-all ${
+                  activeTab === 'logout'
+                    ? 'bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-2xl'
+                    : 'bg-white border-2 border-red-200 text-slate-900 hover:border-red-400'
+                }`}
+              >
+                <LogOut className="w-5 h-5 mr-2" />
+                Đăng Xuất
+              </Button>
+            </div>
+
+            {activeTab === 'profile' && (
             <div className="space-y-6">
               {/* Avatar Upload */}
               <motion.div
@@ -663,30 +704,44 @@ export default function Settings() {
               />
             </motion.div>
 
-            {/* Logout Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-3xl p-6 shadow-lg"
-            >
-              <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
-                <LogOut className="w-5 h-5 text-red-600" />
-                Đăng Xuất
-              </h3>
-              <p className="text-slate-700 text-sm mb-4">
-                Đăng xuất khỏi tài khoản của bạn. Bạn có thể đăng nhập lại bất cứ lúc nào bằng Gmail, Facebook hoặc Google.
-              </p>
-              <Button
-                onClick={() => base44.auth.logout()}
-                variant="outline"
-                className="w-full border-2 border-red-300 text-red-700 hover:bg-red-50 rounded-2xl font-bold py-6 text-base"
-              >
-                <LogOut className="w-5 h-5 mr-2" />
-                Đăng Xuất Tài Khoản
-              </Button>
-            </motion.div>
           </div>
+            )}
+
+            {/* Affirmations Tab */}
+            {activeTab === 'affirmations' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <AffirmationsCard />
+              </motion.div>
+            )}
+
+            {/* Logout Tab */}
+            {activeTab === 'logout' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-3xl p-6 shadow-lg"
+              >
+                <h3 className="text-slate-900 text-lg font-bold mb-4 flex items-center gap-2">
+                  <LogOut className="w-5 h-5 text-red-600" />
+                  Đăng Xuất
+                </h3>
+                <p className="text-slate-700 text-sm mb-4">
+                  Đăng xuất khỏi tài khoản của bạn. Bạn có thể đăng nhập lại bất cứ lúc nào bằng Gmail, Facebook hoặc Google.
+                </p>
+                <Button
+                  onClick={() => base44.auth.logout()}
+                  variant="outline"
+                  className="w-full border-2 border-red-300 text-red-700 hover:bg-red-50 rounded-2xl font-bold py-6 text-base"
+                >
+                  <LogOut className="w-5 h-5 mr-2" />
+                  Đăng Xuất Tài Khoản
+                </Button>
+              </motion.div>
+            )}
+          </>
         )}
       </div>
     </div>
