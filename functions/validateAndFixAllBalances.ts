@@ -27,21 +27,13 @@ Deno.serve(async (req) => {
       try {
         const userEmail = balance.user_email;
         
-        // Get user's transactions
-        const userTxs = allTransactions.filter(tx => tx.user_email === userEmail);
-        
-        // Calculate from transactions
-        const calculatedTotalEarned = userTxs
-          .filter(tx => tx.amount > 0)
-          .reduce((sum, tx) => sum + tx.amount, 0);
-        
-        const calculatedTotalSpent = Math.abs(userTxs
-          .filter(tx => tx.amount < 0)
-          .reduce((sum, tx) => sum + tx.amount, 0));
-
-        // Get audit logs để tính frozen và pending_review
+        // Get user's audit logs
         const userLogs = allAuditLogs.filter(log => log.user_email === userEmail);
         
+        // CRITICAL: Total earned = TẤT CẢ coins từ audit logs
+        const calculatedTotalEarned = userLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+        
+        // Phân loại coins theo category
         const frozenAmount = userLogs
           .filter(log => log.coin_category === 'frozen')
           .reduce((sum, log) => sum + (log.coins_earned || 0), 0);
@@ -49,6 +41,13 @@ Deno.serve(async (req) => {
         const pendingReviewAmount = userLogs
           .filter(log => log.coin_category === 'pending_review')
           .reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+
+        // Get user's transactions để tính spent
+        const userTxs = allTransactions.filter(tx => tx.user_email === userEmail);
+        
+        const calculatedTotalSpent = Math.abs(userTxs
+          .filter(tx => tx.amount < 0)
+          .reduce((sum, tx) => sum + tx.amount, 0));
 
         // Current balance từ database
         const currentData = {
