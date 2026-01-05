@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Search, Filter, TrendingUp, Users, Coins, Calendar, Download, CheckCircle2, XCircle, Clock, Eye, RefreshCw, BarChart3, PieChart, Activity } from 'lucide-react';
+import { ArrowLeft, Search, Filter, TrendingUp, Users, Coins, Calendar, Download, CheckCircle2, XCircle, Clock, Eye, RefreshCw, BarChart3, PieChart, Activity, Wallet, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
