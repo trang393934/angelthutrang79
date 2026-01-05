@@ -96,9 +96,9 @@ export default function UserProfile() {
 
   // Listen to URL and set targetEmail (with priority: URL > currentUser)
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
+    const urlParams = new URLSearchParams(window.location.search);
     const emailFromUrl = urlParams.get('email');
-    console.log('🔍 URL effect triggered - search:', location.search, 'email:', emailFromUrl);
+    console.log('🔍 URL effect triggered - search:', window.location.search, 'email:', emailFromUrl);
     
     if (emailFromUrl) {
       const decodedEmail = decodeURIComponent(emailFromUrl);
@@ -108,7 +108,7 @@ export default function UserProfile() {
       console.log('⚠️ No URL email, using currentUser:', currentUser.email);
       setTargetEmail(currentUser.email);
     }
-  }, [location.search, currentUser]);
+  }, [currentUser]);
 
   const isAdmin = currentUser?.role === 'admin';
 
