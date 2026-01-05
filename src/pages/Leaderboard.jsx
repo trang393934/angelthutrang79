@@ -296,7 +296,9 @@ export default function Leaderboard() {
                   <motion.div
                     key={user.id}
                     onClick={() => {
-                      window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`;
+                      const profileUrl = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`;
+                      console.log('🔗 Navigating to:', profileUrl);
+                      window.location.href = profileUrl;
                     }}
                     className="block cursor-pointer"
                   >

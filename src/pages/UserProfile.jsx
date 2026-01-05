@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle, Gift, Trophy, Award, Calendar, Filter, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -87,79 +87,86 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // Initialize and lock targetEmail from URL - NEVER override after this
+  // Extract email from URL using useMemo for stability
+  const emailFromUrl = useMemo(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const email = urlParams.get('email');
+    return email ? decodeURIComponent(email) : null;
+  }, [location.search]);
+
+  // Main effect to set currentUser and targetEmail based on URL or current user
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailFromUrl = urlParams.get('email');
-    
-    if (emailFromUrl) {
-      const decodedEmail = decodeURIComponent(emailFromUrl);
-      console.log('🎯 LOCKED: targetEmail from URL:', decodedEmail);
-      setTargetEmail(decodedEmail);
-    }
-    
-    // Fetch currentUser (but never override targetEmail)
-    base44.auth.me()
-      .then(user => {
+    let ignore = false;
+
+    const initializeUserProfile = async () => {
+      // Reset all user-specific state first
+      setTargetUser(null);
+      setAiAnalysisResults({});
+      setOverallInsights(null);
+      setTargetEmail('');
+
+      // Invalidate relevant queries for fresh data
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['user-level'] });
+      queryClient.invalidateQueries({ queryKey: ['user-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['user-withdrawals'] });
+
+      try {
+        const user = await base44.auth.me();
+        if (ignore) return;
+
         setCurrentUser(user);
-        
-        // ONLY set targetEmail if URL has no email param
-        if (!emailFromUrl && user) {
-          console.log('👤 No URL param - using currentUser:', user.email);
+
+        // URL parameter takes ABSOLUTE precedence
+        if (emailFromUrl) {
+          console.log('🎯 Setting targetEmail from URL (prioritized):', emailFromUrl);
+          setTargetEmail(emailFromUrl);
+        } else if (user) {
+          console.log('👤 Setting targetEmail from currentUser (no URL param):', user.email);
           setTargetEmail(user.email);
         }
-      })
-      .catch(() => setCurrentUser(null));
-  }, []); // Run once - never re-run
-
-  // Clear cache when URL changes (force reload profile data)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailFromUrl = urlParams.get('email');
-    
-    if (emailFromUrl) {
-      const decodedEmail = decodeURIComponent(emailFromUrl);
-      
-      // Only update if different (prevent redirect loop)
-      if (decodedEmail !== targetEmail) {
-        console.log('🔄 URL changed - updating targetEmail:', decodedEmail);
-        setTargetEmail(decodedEmail);
+      } catch (error) {
+        if (ignore) return;
+        console.error('Failed to fetch current user:', error);
+        setCurrentUser(null);
         
-        // Clear all cached data for fresh load
-        queryClient.invalidateQueries({ queryKey: ['user-balance'] });
-        queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
-        queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
-        queryClient.invalidateQueries({ queryKey: ['user-level'] });
-        queryClient.invalidateQueries({ queryKey: ['user-submissions'] });
-        queryClient.invalidateQueries({ queryKey: ['user-withdrawals'] });
-        
-        // Reset state
-        setTargetUser(null);
-        setAiAnalysisResults({});
-        setOverallInsights(null);
+        // Even if user fetch fails, if there's an email in URL, set it
+        if (emailFromUrl) {
+          console.log('⚠️ Setting targetEmail from URL despite user fetch error:', emailFromUrl);
+          setTargetEmail(emailFromUrl);
+        }
       }
-    }
-  }, [location.search]); // Monitor URL changes
+    };
+
+    initializeUserProfile();
+
+    return () => {
+      ignore = true;
+    };
+  }, [emailFromUrl, queryClient]);
 
   const isAdmin = currentUser?.role === 'admin';
 
+  // Separate effect to fetch targetUser details once targetEmail is stable
   useEffect(() => {
-    // Fetch target user info (optional - không bắt buộc)
-    if (targetEmail && currentUser) {
+    if (targetEmail) {
       base44.entities.User.filter({ email: targetEmail })
         .then(users => {
           if (users.length > 0) {
             setTargetUser(users[0]);
           } else {
-            // Tạo dummy user object nếu không tìm thấy
             setTargetUser({ email: targetEmail, full_name: targetEmail });
           }
-        }).catch(() => {
-          // Fallback nếu có lỗi
+        }).catch(error => {
+          console.error('Failed to fetch target user details:', error);
           setTargetUser({ email: targetEmail, full_name: targetEmail });
         });
+    } else {
+      setTargetUser(null);
     }
-  }, [targetEmail, currentUser]);
+  }, [targetEmail]);
 
   // Fetch target user's balance
   const { data: userBalance } = useQuery({
