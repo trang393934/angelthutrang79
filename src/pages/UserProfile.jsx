@@ -87,36 +87,40 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // CRITICAL: Parse URL FIRST, before anything else
+  // CRITICAL: Initialize targetEmail from URL on mount
   useEffect(() => {
+    // Parse URL email - ABSOLUTE PRIORITY
     const urlParams = new URLSearchParams(window.location.search);
     const emailFromUrl = urlParams.get('email');
     
     if (emailFromUrl) {
       const decodedEmail = decodeURIComponent(emailFromUrl);
-      console.log('🎯 PRIORITY: Setting targetEmail from URL:', decodedEmail);
+      console.log('🎯 URL EMAIL DETECTED:', decodedEmail);
       setTargetEmail(decodedEmail);
-      
-      // Reset all state khi đổi user
-      setTargetUser(null);
-      setAiAnalysisResults({});
-      setOverallInsights(null);
-      setQuestionFilter('all');
+      return; // Stop here - don't fetch currentUser yet
     }
-  }, [location.search]);
-
-  // Fetch current user AFTER URL is parsed
-  useEffect(() => {
-    base44.auth.me().then(user => {
-      setCurrentUser(user);
-      
-      // Only use currentUser email if NO URL param
-      if (!targetEmail && user) {
-        console.log('⚠️ No targetEmail set, using currentUser:', user.email);
-        setTargetEmail(user.email);
-      }
-    }).catch(() => setCurrentUser(null));
+    
+    // No URL email - fetch currentUser and use their email
+    console.log('⚠️ No URL email - fetching currentUser');
+    base44.auth.me()
+      .then(user => {
+        setCurrentUser(user);
+        if (user) {
+          console.log('👤 Using currentUser email:', user.email);
+          setTargetEmail(user.email);
+        }
+      })
+      .catch(() => setCurrentUser(null));
   }, []);
+
+  // Fetch currentUser info AFTER targetEmail is set
+  useEffect(() => {
+    if (!currentUser && targetEmail) {
+      base44.auth.me()
+        .then(user => setCurrentUser(user))
+        .catch(() => setCurrentUser(null));
+    }
+  }, [targetEmail]);
 
   const isAdmin = currentUser?.role === 'admin';
 
