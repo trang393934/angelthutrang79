@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle, Gift, Trophy, Award } from 'lucide-react';
+import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle, Gift, Trophy, Award, Calendar, Filter, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { AnimatePresence } from 'framer-motion';
 import LevelProgressCard from '@/components/LevelProgressCard';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { format, subDays, startOfDay } from 'date-fns';
 
 // My Rank Component
 function MyRankCard({ targetEmail }) {
@@ -78,6 +80,7 @@ export default function UserProfile() {
   const [showPendingReviewModal, setShowPendingReviewModal] = useState(false);
   const [aiAnalysisResults, setAiAnalysisResults] = useState({});
   const [analyzingQuestions, setAnalyzingQuestions] = useState(new Set());
+  const [questionFilter, setQuestionFilter] = useState('all');
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -140,24 +143,18 @@ export default function UserProfile() {
     queryFn: async () => {
       if (!targetEmail) return [];
       
-      // Admin: fetch tất cả audit logs
-      if (isAdmin) {
-        const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 10000);
-        const userLogs = allLogs.filter(log => log.user_email === targetEmail);
-        
-        console.log('Total audit logs for', targetEmail, ':', userLogs.length);
-        console.log('Breakdown:', {
-          valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
-          duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
-          greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
-          exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
-        });
-        
-        return userLogs;
-      }
+      const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 10000);
+      const userLogs = allLogs.filter(log => log.user_email === targetEmail);
       
-      // Regular user: không hiển thị audit logs
-      return [];
+      console.log('Total audit logs for', targetEmail, ':', userLogs.length);
+      console.log('Breakdown:', {
+        valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
+        duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
+        greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
+        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
+      });
+      
+      return userLogs;
     },
     enabled: !!targetEmail,
     staleTime: 0,
@@ -172,6 +169,47 @@ export default function UserProfile() {
   const pendingReviewLogs = allUserLogs.filter(log => 
     log.coin_category === 'pending_review' || log.exclusion_reason === 'exceeds_daily_limit'
   );
+
+  // Filter questions by date
+  const filteredQuestions = React.useMemo(() => {
+    let filtered = [...allUserLogs];
+    
+    if (questionFilter === 'today') {
+      const today = startOfDay(new Date());
+      filtered = filtered.filter(log => new Date(log.question_date) >= today);
+    } else if (questionFilter === 'week') {
+      const weekAgo = subDays(new Date(), 7);
+      filtered = filtered.filter(log => new Date(log.question_date) >= weekAgo);
+    } else if (questionFilter === 'month') {
+      const monthAgo = subDays(new Date(), 30);
+      filtered = filtered.filter(log => new Date(log.question_date) >= monthAgo);
+    }
+    
+    return filtered;
+  }, [allUserLogs, questionFilter]);
+
+  // Prepare chart data
+  const chartData = React.useMemo(() => {
+    if (!transactions || transactions.length === 0) return [];
+    
+    const dailyData = new Map();
+    
+    transactions.forEach(tx => {
+      if (tx.amount > 0) {
+        const date = format(new Date(tx.created_date), 'yyyy-MM-dd');
+        const current = dailyData.get(date) || { date, total: 0, count: 0 };
+        dailyData.set(date, {
+          date,
+          total: current.total + tx.amount,
+          count: current.count + 1
+        });
+      }
+    });
+    
+    return Array.from(dailyData.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-30); // Last 30 days
+  }, [transactions]);
 
   // Fetch user level
   const { data: userLevel } = useQuery({
@@ -1472,11 +1510,168 @@ Trả về JSON:`;
           )}
         </AnimatePresence>
 
-        {/* Transaction History */}
+        {/* Growth Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl mb-8"
+        >
+          <h3 className="text-slate-900 font-bold text-xl mb-6 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-purple-500" />
+            Biểu Đồ Tăng Trưởng Camlycoin (30 ngày gần nhất)
+          </h3>
+
+          {chartData.length === 0 ? (
+            <div className="text-center py-12">
+              <Activity className="w-12 h-12 text-purple-300 mx-auto mb-4" />
+              <p className="text-slate-700 font-medium">Chưa có dữ liệu biểu đồ</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(date) => format(new Date(date), 'dd/MM')}
+                  stroke="#64748b"
+                />
+                <YAxis stroke="#64748b" />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                    border: '2px solid #a855f7',
+                    borderRadius: '12px',
+                    padding: '12px'
+                  }}
+                  labelFormatter={(date) => format(new Date(date), 'dd/MM/yyyy')}
+                  formatter={(value, name) => [
+                    name === 'total' ? `${value.toLocaleString()} Camlycoin` : `${value} giao dịch`,
+                    name === 'total' ? 'Tổng kiếm' : 'Số giao dịch'
+                  ]}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  stroke="#a855f7" 
+                  strokeWidth={3}
+                  dot={{ fill: '#a855f7', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </motion.div>
+
+        {/* Questions History */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-3xl p-6 shadow-xl mb-8"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-slate-900 font-bold text-xl flex items-center gap-2">
+              <MessageSquare className="w-6 h-6 text-blue-500" />
+              Câu Hỏi Đã Đóng Góp
+            </h3>
+            <Badge className="bg-blue-100 text-blue-800">
+              {filteredQuestions.length} câu
+            </Badge>
+          </div>
+
+          {/* Date Filter */}
+          <div className="flex gap-2 mb-6">
+            {[
+              { value: 'all', label: 'Tất Cả' },
+              { value: 'today', label: 'Hôm Nay' },
+              { value: 'week', label: '7 Ngày' },
+              { value: 'month', label: '30 Ngày' }
+            ].map(option => (
+              <Button
+                key={option.value}
+                onClick={() => setQuestionFilter(option.value)}
+                size="sm"
+                variant={questionFilter === option.value ? 'default' : 'outline'}
+                className={questionFilter === option.value 
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                  : 'border-blue-300 text-slate-700'
+                }
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+
+          {isLoadingLogs ? (
+            <div className="text-center py-12">
+              <Loader2 className="w-12 h-12 text-blue-300 mx-auto mb-4 animate-spin" />
+              <p className="text-slate-700 font-medium">Đang tải câu hỏi...</p>
+            </div>
+          ) : filteredQuestions.length === 0 ? (
+            <div className="text-center py-12">
+              <MessageSquare className="w-12 h-12 text-blue-300 mx-auto mb-4" />
+              <p className="text-slate-700 font-medium">Chưa có câu hỏi nào</p>
+            </div>
+          ) : (
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {filteredQuestions.slice(0, 20).map((log, index) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  className={`border-2 rounded-2xl p-4 ${
+                    log.exclusion_reason === 'valid' 
+                      ? 'bg-green-50 border-green-300' 
+                      : 'bg-red-50 border-red-300'
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        {log.exclusion_reason === 'valid' ? (
+                          <Badge className="bg-green-100 text-green-800">✅ Hợp Lệ</Badge>
+                        ) : (
+                          <Badge className="bg-red-100 text-red-800">
+                            {log.exclusion_reason === 'duplicate' ? '🔄 Trùng' :
+                             log.exclusion_reason === 'greeting' ? '👋 Chào' :
+                             log.exclusion_reason === 'exceeds_daily_limit' ? '📊 Câu 11+' :
+                             '❌ Loại'}
+                          </Badge>
+                        )}
+                        <Badge className="bg-amber-100 text-amber-800">
+                          🪙 {log.coins_earned?.toLocaleString()}
+                        </Badge>
+                        <Badge className="bg-purple-100 text-purple-800">
+                          #{log.question_number_in_day}
+                        </Badge>
+                      </div>
+                      <p className="text-slate-900 font-medium break-words mb-2">
+                        {log.question_text}
+                      </p>
+                      <p className="text-xs text-slate-600">
+                        <Clock className="w-3 h-3 inline mr-1" />
+                        {format(new Date(log.question_date), 'dd/MM/yyyy HH:mm')}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              {filteredQuestions.length > 20 && (
+                <p className="text-center text-sm text-slate-600 mt-4">
+                  Hiển thị 20 / {filteredQuestions.length} câu hỏi
+                </p>
+              )}
+            </div>
+          )}
+        </motion.div>
+
+        {/* Transaction History */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
           className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl"
         >
           <h3 className="text-slate-900 font-bold text-xl mb-6 flex items-center gap-2">
@@ -1493,7 +1688,7 @@ Trả về JSON:`;
             <div className="space-y-3">
               {transactions.map((tx, index) => {
                 const isPositive = tx.amount > 0;
-                
+
                 return (
                   <motion.div
                     key={tx.id}
