@@ -32,16 +32,19 @@ export default function WithdrawalManagement() {
   const processWithdrawalMutation = useMutation({
     mutationFn: async (withdrawal_id) => {
       setIsProcessing(true);
-      const response = await base44.functions.invoke('processWithdrawal', {
-        action: 'process',
-        withdrawal_id
+      const response = await base44.functions.invoke('transferCamlyToWallet', {
+        withdrawalRequestId: withdrawal_id
       });
       setIsProcessing(false);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['all-withdrawals'] });
-      alert('Transaction sent to blockchain!');
+      alert(`✅ Chuyển tiền thành công!\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin\n📬 TX: ${data.tx_hash}\n⛽ Gas: ${data.gas_fee_bnb.toFixed(6)} BNB`);
+    },
+    onError: (error) => {
+      setIsProcessing(false);
+      alert('❌ Lỗi: ' + (error.response?.data?.error || error.message));
     }
   });
 
@@ -285,7 +288,7 @@ export default function WithdrawalManagement() {
                   ) : (
                     <>
                       <Send className="w-4 h-4 mr-2" />
-                      Execute Withdrawal (Send to BSC)
+                      💸 Chuyển Tiền Đến Ví
                     </>
                   )}
                 </Button>
