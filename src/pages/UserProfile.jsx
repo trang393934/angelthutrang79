@@ -87,40 +87,59 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // CRITICAL: Initialize targetEmail from URL on mount
+  // Initialize and lock targetEmail from URL - NEVER override after this
   useEffect(() => {
-    // Parse URL email - ABSOLUTE PRIORITY
     const urlParams = new URLSearchParams(window.location.search);
     const emailFromUrl = urlParams.get('email');
     
     if (emailFromUrl) {
       const decodedEmail = decodeURIComponent(emailFromUrl);
-      console.log('🎯 URL EMAIL DETECTED:', decodedEmail);
+      console.log('🎯 LOCKED: targetEmail from URL:', decodedEmail);
       setTargetEmail(decodedEmail);
-      return; // Stop here - don't fetch currentUser yet
     }
     
-    // No URL email - fetch currentUser and use their email
-    console.log('⚠️ No URL email - fetching currentUser');
+    // Fetch currentUser (but never override targetEmail)
     base44.auth.me()
       .then(user => {
         setCurrentUser(user);
-        if (user) {
-          console.log('👤 Using currentUser email:', user.email);
+        
+        // ONLY set targetEmail if URL has no email param
+        if (!emailFromUrl && user) {
+          console.log('👤 No URL param - using currentUser:', user.email);
           setTargetEmail(user.email);
         }
       })
       .catch(() => setCurrentUser(null));
-  }, []);
+  }, []); // Run once - never re-run
 
-  // Fetch currentUser info AFTER targetEmail is set
+  // Clear cache when URL changes (force reload profile data)
   useEffect(() => {
-    if (!currentUser && targetEmail) {
-      base44.auth.me()
-        .then(user => setCurrentUser(user))
-        .catch(() => setCurrentUser(null));
+    const urlParams = new URLSearchParams(window.location.search);
+    const emailFromUrl = urlParams.get('email');
+    
+    if (emailFromUrl) {
+      const decodedEmail = decodeURIComponent(emailFromUrl);
+      
+      // Only update if different (prevent redirect loop)
+      if (decodedEmail !== targetEmail) {
+        console.log('🔄 URL changed - updating targetEmail:', decodedEmail);
+        setTargetEmail(decodedEmail);
+        
+        // Clear all cached data for fresh load
+        queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+        queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
+        queryClient.invalidateQueries({ queryKey: ['user-level'] });
+        queryClient.invalidateQueries({ queryKey: ['user-submissions'] });
+        queryClient.invalidateQueries({ queryKey: ['user-withdrawals'] });
+        
+        // Reset state
+        setTargetUser(null);
+        setAiAnalysisResults({});
+        setOverallInsights(null);
+      }
     }
-  }, [targetEmail]);
+  }, [location.search]); // Monitor URL changes
 
   const isAdmin = currentUser?.role === 'admin';
 
