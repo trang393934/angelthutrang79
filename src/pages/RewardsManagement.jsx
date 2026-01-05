@@ -996,12 +996,12 @@ export default function RewardsManagement() {
                         </div>
                         <p className="text-sm text-slate-700 mb-2">
                           <strong>Người gửi:</strong>{' '}
-                          <Link 
-                            to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(sub.created_by)}`}
+                          <button
+                            onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(sub.created_by)}`}
                             className="text-purple-600 hover:text-purple-800 font-semibold hover:underline"
                           >
                             {sub.created_by}
-                          </Link>
+                          </button>
                         </p>
                         {sub.description && (
                           <p className="text-sm text-slate-600 mb-2">{sub.description}</p>
@@ -1363,12 +1363,12 @@ export default function RewardsManagement() {
                                     🪙 {req.amount.toLocaleString()} Camlycoin
                                   </Badge>
                                 </div>
-                                <Link 
-                                  to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(req.user_email)}`}
-                                  className="text-purple-600 hover:text-purple-800 font-semibold mb-2 hover:underline inline-block"
+                                <button
+                                  onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(req.user_email)}`}
+                                  className="text-purple-600 hover:text-purple-800 font-semibold mb-2 hover:underline text-left"
                                 >
                                   {req.user_email}
-                                </Link>
+                                </button>
                                 <p className="text-slate-700 text-sm mb-2 break-all">
                                   <strong>Địa chỉ ví:</strong> {req.withdrawal_address}
                                 </p>
@@ -1699,12 +1699,12 @@ export default function RewardsManagement() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <Link 
-                            to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
-                            className="text-purple-600 hover:text-purple-800 font-semibold hover:underline inline-block"
+                          <button
+                            onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                            className="text-purple-600 hover:text-purple-800 font-semibold hover:underline text-left"
                           >
                             {balance.user_email}
-                          </Link>
+                          </button>
                           <div className="flex gap-2 mt-2 flex-wrap">
                             <Badge className="bg-green-100 text-green-800 text-xs">
                               ✅ Đã TT: {(balance.paid_amount || 0).toLocaleString()}

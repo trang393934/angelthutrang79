@@ -629,12 +629,12 @@ export default function AdminDashboard() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex-1">
-                        <Link 
-                          to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
-                          className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline inline-block"
+                        <button
+                          onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                          className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline text-left"
                         >
                           {balance.user_email}
-                        </Link>
+                        </button>
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge className="bg-amber-100 text-amber-800">
                             💰 {(balance.balance || 0).toLocaleString()}
@@ -661,11 +661,14 @@ export default function AdminDashboard() {
                           )}
                         </div>
                       </div>
-                      <Link to={`${createPageUrl('UserProfile')}?email=${balance.user_email}`}>
-                        <Button variant="outline" size="sm" className="border-purple-300 text-purple-700 hover:bg-purple-50">
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                      </Link>
+                      <Button 
+                        onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                        variant="outline" 
+                        size="sm" 
+                        className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
                     </div>
                   </motion.div>
                 ))}
@@ -697,12 +700,12 @@ export default function AdminDashboard() {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex-1">
-                            <Link 
-                              to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
-                              className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline inline-block"
+                            <button
+                              onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                              className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline text-left"
                             >
                               {balance.user_email}
-                            </Link>
+                            </button>
                             <Badge className="bg-orange-200 text-orange-900 mt-2">
                               💰 {(balance.unpaid_amount || 0).toLocaleString()} Camlycoin
                             </Badge>
@@ -756,12 +759,12 @@ export default function AdminDashboard() {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <Link 
-                              to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(withdrawal.user_email)}`}
-                              className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline inline-block"
+                            <button
+                              onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(withdrawal.user_email)}`}
+                              className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline text-left"
                             >
                               {withdrawal.user_email}
-                            </Link>
+                            </button>
                             <Badge className="bg-blue-200 text-blue-900 mt-2">
                               💰 {(withdrawal.amount || 0).toLocaleString()} Camlycoin
                             </Badge>
@@ -898,20 +901,20 @@ export default function AdminDashboard() {
                 {stats?.topEarners?.map((user, idx) => (
                   <div key={user.id} className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3">
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                        idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
-                        idx === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
-                        idx === 2 ? 'bg-gradient-to-br from-amber-600 to-orange-600 text-white' :
-                        'bg-purple-100 text-purple-700'
-                      }`}>
-                        {idx + 1}
-                      </div>
-                      <Link 
-                        to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`}
-                        className="text-purple-600 hover:text-purple-800 font-semibold text-sm hover:underline"
-                      >
-                        {user.user_email}
-                      </Link>
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                      idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
+                      idx === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                      idx === 2 ? 'bg-gradient-to-br from-amber-600 to-orange-600 text-white' :
+                      'bg-purple-100 text-purple-700'
+                    }`}>
+                      {idx + 1}
+                    </div>
+                    <button
+                      onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`}
+                      className="text-purple-600 hover:text-purple-800 font-semibold text-sm hover:underline"
+                    >
+                      {user.user_email}
+                    </button>
                     </div>
                     <p className="text-amber-600 font-bold text-lg">{(user.total_earned || 0).toLocaleString()}</p>
                   </div>
