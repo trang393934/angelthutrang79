@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, User, Coins, Wallet, TrendingUp, TrendingDown, Clock, History, Copy, Check, Camera, Loader2, CheckCircle2, DollarSign, X, Activity, Lock, Eye, RefreshCw, XCircle, AlertCircle, Gift, Trophy, Award, Calendar, Filter, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -85,39 +85,30 @@ export default function UserProfile() {
   const [overallInsights, setOverallInsights] = useState(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
+  const location = useLocation();
 
-  // Initialize on mount - fetch user and set targetEmail from URL
+  // Fetch current user once
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const emailFromUrl = urlParams.get('email');
-    console.log('Initial mount - URL email param:', emailFromUrl);
-    
-    // Set targetEmail from URL immediately if available
-    if (emailFromUrl) {
-      setTargetEmail(decodeURIComponent(emailFromUrl));
-    }
-    
-    // Fetch current user
     base44.auth.me().then(user => {
       setCurrentUser(user);
-      
-      // Only set targetEmail to current user if no URL param
-      if (!emailFromUrl && user) {
-        setTargetEmail(user.email);
-      }
     }).catch(() => setCurrentUser(null));
   }, []);
 
-  // Listen to URL changes ONLY (not currentUser)
+  // Listen to URL and set targetEmail (with priority: URL > currentUser)
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const emailFromUrl = urlParams.get('email');
-    console.log('URL changed, email param:', emailFromUrl);
+    console.log('🔍 URL effect triggered - search:', location.search, 'email:', emailFromUrl);
     
     if (emailFromUrl) {
-      setTargetEmail(decodeURIComponent(emailFromUrl));
+      const decodedEmail = decodeURIComponent(emailFromUrl);
+      console.log('✅ Setting targetEmail from URL:', decodedEmail);
+      setTargetEmail(decodedEmail);
+    } else if (currentUser) {
+      console.log('⚠️ No URL email, using currentUser:', currentUser.email);
+      setTargetEmail(currentUser.email);
     }
-  }, [location.search]);
+  }, [location.search, currentUser]);
 
   const isAdmin = currentUser?.role === 'admin';
 
