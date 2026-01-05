@@ -86,21 +86,19 @@ export default function UserProfile() {
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Initialize targetEmail from URL on mount
+  // Initialize targetEmail and currentUser
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const email = urlParams.get('email');
-    console.log('URL email param:', email);
-    if (email) {
-      setTargetEmail(decodeURIComponent(email));
-    }
-  }, []);
-
-  useEffect(() => {
+    const emailFromUrl = urlParams.get('email');
+    console.log('URL email param:', emailFromUrl);
+    
     base44.auth.me().then(user => {
       setCurrentUser(user);
-      // If no targetEmail in URL but user is logged in, show their own profile
-      if (!targetEmail && user) {
+      
+      // Priority: URL email first, then fallback to current user's email
+      if (emailFromUrl) {
+        setTargetEmail(decodeURIComponent(emailFromUrl));
+      } else if (user) {
         setTargetEmail(user.email);
       }
     }).catch(() => setCurrentUser(null));
