@@ -598,12 +598,6 @@ Trả về JSON:`;
 
 
 
-  // Removed the check - let the page load even if targetEmail is still loading
-  if (!targetEmail && window.location.search) {
-    // Still loading from URL params, show loading state briefly
-    return null;
-  }
-
   if (!targetEmail) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-orange-50 flex items-center justify-center p-4">
