@@ -50,13 +50,29 @@ export default function WithdrawalManagement() {
 
   const approveWithdrawalMutation = useMutation({
     mutationFn: async (withdrawal_id) => {
-      await base44.functions.invoke('processWithdrawal', {
-        action: 'approve',
-        withdrawal_id
+      // First approve
+      await base44.entities.WithdrawalRequest.update(withdrawal_id, {
+        status: 'approved',
+        processed_by: currentUser.email,
+        processed_date: new Date().toISOString()
       });
+
+      // Then auto-transfer
+      setIsProcessing(true);
+      const response = await base44.functions.invoke('transferCamlyToWallet', {
+        withdrawalRequestId: withdrawal_id
+      });
+      setIsProcessing(false);
+      
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['all-withdrawals'] });
+      alert(`✅ Đã duyệt và chuyển tiền thành công!\n💰 ${data.amount.toLocaleString()} Camlycoin\n📬 TX: ${data.tx_hash}`);
+    },
+    onError: (error) => {
+      setIsProcessing(false);
+      alert('❌ Lỗi: ' + (error.response?.data?.error || error.message));
     }
   });
 
@@ -121,7 +137,24 @@ export default function WithdrawalManagement() {
               </div>
             </div>
 
-            <div className="w-10" />
+            <Button
+              onClick={async () => {
+                if (confirm('Chạy Auto-Process cho tất cả withdrawal pending?')) {
+                  try {
+                    const response = await base44.functions.invoke('autoProcessWithdrawal', {});
+                    const results = response.data.results;
+                    alert(`✅ Hoàn tất!\n\n🤖 Auto-approved: ${results.autoApproved}\n💸 Auto-transferred: ${results.autoTransferred}\n⏸️ Manual review: ${results.manualReviewRequired}\n❌ Errors: ${results.errors.length}`);
+                    queryClient.invalidateQueries({ queryKey: ['all-withdrawals'] });
+                  } catch (error) {
+                    alert('❌ Lỗi: ' + error.message);
+                  }
+                }
+              }}
+              size="sm"
+              className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full font-bold shadow-lg hover:shadow-xl"
+            >
+              🤖 Auto-Process All
+            </Button>
           </div>
         </div>
       </div>
@@ -246,16 +279,43 @@ export default function WithdrawalManagement() {
                 </div>
               )}
 
+              {/* Auto-Approval Badge */}
+              {withdrawal.status === 'pending' && 
+               withdrawal.amount >= 100000 && 
+               withdrawal.amount <= 500000 && 
+               withdrawal.risk_level === 'low' && 
+               !withdrawal.requires_manual_review && (
+                <div className="bg-green-50 border-2 border-green-300 rounded-xl p-3 mb-3">
+                  <p className="text-green-900 text-sm font-bold flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4" />
+                    ✅ Đủ điều kiện Auto-Approval
+                  </p>
+                  <p className="text-green-700 text-xs mt-1">
+                    Số tiền: 100K-500K ✓ | Risk: Low ✓
+                  </p>
+                </div>
+              )}
+
               {/* Admin Actions */}
               {withdrawal.status === 'pending' && (
                 <div className="flex gap-2 mt-4">
                   <Button
                     onClick={() => approveWithdrawalMutation.mutate(withdrawal.id)}
+                    disabled={isProcessing || approveWithdrawalMutation.isPending}
                     size="sm"
                     className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full"
                   >
-                    <CheckCircle className="w-4 h-4 mr-1" />
-                    Approve
+                    {(isProcessing || approveWithdrawalMutation.isPending) ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-4 h-4 mr-1" />
+                        Duyệt & Chuyển
+                      </>
+                    )}
                   </Button>
                   <Button
                     onClick={() => {
