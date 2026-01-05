@@ -87,31 +87,36 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // Fetch current user once
-  useEffect(() => {
-    base44.auth.me().then(user => {
-      setCurrentUser(user);
-    }).catch(() => setCurrentUser(null));
-  }, []);
-
-  // CRITICAL: Parse URL email on every navigation
+  // CRITICAL: Parse URL FIRST, before anything else
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const emailFromUrl = urlParams.get('email');
     
-    console.log('🔄 URL changed:', window.location.search);
-    console.log('📧 Email from URL:', emailFromUrl);
-    console.log('👤 Current user:', currentUser?.email);
-    
     if (emailFromUrl) {
       const decodedEmail = decodeURIComponent(emailFromUrl);
-      console.log('✅ Setting targetEmail from URL:', decodedEmail);
+      console.log('🎯 PRIORITY: Setting targetEmail from URL:', decodedEmail);
       setTargetEmail(decodedEmail);
-    } else if (currentUser) {
-      console.log('⚠️ No URL param, using current user:', currentUser.email);
-      setTargetEmail(currentUser.email);
+      
+      // Reset all state khi đổi user
+      setTargetUser(null);
+      setAiAnalysisResults({});
+      setOverallInsights(null);
+      setQuestionFilter('all');
     }
-  }, [window.location.search, currentUser]);
+  }, [location.search]);
+
+  // Fetch current user AFTER URL is parsed
+  useEffect(() => {
+    base44.auth.me().then(user => {
+      setCurrentUser(user);
+      
+      // Only use currentUser email if NO URL param
+      if (!targetEmail && user) {
+        console.log('⚠️ No targetEmail set, using currentUser:', user.email);
+        setTargetEmail(user.email);
+      }
+    }).catch(() => setCurrentUser(null));
+  }, []);
 
   const isAdmin = currentUser?.role === 'admin';
 
