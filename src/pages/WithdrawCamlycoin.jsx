@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Wallet, Coins, AlertCircle, CheckCircle2, Clock, Send, Loader2, Info, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Wallet, Coins, AlertCircle, CheckCircle2, Clock, Send, Loader2, Info, ExternalLink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,9 @@ export default function WithdrawCamlycoin() {
   const [currentUser, setCurrentUser] = useState(null);
   const [withdrawalAddress, setWithdrawalAddress] = useState('');
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [showAutoClaimModal, setShowAutoClaimModal] = useState(false);
+  const [autoClaimAmount, setAutoClaimAmount] = useState('');
+  const [autoClaimAddress, setAutoClaimAddress] = useState('');
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -39,6 +42,15 @@ export default function WithdrawCamlycoin() {
     },
     enabled: !!currentUser,
   });
+
+  // Auto-fill địa chỉ ví từ lịch sử
+  useEffect(() => {
+    if (withdrawalRequests.length > 0 && !withdrawalAddress) {
+      const lastAddress = withdrawalRequests[0].withdrawal_address;
+      setWithdrawalAddress(lastAddress);
+      setAutoClaimAddress(lastAddress);
+    }
+  }, [withdrawalRequests, withdrawalAddress]);
 
   // Check for pending/approved withdrawals
   const hasPendingWithdrawal = withdrawalRequests.some(
@@ -137,29 +149,105 @@ export default function WithdrawCamlycoin() {
     }
   });
 
-  // Auto-claim mutation
-  const autoClaimMutation = useMutation({
-    mutationFn: async () => {
-      const response = await base44.functions.invoke('autoClaimCamlycoin', {});
-      return response.data;
+  // Custom auto-claim mutation
+  const customAutoClaimMutation = useMutation({
+    mutationFn: async ({ amount, address }) => {
+      const requestAmount = parseFloat(amount);
+      
+      // Validate amount
+      if (!requestAmount || requestAmount < 100000) {
+        throw new Error('Số tiền tối thiểu 100,000 Camlycoin');
+      }
+
+      if (requestAmount > availableBalance) {
+        throw new Error('Số dư không đủ!');
+      }
+
+      if (requestAmount > remainingDailyLimit) {
+        throw new Error(`Vượt giới hạn ${DAILY_LIMIT.toLocaleString()} Camlycoin/ngày!`);
+      }
+
+      // Check for pending withdrawals
+      const pendingCheck = await base44.entities.WithdrawalRequest.filter({ 
+        user_email: currentUser.email,
+        status: 'pending'
+      });
+      
+      if (pendingCheck.length > 0) {
+        throw new Error('Bạn đã có yêu cầu đang chờ xử lý!');
+      }
+
+      // Validate address
+      if (!address || !address.startsWith('0x') || address.length !== 42) {
+        throw new Error('Địa chỉ ví BEP-20 không hợp lệ!');
+      }
+
+      // Check daily limit
+      const allRequests = await base44.entities.WithdrawalRequest.filter({ user_email: currentUser.email });
+      const todayWithdrawn = allRequests
+        .filter(req => {
+          const reqDate = new Date(req.created_date);
+          const today = new Date();
+          return reqDate.toDateString() === today.toDateString() && 
+                 (req.status === 'pending' || req.status === 'approved' || req.status === 'processing' || req.status === 'completed');
+        })
+        .reduce((sum, req) => sum + req.amount, 0);
+
+      if (todayWithdrawn + requestAmount > DAILY_LIMIT) {
+        throw new Error(`Vượt giới hạn rút ${DAILY_LIMIT.toLocaleString()} Camlycoin/ngày!`);
+      }
+
+      // Deduct available_balance
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+      if (balances.length === 0) {
+        throw new Error('Không tìm thấy thông tin số dư!');
+      }
+
+      const balance = balances[0];
+      const currentAvailable = balance.available_balance || 0;
+
+      await base44.entities.CamlycoinBalance.update(balance.id, {
+        available_balance: currentAvailable - requestAmount
+      });
+
+      // Create withdrawal request
+      await base44.entities.WithdrawalRequest.create({
+        user_email: currentUser.email,
+        withdrawal_address: address,
+        amount: requestAmount,
+        status: 'pending',
+        verification_status: 'email_verified'
+      });
+
+      // Create transaction log
+      await base44.entities.CamlycoinTransaction.create({
+        user_email: currentUser.email,
+        amount: 0,
+        type: 'admin_adjustment',
+        description: `🚀 Auto-Claim: Tạo yêu cầu rút ${requestAmount.toLocaleString()} Camlycoin`,
+        processed_by: currentUser.email
+      });
+
+      return { amount: requestAmount, address };
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
-      alert(`✅ ${data.message}\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin\n📬 Địa chỉ: ${data.address}`);
+      setShowAutoClaimModal(false);
+      setAutoClaimAmount('');
+      alert(`✅ Auto-Claim thành công!\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin\n📬 Địa chỉ: ${data.address}`);
     },
     onError: (error) => {
-      const errorData = error.response?.data || error;
-      if (errorData.needsManualSetup) {
-        alert('⚠️ ' + errorData.error + '\n\n💡 Hãy tạo yêu cầu rút tiền thủ công một lần để lưu địa chỉ ví.');
-      } else {
-        alert('❌ Lỗi: ' + errorData.error);
-      }
+      alert('❌ Lỗi: ' + error.message);
     }
   });
 
   const availableBalance = userBalance?.available_balance || 0;
   const canWithdraw = availableBalance >= 100000;
+  
+  // Gas fee estimate in Camlycoin (assuming 0.0005 BNB ~ $0.30 ~ 13,636 Camlycoin at $0.000022/coin)
+  const estimatedGasFeeInCamly = 13636;
+  const hasEnoughForGas = availableBalance > 100000 + estimatedGasFeeInCamly;
 
   const getStatusBadge = (status) => {
     const configs = {
@@ -256,22 +344,30 @@ export default function WithdrawCamlycoin() {
           
           {canWithdraw && (
             <Button
-              onClick={() => autoClaimMutation.mutate()}
-              disabled={autoClaimMutation.isPending}
-              className="w-full bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all disabled:opacity-50"
+              onClick={() => setShowAutoClaimModal(true)}
+              className="w-full bg-gradient-to-r from-green-400 to-emerald-500 text-white rounded-2xl py-4 font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
             >
-              {autoClaimMutation.isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Đang xử lý...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-5 h-5 mr-2" />
-                  🚀 Auto-Claim Tự Động
-                </>
-              )}
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              🚀 Auto-Claim (Tùy Chỉnh)
             </Button>
+          )}
+          
+          {/* Gas Fee Warning */}
+          {canWithdraw && !hasEnoughForGas && (
+            <div className="bg-red-100 border-2 border-red-300 rounded-2xl p-4 mt-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-red-900 font-bold text-sm mb-1">
+                    ⚠️ Cảnh Báo: Số Dư Thấp Cho Phí Gas
+                  </p>
+                  <p className="text-red-800 text-xs leading-relaxed">
+                    Số dư của bạn (<strong>{availableBalance.toLocaleString()}</strong>) có thể không đủ để trừ phí gas (~<strong>{estimatedGasFeeInCamly.toLocaleString()}</strong> Camlycoin).<br/>
+                    Để an toàn, nên có ít nhất <strong>{(100000 + estimatedGasFeeInCamly).toLocaleString()}</strong> Camlycoin trước khi rút.
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </motion.div>
 
@@ -313,9 +409,16 @@ export default function WithdrawCamlycoin() {
                   placeholder="0x..."
                   className="bg-white border-2 border-amber-300 rounded-xl"
                 />
-                <p className="text-xs text-slate-600 mt-1">
-                  💡 Nhập địa chỉ ví Binance Smart Chain của bạn
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs text-slate-600">
+                    💡 Nhập địa chỉ ví Binance Smart Chain
+                  </p>
+                  {withdrawalRequests.length > 0 && withdrawalAddress === withdrawalRequests[0].withdrawal_address && (
+                    <Badge className="bg-green-100 text-green-700 text-xs">
+                      ✅ Đã lưu
+                    </Badge>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -457,6 +560,10 @@ export default function WithdrawCamlycoin() {
                   <span>Giới hạn rút: <strong>500,000 Camlycoin/người/ngày</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
+                  <span className="text-red-600 font-bold mt-0.5">⚠️</span>
+                  <span>Phí gas (~13,636 Camlycoin) sẽ được trừ từ số dư khi rút</span>
+                </li>
+                <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold mt-0.5">•</span>
                   <span>Chỉ rút được từ số dư <strong>"Sẵn Sàng Thanh Toán"</strong></span>
                 </li>
@@ -481,17 +588,52 @@ export default function WithdrawCamlycoin() {
           </div>
         </motion.div>
 
-        {/* Withdrawal History */}
+        {/* Withdrawal History - Enhanced */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
           className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl"
         >
-          <h3 className="text-slate-900 font-bold text-xl mb-6 flex items-center gap-2">
-            <Clock className="w-6 h-6 text-amber-500" />
-            Lịch Sử Yêu Cầu Rút Tiền
-          </h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-slate-900 font-bold text-xl flex items-center gap-2">
+              <Clock className="w-6 h-6 text-amber-500" />
+              Lịch Sử Yêu Cầu Rút Tiền
+            </h3>
+            <Badge className="bg-purple-100 text-purple-800 border-purple-300">
+              {withdrawalRequests.length} yêu cầu
+            </Badge>
+          </div>
+
+          {/* Summary Stats */}
+          {withdrawalRequests.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3">
+                <p className="text-yellow-700 text-xs font-medium">⏳ Chờ Duyệt</p>
+                <p className="text-yellow-900 text-xl font-bold">
+                  {withdrawalRequests.filter(r => r.status === 'pending').length}
+                </p>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                <p className="text-green-700 text-xs font-medium">✅ Hoàn Tất</p>
+                <p className="text-green-900 text-xl font-bold">
+                  {withdrawalRequests.filter(r => r.status === 'completed').length}
+                </p>
+              </div>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-3">
+                <p className="text-red-700 text-xs font-medium">❌ Từ Chối</p>
+                <p className="text-red-900 text-xl font-bold">
+                  {withdrawalRequests.filter(r => r.status === 'rejected').length}
+                </p>
+              </div>
+              <div className="bg-purple-50 border border-purple-200 rounded-xl p-3">
+                <p className="text-purple-700 text-xs font-medium">Tổng Đã Rút</p>
+                <p className="text-purple-900 text-lg font-bold">
+                  {withdrawalRequests.filter(r => r.status === 'completed').reduce((sum, r) => sum + r.amount, 0).toLocaleString()}
+                </p>
+              </div>
+            </div>
+          )}
 
           {withdrawalRequests.length === 0 ? (
             <div className="text-center py-12">
@@ -508,46 +650,55 @@ export default function WithdrawCamlycoin() {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="bg-white border-2 border-amber-100 rounded-2xl p-5"
+                    className="bg-white border-2 border-amber-100 rounded-2xl p-5 hover:shadow-lg transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
                           <Badge className={`border ${statusConfig.className}`}>
                             {statusConfig.label}
                           </Badge>
                           <Badge className="bg-purple-100 text-purple-800 border-purple-300 font-bold">
                             🪙 {req.amount.toLocaleString()} Camlycoin
                           </Badge>
+                          {req.gas_fee_bnb && (
+                            <Badge className="bg-blue-100 text-blue-800 border-blue-300 text-xs">
+                              ⛽ {req.gas_fee_bnb} BNB
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-slate-700 text-sm mb-2 break-all">
                           <strong>Địa chỉ:</strong> {req.withdrawal_address}
                         </p>
-                        <p className="text-xs text-slate-600">
-                          Tạo lúc: {new Date(req.created_date).toLocaleString('vi-VN')}
-                        </p>
+                        <div className="flex flex-wrap gap-2 text-xs text-slate-600">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Tạo: {new Date(req.created_date).toLocaleString('vi-VN')}
+                          </span>
+                        </div>
                         {req.processed_date && (
                           <p className="text-xs text-green-600 mt-1">
-                            Xử lý: {new Date(req.processed_date).toLocaleString('vi-VN')}
+                            ✅ Xử lý: {new Date(req.processed_date).toLocaleString('vi-VN')} bởi {req.processed_by || 'Admin'}
                           </p>
                         )}
                         {req.rejection_reason && (
-                          <div className="bg-red-50 border border-red-200 rounded-lg p-2 mt-2">
+                          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-2">
                             <p className="text-red-800 text-xs">
-                              <strong>Lý do từ chối:</strong> {req.rejection_reason}
+                              <strong>❌ Lý do từ chối:</strong> {req.rejection_reason}
                             </p>
                           </div>
                         )}
                         {req.tx_hash && (
-                          <div className="bg-green-50 border border-green-200 rounded-lg p-2 mt-2">
+                          <div className="bg-green-50 border-2 border-green-200 rounded-lg p-3 mt-2">
+                            <p className="text-green-900 text-xs font-bold mb-2">✅ Giao Dịch Thành Công</p>
                             <a
                               href={`https://bscscan.com/tx/${req.tx_hash}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-green-800 text-xs break-all hover:underline flex items-center gap-1"
+                              className="text-green-700 text-xs break-all hover:underline flex items-center gap-1"
                             >
                               <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                              <span><strong>Xem TX:</strong> {req.tx_hash}</span>
+                              <span className="break-all">{req.tx_hash}</span>
                             </a>
                           </div>
                         )}
@@ -559,6 +710,142 @@ export default function WithdrawCamlycoin() {
             </div>
           )}
         </motion.div>
+
+        {/* Auto-Claim Modal */}
+        <AnimatePresence>
+          {showAutoClaimModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              onClick={() => setShowAutoClaimModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-slate-900 text-xl font-bold flex items-center gap-2">
+                      🚀 Auto-Claim Tùy Chỉnh
+                    </h3>
+                    <p className="text-slate-600 text-sm mt-1">Tạo yêu cầu rút tự động</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowAutoClaimModal(false)}
+                    className="text-slate-600 hover:text-slate-900"
+                  >
+                    <X className="w-5 h-5" />
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">
+                      Số lượng Camlycoin
+                    </label>
+                    <Input
+                      type="number"
+                      value={autoClaimAmount}
+                      onChange={(e) => setAutoClaimAmount(e.target.value)}
+                      placeholder={`Max: ${Math.min(availableBalance, remainingDailyLimit).toLocaleString()}`}
+                      min="100000"
+                      max={Math.min(availableBalance, remainingDailyLimit)}
+                      className="bg-white border-2 border-purple-300 rounded-xl"
+                    />
+                    <div className="flex items-center gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setAutoClaimAmount(Math.min(availableBalance, remainingDailyLimit).toString())}
+                        className="text-xs border-purple-300 text-purple-700 hover:bg-purple-50"
+                      >
+                        Tối Đa
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setAutoClaimAmount('100000')}
+                        className="text-xs border-amber-300 text-amber-700 hover:bg-amber-50"
+                      >
+                        100K
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setAutoClaimAmount('500000')}
+                        className="text-xs border-orange-300 text-orange-700 hover:bg-orange-50"
+                      >
+                        500K
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-slate-700 text-sm font-semibold mb-2 block">
+                      Địa chỉ ví BEP-20
+                    </label>
+                    <Input
+                      value={autoClaimAddress}
+                      onChange={(e) => setAutoClaimAddress(e.target.value)}
+                      placeholder="0x..."
+                      className="bg-white border-2 border-purple-300 rounded-xl"
+                    />
+                    <p className="text-xs text-slate-600 mt-1">
+                      {withdrawalRequests.length > 0 && autoClaimAddress === withdrawalRequests[0].withdrawal_address ? 
+                        '✅ Địa chỉ đã lưu' : 
+                        '💡 Địa chỉ ví Binance Smart Chain'}
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                    <p className="text-blue-900 text-xs leading-relaxed">
+                      <strong>💡 Lưu ý:</strong> Auto-Claim sẽ tạo yêu cầu rút tiền tức thì với số lượng và địa chỉ bạn chọn. 
+                      Admin sẽ xử lý trong 24-48h.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAutoClaimModal(false)}
+                    className="flex-1 border-2 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl"
+                  >
+                    Hủy
+                  </Button>
+                  <Button
+                    onClick={() => customAutoClaimMutation.mutate({ 
+                      amount: autoClaimAmount, 
+                      address: autoClaimAddress 
+                    })}
+                    disabled={
+                      !autoClaimAmount || 
+                      !autoClaimAddress || 
+                      parseFloat(autoClaimAmount) < 100000 ||
+                      parseFloat(autoClaimAmount) > Math.min(availableBalance, remainingDailyLimit) ||
+                      customAutoClaimMutation.isPending
+                    }
+                    className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
+                  >
+                    {customAutoClaimMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 mr-2" />
+                    )}
+                    Xác Nhận
+                  </Button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
