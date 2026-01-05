@@ -151,19 +151,25 @@ export default function UserProfile() {
 
   // Separate effect to fetch targetUser details once targetEmail is stable
   useEffect(() => {
+    console.log('🔍 [TARGET USER] targetEmail changed:', targetEmail);
     if (targetEmail) {
+      console.log('🔍 [FETCH] Fetching user details for:', targetEmail);
       base44.entities.User.filter({ email: targetEmail })
         .then(users => {
+          console.log('✅ [FETCH SUCCESS] Found users:', users.length);
           if (users.length > 0) {
+            console.log('✅ [SET TARGET USER]', users[0].email);
             setTargetUser(users[0]);
           } else {
+            console.log('⚠️ [NO USER] Creating fallback user object');
             setTargetUser({ email: targetEmail, full_name: targetEmail });
           }
         }).catch(error => {
-          console.error('Failed to fetch target user details:', error);
+          console.error('❌ [FETCH ERROR] Failed to fetch target user:', error);
           setTargetUser({ email: targetEmail, full_name: targetEmail });
         });
     } else {
+      console.log('⚠️ [NO TARGET] targetEmail is empty');
       setTargetUser(null);
     }
   }, [targetEmail]);
@@ -807,7 +813,11 @@ Trả về JSON:`;
 
 
 
+  // Debug render
+  console.log('🔍 [RENDER] targetEmail:', targetEmail, 'currentUser:', currentUser?.email);
+
   if (!targetEmail) {
+    console.log('⚠️ [RENDER] No targetEmail - showing error');
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-orange-50 flex items-center justify-center p-4">
         <div className="text-center">
@@ -822,6 +832,8 @@ Trả về JSON:`;
       </div>
     );
   }
+
+  console.log('✅ [RENDER] Rendering profile for:', targetEmail);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-orange-50 relative">
