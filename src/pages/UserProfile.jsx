@@ -108,7 +108,7 @@ export default function UserProfile() {
       const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
       return balances[0] || { balance: 0, total_earned: 0, total_spent: 0 };
     },
-    enabled: !!targetEmail && !!isAdmin,
+    enabled: !!targetEmail,
   });
 
   // Fetch target user's transactions
@@ -118,7 +118,7 @@ export default function UserProfile() {
       if (!targetEmail) return [];
       return base44.entities.CamlycoinTransaction.filter({ user_email: targetEmail }, '-created_date', 20);
     },
-    enabled: !!targetEmail && !!isAdmin,
+    enabled: !!targetEmail,
   });
 
   // Fetch ALL audit logs của user (bao gồm cả valid để hiển thị toàn bộ lịch sử)
@@ -127,23 +127,26 @@ export default function UserProfile() {
     queryFn: async () => {
       if (!targetEmail) return [];
       
-      // Fetch tất cả audit logs của user này
-      const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 10000);
+      // Admin: fetch tất cả audit logs
+      if (isAdmin) {
+        const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 10000);
+        const userLogs = allLogs.filter(log => log.user_email === targetEmail);
+        
+        console.log('Total audit logs for', targetEmail, ':', userLogs.length);
+        console.log('Breakdown:', {
+          valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
+          duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
+          greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
+          exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
+        });
+        
+        return userLogs;
+      }
       
-      // Filter chỉ lấy của user này
-      const userLogs = allLogs.filter(log => log.user_email === targetEmail);
-      
-      console.log('Total audit logs for', targetEmail, ':', userLogs.length);
-      console.log('Breakdown:', {
-        valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
-        duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
-        greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
-        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
-      });
-      
-      return userLogs;
+      // Regular user: không hiển thị audit logs
+      return [];
     },
-    enabled: !!targetEmail && !!isAdmin,
+    enabled: !!targetEmail,
     staleTime: 0,
     cacheTime: 0
   });
@@ -165,12 +168,16 @@ export default function UserProfile() {
       const levels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
       if (levels.length > 0) return levels[0];
       
-      // Auto-create if not exists
-      await base44.functions.invoke('updateUserLevel', { userEmail: targetEmail });
-      const newLevels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
-      return newLevels[0] || null;
+      // Auto-create if not exists (admin only)
+      if (isAdmin) {
+        await base44.functions.invoke('updateUserLevel', { userEmail: targetEmail });
+        const newLevels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
+        return newLevels[0] || null;
+      }
+      
+      return null;
     },
-    enabled: !!targetEmail && !!isAdmin,
+    enabled: !!targetEmail,
   });
 
   // Fetch wallet address from multiple sources
@@ -584,16 +591,7 @@ Trả về JSON:`;
     setIsUploadingAvatar(false);
   };
 
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-orange-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <User className="w-16 h-16 text-amber-300 mx-auto mb-4" />
-          <p className="text-slate-900 font-bold text-xl">Chỉ Admin mới có quyền truy cập</p>
-        </div>
-      </div>
-    );
-  }
+
 
   if (!targetEmail) {
     return (
@@ -804,8 +802,8 @@ Trả về JSON:`;
             </p>
             <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
             
-            {/* Quick Approve Buttons - 20%, 30%, 50%, 70%, 100% */}
-            {(userBalance?.unpaid_amount || 0) > 0 && (
+            {/* Quick Approve Buttons - 20%, 30%, 50%, 70%, 100% - ADMIN ONLY */}
+            {isAdmin && (userBalance?.unpaid_amount || 0) > 0 && (
               <div className="grid grid-cols-2 gap-2 mt-3">
                 {[20, 30, 50, 70, 100].map(percent => (
                   <Button
@@ -845,8 +843,8 @@ Trả về JSON:`;
             </p>
             <p className="text-orange-600 text-xs mt-1">🔍 Câu 11+ mỗi ngày</p>
 
-            {/* Button Xem Danh Sách */}
-            {(userBalance?.pending_review_balance || 0) > 0 && (
+            {/* Button Xem Danh Sách - ADMIN ONLY */}
+            {isAdmin && (userBalance?.pending_review_balance || 0) > 0 && (
               <Button
                 onClick={() => setShowPendingReviewModal(true)}
                 size="sm"
@@ -868,14 +866,16 @@ Trả về JSON:`;
             </p>
             <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
 
-            {/* Button Xem Lịch Sử */}
-            <Button
-              onClick={() => setShowEliminatedModal(true)}
-              size="sm"
-              className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
-            >
-              Xem Lịch Sử ({allUserLogs.length} câu)
-            </Button>
+            {/* Button Xem Lịch Sử - ADMIN ONLY */}
+            {isAdmin && (
+              <Button
+                onClick={() => setShowEliminatedModal(true)}
+                size="sm"
+                className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
+              >
+                Xem Lịch Sử ({allUserLogs.length} câu)
+              </Button>
+            )}
           </div>
 
 
@@ -953,7 +953,7 @@ Trả về JSON:`;
         </motion.div>
 
         {/* Payment Action - Only for Admin */}
-        {userBalance && (userBalance.available_balance || 0) > 0 && (
+        {isAdmin && userBalance && (userBalance.available_balance || 0) > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
