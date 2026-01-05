@@ -141,24 +141,37 @@ export default function UserProfile() {
 
   // Fetch ALL audit logs của user (bao gồm cả valid để hiển thị toàn bộ lịch sử)
   const { data: allUserLogs = [], isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
-    queryKey: ['all-user-audit-logs', targetEmail],
+    queryKey: ['all-user-audit-logs', targetEmail, isAdmin],
     queryFn: async () => {
       if (!targetEmail) return [];
       
-      const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 10000);
-      const userLogs = allLogs.filter(log => log.user_email === targetEmail);
+      // Admin: use service role to access all logs
+      if (isAdmin) {
+        const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 10000);
+        const userLogs = allLogs.filter(log => log.user_email === targetEmail);
+        
+        console.log('Total audit logs for', targetEmail, ':', userLogs.length);
+        console.log('Breakdown:', {
+          valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
+          duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
+          greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
+          exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
+        });
+        
+        return userLogs;
+      }
       
-      console.log('Total audit logs for', targetEmail, ':', userLogs.length);
-      console.log('Breakdown:', {
-        valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
-        duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
-        greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
-        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
-      });
+      // Regular user: can only see their own logs
+      if (currentUser && targetEmail === currentUser.email) {
+        const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 10000);
+        const userLogs = allLogs.filter(log => log.user_email === targetEmail);
+        return userLogs;
+      }
       
-      return userLogs;
+      // Cannot view other users' logs
+      return [];
     },
-    enabled: !!targetEmail,
+    enabled: !!targetEmail && !!currentUser,
     staleTime: 0,
     cacheTime: 0
   });
