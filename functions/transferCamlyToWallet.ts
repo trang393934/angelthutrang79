@@ -8,6 +8,8 @@ const ERC20_ABI = [
 ];
 
 Deno.serve(async (req) => {
+  let withdrawalRequestId;
+  
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -16,7 +18,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const { withdrawalRequestId } = await req.json();
+    const body = await req.json();
+    withdrawalRequestId = body.withdrawalRequestId;
 
     if (!withdrawalRequestId) {
       return Response.json({ error: 'withdrawalRequestId is required' }, { status: 400 });
@@ -166,17 +169,16 @@ Angel AI Team
     console.error('Transfer error:', error);
     
     // Try to update withdrawal request to failed
-    try {
-      const { withdrawalRequestId } = await req.json();
-      if (withdrawalRequestId) {
+    if (withdrawalRequestId) {
+      try {
         const base44 = createClientFromRequest(req);
         await base44.asServiceRole.entities.WithdrawalRequest.update(withdrawalRequestId, {
           status: 'failed',
           rejection_reason: `Transaction failed: ${error.message}`
         });
+      } catch (updateError) {
+        console.error('Failed to update withdrawal request:', updateError);
       }
-    } catch (updateError) {
-      console.error('Failed to update withdrawal request:', updateError);
     }
 
     return Response.json({ 
