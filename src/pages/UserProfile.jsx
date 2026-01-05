@@ -89,11 +89,17 @@ export default function UserProfile() {
     const email = urlParams.get('email');
     if (email) {
       setTargetEmail(email);
-      // Fetch target user info
+      // Fetch target user info (optional - không bắt buộc)
       base44.entities.User.filter({ email: email }).then(users => {
         if (users.length > 0) {
           setTargetUser(users[0]);
+        } else {
+          // Tạo dummy user object nếu không tìm thấy
+          setTargetUser({ email: email, full_name: email });
         }
+      }).catch(() => {
+        // Fallback nếu có lỗi
+        setTargetUser({ email: email, full_name: email });
       });
     }
   }, []);
@@ -593,13 +599,19 @@ Trả về JSON:`;
 
 
 
+  // Removed the check - let the page load even if targetEmail is still loading
+  if (!targetEmail && window.location.search) {
+    // Still loading from URL params, show loading state briefly
+    return null;
+  }
+
   if (!targetEmail) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white via-amber-50 to-orange-50 flex items-center justify-center p-4">
         <div className="text-center">
           <User className="w-16 h-16 text-amber-300 mx-auto mb-4" />
           <p className="text-slate-900 font-bold text-xl">Không tìm thấy email người dùng</p>
-          <Link to={createPageUrl('RewardsManagement')}>
+          <Link to={createPageUrl('Leaderboard')}>
             <Button className="mt-4 bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-full">
               Quay lại
             </Button>
