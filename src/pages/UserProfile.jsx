@@ -87,28 +87,25 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // Fetch current user once
+  // Fetch current user and set targetEmail
   useEffect(() => {
     base44.auth.me().then(user => {
       setCurrentUser(user);
+      
+      // LUÔN ưu tiên email từ URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const emailFromUrl = urlParams.get('email');
+      
+      if (emailFromUrl) {
+        const decodedEmail = decodeURIComponent(emailFromUrl);
+        console.log('✅ Using email from URL:', decodedEmail);
+        setTargetEmail(decodedEmail);
+      } else if (user) {
+        console.log('⚠️ No URL email, using currentUser:', user.email);
+        setTargetEmail(user.email);
+      }
     }).catch(() => setCurrentUser(null));
   }, []);
-
-  // Listen to URL and set targetEmail (with priority: URL > currentUser)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const emailFromUrl = urlParams.get('email');
-    console.log('🔍 URL effect triggered - search:', location.search, 'email:', emailFromUrl, 'currentUser:', currentUser?.email);
-    
-    if (emailFromUrl) {
-      const decodedEmail = decodeURIComponent(emailFromUrl);
-      console.log('✅ Setting targetEmail from URL:', decodedEmail);
-      setTargetEmail(decodedEmail);
-    } else if (currentUser) {
-      console.log('⚠️ No URL email, using currentUser:', currentUser.email);
-      setTargetEmail(currentUser.email);
-    }
-  }, [location.search, currentUser]);
 
   const isAdmin = currentUser?.role === 'admin';
 
