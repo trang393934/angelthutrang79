@@ -87,92 +87,59 @@ export default function UserProfile() {
   const queryClient = useQueryClient();
   const location = useLocation();
 
-  // Extract email from URL using useMemo for stability
-  const emailFromUrl = useMemo(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const email = urlParams.get('email');
-    return email ? decodeURIComponent(email) : null;
-  }, [location.search]);
-
-  // Main effect to set currentUser and targetEmail based on URL or current user
+  // ✅ SINGLE SOURCE OF TRUTH: Parse URL once and lock it
   useEffect(() => {
-    let ignore = false;
-
-    const initializeUserProfile = async () => {
-      // Reset all user-specific state first
-      setTargetUser(null);
-      setAiAnalysisResults({});
-      setOverallInsights(null);
-      setTargetEmail('');
-
-      // Invalidate relevant queries for fresh data
-      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
-      queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
-      queryClient.invalidateQueries({ queryKey: ['user-level'] });
-      queryClient.invalidateQueries({ queryKey: ['user-submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['user-withdrawals'] });
-
-      try {
-        const user = await base44.auth.me();
-        if (ignore) return;
-
+    console.log('🔍 [INIT] UserProfile mounted, URL:', location.search);
+    
+    const urlParams = new URLSearchParams(location.search);
+    const emailFromUrl = urlParams.get('email');
+    
+    if (emailFromUrl) {
+      const decodedEmail = decodeURIComponent(emailFromUrl);
+      console.log('✅ [LOCK] targetEmail from URL:', decodedEmail);
+      setTargetEmail(decodedEmail);
+    }
+    
+    // Fetch currentUser separately (never affects targetEmail if URL exists)
+    base44.auth.me()
+      .then(user => {
+        console.log('✅ [AUTH] currentUser:', user?.email, 'role:', user?.role);
         setCurrentUser(user);
-
-        // URL parameter takes ABSOLUTE precedence
-        if (emailFromUrl) {
-          console.log('🎯 Setting targetEmail from URL (prioritized):', emailFromUrl);
-          setTargetEmail(emailFromUrl);
-        } else if (user) {
-          console.log('👤 Setting targetEmail from currentUser (no URL param):', user.email);
+        
+        // ONLY use currentUser email if NO URL param
+        if (!emailFromUrl && user) {
+          console.log('⚠️ [FALLBACK] No URL - using currentUser email:', user.email);
           setTargetEmail(user.email);
         }
-      } catch (error) {
-        if (ignore) return;
-        console.error('Failed to fetch current user:', error);
+      })
+      .catch(err => {
+        console.error('❌ [AUTH ERROR]', err);
         setCurrentUser(null);
-        
-        // Even if user fetch fails, if there's an email in URL, set it
-        if (emailFromUrl) {
-          console.log('⚠️ Setting targetEmail from URL despite user fetch error:', emailFromUrl);
-          setTargetEmail(emailFromUrl);
+      });
+  }, []); // ⚠️ ONLY RUN ONCE ON MOUNT
+
+  // ✅ Fetch target user details when targetEmail changes
+  useEffect(() => {
+    if (!targetEmail) return;
+    
+    console.log('🔍 [FETCH USER] Fetching details for:', targetEmail);
+    base44.entities.User.filter({ email: targetEmail })
+      .then(users => {
+        if (users.length > 0) {
+          console.log('✅ [USER FOUND]', users[0].email);
+          setTargetUser(users[0]);
+        } else {
+          console.log('⚠️ [USER NOT FOUND] Using fallback');
+          setTargetUser({ email: targetEmail, full_name: targetEmail });
         }
-      }
-    };
-
-    initializeUserProfile();
-
-    return () => {
-      ignore = true;
-    };
-  }, [emailFromUrl, queryClient]);
+      })
+      .catch(error => {
+        console.error('❌ [USER FETCH ERROR]', error);
+        setTargetUser({ email: targetEmail, full_name: targetEmail });
+      });
+  }, [targetEmail]);
 
   const isAdmin = currentUser?.role === 'admin';
-
-  // Separate effect to fetch targetUser details once targetEmail is stable
-  useEffect(() => {
-    console.log('🔍 [TARGET USER] targetEmail changed:', targetEmail);
-    if (targetEmail) {
-      console.log('🔍 [FETCH] Fetching user details for:', targetEmail);
-      base44.entities.User.filter({ email: targetEmail })
-        .then(users => {
-          console.log('✅ [FETCH SUCCESS] Found users:', users.length);
-          if (users.length > 0) {
-            console.log('✅ [SET TARGET USER]', users[0].email);
-            setTargetUser(users[0]);
-          } else {
-            console.log('⚠️ [NO USER] Creating fallback user object');
-            setTargetUser({ email: targetEmail, full_name: targetEmail });
-          }
-        }).catch(error => {
-          console.error('❌ [FETCH ERROR] Failed to fetch target user:', error);
-          setTargetUser({ email: targetEmail, full_name: targetEmail });
-        });
-    } else {
-      console.log('⚠️ [NO TARGET] targetEmail is empty');
-      setTargetUser(null);
-    }
-  }, [targetEmail]);
 
   // Fetch target user's balance
   const { data: userBalance } = useQuery({
