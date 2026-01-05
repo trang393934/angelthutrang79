@@ -578,31 +578,55 @@ export default function UserProfile() {
         .slice(0, 20)
         .map(l => l.question_text);
 
-      const prompt = `Phân tích chất lượng câu hỏi sau và đưa ra đánh giá chi tiết:
+      const prompt = `Phân tích toàn diện chất lượng câu hỏi sau và đưa ra đánh giá chi tiết:
 
-CÂU HỎI: "${log.question_text}"
+  CÂU HỎI: "${log.question_text}"
 
-YÊU CẦU PHÂN TÍCH:
-1. Chất lượng tổng thể (quality_score: 0-100)
-2. Độ rõ ràng (clarity_score: 0-100)
-3. Độ sâu sắc (depth_score: 0-100)
-4. Tính sáng tạo (creativity_score: 0-100)
-5. Giá trị học hỏi (educational_value: 0-100)
+  YÊU CẦU PHÂN TÍCH CHI TIẾT:
 
-6. Gợi ý cải thiện cụ thể (improvements: array of strings)
-7. Điểm mạnh (strengths: array of strings)
-8. Điểm yếu (weaknesses: array of strings)
+  1. ĐIỂM SỐ CHI TIẾT (0-100 cho mỗi tiêu chí):
+   - quality_score: Chất lượng tổng thể
+   - clarity_score: Độ rõ ràng của câu hỏi
+   - depth_score: Độ sâu sắc và chi tiết
+   - creativity_score: Tính sáng tạo và độc đáo
+   - educational_value: Giá trị học hỏi
+   - relevance_score: Độ liên quan đến chủ đề tâm linh/phát triển bản thân
+   - uniqueness_score: Mức độ độc đáo so với các câu hỏi thông thường
 
-9. Phân loại:
-   - Trùng lặp? (is_duplicate: boolean, confidence: 0-100)
-   - Spam? (is_spam: boolean, confidence: 0-100)
-   - Hợp lệ? (is_valid: boolean, confidence: 0-100)
+  2. PHÂN TÍCH ĐIỂM MẠNH (strengths: array):
+   - Liệt kê 2-3 điểm mạnh cụ thể của câu hỏi
+   - Giải thích tại sao đây là điểm mạnh
 
-10. Tóm tắt ngắn gọn về câu hỏi (summary: string, max 100 chars)
-11. Đề xuất hành động (recommendation: "approve"/"reject"/"review")
-12. Lý do đề xuất (reason: string)
+  3. PHÂN TÍCH ĐIỂM YẾU (weaknesses: array):
+   - Liệt kê 2-3 điểm yếu cần cải thiện
+   - Giải thích tác động của điểm yếu
 
-Trả về JSON:`;
+  4. GỢI Ý CẢI THIỆN CỤ THỂ (improvement_suggestions: array of objects):
+   Mỗi gợi ý bao gồm:
+   - issue: Vấn đề cần sửa
+   - suggestion: Cách cải thiện
+   - example: Ví dụ câu hỏi đã cải thiện (viết lại câu hỏi gốc theo gợi ý)
+
+  5. CHỦ ĐỀ LIÊN QUAN (related_topics: array of objects):
+   Gợi ý 3-5 chủ đề liên quan để mở rộng:
+   - topic: Tên chủ đề
+   - description: Mô tả ngắn gọn
+   - reason: Tại sao liên quan đến câu hỏi gốc
+
+  6. PHÂN LOẠI:
+   - is_duplicate: boolean
+   - duplicate_confidence: 0-100
+   - is_spam: boolean
+   - spam_confidence: 0-100
+   - is_valid: boolean
+   - valid_confidence: 0-100
+
+  7. TÓM TẮT & ĐỀ XUẤT:
+   - summary: Tóm tắt ngắn gọn (max 100 chars)
+   - recommendation: "approve"/"reject"/"review"
+   - reason: Lý do đề xuất chi tiết
+
+  Trả về JSON:`;
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: prompt,
@@ -614,9 +638,32 @@ Trả về JSON:`;
             depth_score: { type: "number" },
             creativity_score: { type: "number" },
             educational_value: { type: "number" },
-            improvements: { type: "array", items: { type: "string" } },
+            relevance_score: { type: "number" },
+            uniqueness_score: { type: "number" },
             strengths: { type: "array", items: { type: "string" } },
             weaknesses: { type: "array", items: { type: "string" } },
+            improvement_suggestions: { 
+              type: "array", 
+              items: { 
+                type: "object",
+                properties: {
+                  issue: { type: "string" },
+                  suggestion: { type: "string" },
+                  example: { type: "string" }
+                }
+              }
+            },
+            related_topics: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  topic: { type: "string" },
+                  description: { type: "string" },
+                  reason: { type: "string" }
+                }
+              }
+            },
             is_duplicate: { type: "boolean" },
             duplicate_confidence: { type: "number" },
             is_spam: { type: "boolean" },
@@ -1876,7 +1923,7 @@ Trả về JSON:`;
 
                       {/* Quality Scores */}
                       {aiAnalysisResults[log.id].quality_score && (
-                        <div className="grid grid-cols-2 gap-2 mb-3">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
                           <div className="bg-white border border-purple-200 rounded-lg p-2">
                             <p className="text-purple-900 text-xs font-semibold">Chất lượng</p>
                             <p className="text-purple-700 text-xl font-bold">
@@ -1885,7 +1932,7 @@ Trả về JSON:`;
                           </div>
                           {aiAnalysisResults[log.id].clarity_score && (
                             <div className="bg-white border border-blue-200 rounded-lg p-2">
-                              <p className="text-blue-900 text-xs font-semibold">Độ rõ ràng</p>
+                              <p className="text-blue-900 text-xs font-semibold">Rõ ràng</p>
                               <p className="text-blue-700 text-xl font-bold">
                                 {aiAnalysisResults[log.id].clarity_score}/100
                               </p>
@@ -1893,7 +1940,7 @@ Trả về JSON:`;
                           )}
                           {aiAnalysisResults[log.id].depth_score && (
                             <div className="bg-white border border-green-200 rounded-lg p-2">
-                              <p className="text-green-900 text-xs font-semibold">Độ sâu sắc</p>
+                              <p className="text-green-900 text-xs font-semibold">Sâu sắc</p>
                               <p className="text-green-700 text-xl font-bold">
                                 {aiAnalysisResults[log.id].depth_score}/100
                               </p>
@@ -1904,6 +1951,22 @@ Trả về JSON:`;
                               <p className="text-amber-900 text-xs font-semibold">Sáng tạo</p>
                               <p className="text-amber-700 text-xl font-bold">
                                 {aiAnalysisResults[log.id].creativity_score}/100
+                              </p>
+                            </div>
+                          )}
+                          {aiAnalysisResults[log.id].relevance_score && (
+                            <div className="bg-white border border-indigo-200 rounded-lg p-2">
+                              <p className="text-indigo-900 text-xs font-semibold">Liên quan</p>
+                              <p className="text-indigo-700 text-xl font-bold">
+                                {aiAnalysisResults[log.id].relevance_score}/100
+                              </p>
+                            </div>
+                          )}
+                          {aiAnalysisResults[log.id].uniqueness_score && (
+                            <div className="bg-white border border-rose-200 rounded-lg p-2">
+                              <p className="text-rose-900 text-xs font-semibold">Độc đáo</p>
+                              <p className="text-rose-700 text-xl font-bold">
+                                {aiAnalysisResults[log.id].uniqueness_score}/100
                               </p>
                             </div>
                           )}
@@ -1930,15 +1993,39 @@ Trả về JSON:`;
                         </div>
                       )}
 
-                      {/* Improvements */}
-                      {aiAnalysisResults[log.id].improvements && aiAnalysisResults[log.id].improvements.length > 0 && (
+                      {/* Improvement Suggestions with Examples */}
+                      {aiAnalysisResults[log.id].improvement_suggestions && aiAnalysisResults[log.id].improvement_suggestions.length > 0 && (
                         <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
-                          <p className="text-amber-900 text-xs font-semibold mb-2">💡 Gợi ý cải thiện</p>
-                          <ul className="space-y-1">
-                            {aiAnalysisResults[log.id].improvements.map((improvement, i) => (
-                              <li key={i} className="text-amber-800 text-xs">• {improvement}</li>
+                          <p className="text-amber-900 text-xs font-semibold mb-2">💡 Gợi ý cải thiện cụ thể</p>
+                          <div className="space-y-2">
+                            {aiAnalysisResults[log.id].improvement_suggestions.map((item, i) => (
+                              <div key={i} className="bg-white/80 rounded-lg p-2">
+                                <p className="text-amber-900 text-xs font-bold mb-1">🔸 {item.issue}</p>
+                                <p className="text-amber-800 text-xs mb-1">→ {item.suggestion}</p>
+                                {item.example && (
+                                  <div className="bg-amber-100/50 rounded p-2 mt-1">
+                                    <p className="text-amber-700 text-xs italic">✨ Ví dụ: "{item.example}"</p>
+                                  </div>
+                                )}
+                              </div>
                             ))}
-                          </ul>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Related Topics */}
+                      {aiAnalysisResults[log.id].related_topics && aiAnalysisResults[log.id].related_topics.length > 0 && (
+                        <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3 mb-3">
+                          <p className="text-indigo-900 text-xs font-semibold mb-2">🌟 Chủ đề liên quan để mở rộng</p>
+                          <div className="space-y-2">
+                            {aiAnalysisResults[log.id].related_topics.map((topic, i) => (
+                              <div key={i} className="bg-white/80 rounded-lg p-2">
+                                <p className="text-indigo-900 text-xs font-bold mb-1">📚 {topic.topic}</p>
+                                <p className="text-indigo-700 text-xs mb-1">{topic.description}</p>
+                                <p className="text-indigo-600 text-xs italic">💭 {topic.reason}</p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
 
