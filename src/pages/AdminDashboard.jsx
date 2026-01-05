@@ -47,7 +47,19 @@ export default function AdminDashboard() {
 
   const { data: allAuditLogs = [] } = useQuery({
     queryKey: ['admin-all-audit-logs'],
-    queryFn: () => base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 5000),
+    queryFn: () => base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 10000),
+    enabled: isAdmin,
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['admin-all-users'],
+    queryFn: () => base44.asServiceRole.entities.User.list('-created_date', 10000),
+    enabled: isAdmin,
+  });
+
+  const { data: allLevels = [] } = useQuery({
+    queryKey: ['admin-all-levels'],
+    queryFn: () => base44.asServiceRole.entities.UserLevel.list('-total_points', 10000),
     enabled: isAdmin,
   });
 
@@ -64,6 +76,44 @@ export default function AdminDashboard() {
     const totalPaid = allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
     const totalEarned = allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0);
 
+    // Withdrawal stats
+    const totalWithdrawalRequests = allWithdrawals.length;
+    const pendingWithdrawals = allWithdrawals.filter(w => w.status === 'pending').length;
+    const completedWithdrawals = allWithdrawals.filter(w => w.status === 'completed').length;
+    const rejectedWithdrawals = allWithdrawals.filter(w => w.status === 'rejected').length;
+    const totalWithdrawnAmount = allWithdrawals
+      .filter(w => w.status === 'completed')
+      .reduce((sum, w) => sum + w.amount, 0);
+
+    // Audit stats
+    const totalQuestions = allAuditLogs.length;
+    const validQuestions = allAuditLogs.filter(log => log.exclusion_reason === 'valid').length;
+    const duplicateQuestions = allAuditLogs.filter(log => log.exclusion_reason === 'duplicate').length;
+    const greetingQuestions = allAuditLogs.filter(log => log.exclusion_reason === 'greeting').length;
+    const exceedsLimitQuestions = allAuditLogs.filter(log => log.exclusion_reason === 'exceeds_daily_limit').length;
+
+    // Active users (có audit log trong 7 ngày qua)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const activeUsers7Days = new Set(
+      allAuditLogs
+        .filter(log => new Date(log.created_date) > sevenDaysAgo)
+        .map(log => log.user_email)
+    ).size;
+
+    // Top earners
+    const topEarners = [...allBalances]
+      .filter(b => (b.total_earned || 0) > 0)
+      .sort((a, b) => (b.total_earned || 0) - (a.total_earned || 0))
+      .slice(0, 10);
+
+    // High risk users
+    const highRiskUsers = allBalances.filter(b => 
+      (b.spam_score || 0) > 50 || 
+      b.audit_status === 'under_review' || 
+      b.audit_status === 'frozen'
+    ).length;
+
     return {
       totalUsers,
       totalBalance,
@@ -73,8 +123,21 @@ export default function AdminDashboard() {
       totalUnpaid,
       totalPaid,
       totalEarned,
+      totalWithdrawalRequests,
+      pendingWithdrawals,
+      completedWithdrawals,
+      rejectedWithdrawals,
+      totalWithdrawnAmount,
+      totalQuestions,
+      validQuestions,
+      duplicateQuestions,
+      greetingQuestions,
+      exceedsLimitQuestions,
+      activeUsers7Days,
+      topEarners,
+      highRiskUsers,
     };
-  }, [allBalances]);
+  }, [allBalances, allWithdrawals, allAuditLogs]);
 
   // Filter and search users
   const filteredBalances = useMemo(() => {
@@ -706,66 +769,223 @@ export default function AdminDashboard() {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            {/* Detailed Stats Grid */}
+            {/* Withdrawal Statistics */}
+            <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-6 shadow-2xl border-2 border-white">
+              <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+                <Wallet className="w-6 h-6" />
+                Thống Kê Rút Tiền
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">Tổng Yêu Cầu</p>
+                  <p className="text-white text-2xl font-bold">{stats?.totalWithdrawalRequests || 0}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">⏳ Chờ Duyệt</p>
+                  <p className="text-white text-2xl font-bold">{stats?.pendingWithdrawals || 0}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">✅ Hoàn Tất</p>
+                  <p className="text-white text-2xl font-bold">{stats?.completedWithdrawals || 0}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">❌ Từ Chối</p>
+                  <p className="text-white text-2xl font-bold">{stats?.rejectedWithdrawals || 0}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">Đã Rút</p>
+                  <p className="text-white text-lg font-bold">{(stats?.totalWithdrawnAmount || 0).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Question Statistics */}
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 shadow-2xl border-2 border-white">
+              <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+                <Activity className="w-6 h-6" />
+                Thống Kê Câu Hỏi (Audit Logs)
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">Tổng Số</p>
+                  <p className="text-white text-2xl font-bold">{stats?.totalQuestions || 0}</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">✅ Hợp Lệ</p>
+                  <p className="text-white text-2xl font-bold">{stats?.validQuestions || 0}</p>
+                  <p className="text-white/80 text-xs">{stats?.totalQuestions > 0 ? ((stats.validQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">🔄 Trùng Lặp</p>
+                  <p className="text-white text-2xl font-bold">{stats?.duplicateQuestions || 0}</p>
+                  <p className="text-white/80 text-xs">{stats?.totalQuestions > 0 ? ((stats.duplicateQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">👋 Chào Hỏi</p>
+                  <p className="text-white text-2xl font-bold">{stats?.greetingQuestions || 0}</p>
+                  <p className="text-white/80 text-xs">{stats?.totalQuestions > 0 ? ((stats.greetingQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%</p>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                  <p className="text-white/90 text-xs font-medium mb-1">📊 Câu 11+</p>
+                  <p className="text-white text-2xl font-bold">{stats?.exceedsLimitQuestions || 0}</p>
+                  <p className="text-white/80 text-xs">{stats?.totalQuestions > 0 ? ((stats.exceedsLimitQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* User Activity Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-2xl p-6 shadow-lg">
+              <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-2xl p-6 shadow-lg">
                 <div className="flex items-center gap-3 mb-3">
-                  <TrendingUp className="w-8 h-8 text-green-500" />
+                  <Activity className="w-8 h-8 text-purple-500" />
                   <div>
-                    <p className="text-slate-600 text-xs font-medium">Tổng Kiếm Được</p>
-                    <p className="text-slate-900 text-2xl font-bold">{(stats?.totalEarned || 0).toLocaleString()}</p>
+                    <p className="text-slate-600 text-xs font-medium">Active Users (7 ngày)</p>
+                    <p className="text-slate-900 text-3xl font-bold">{stats?.activeUsers7Days || 0}</p>
+                    <p className="text-slate-500 text-xs mt-1">
+                      {stats?.totalUsers > 0 ? ((stats.activeUsers7Days / stats.totalUsers) * 100).toFixed(1) : 0}% tổng users
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-2xl p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <TrendingUp className="w-8 h-8 text-amber-500" />
+                  <div>
+                    <p className="text-slate-600 text-xs font-medium">Trung Bình/User</p>
+                    <p className="text-slate-900 text-3xl font-bold">
+                      {stats?.totalUsers > 0 ? Math.floor(stats.totalEarned / stats.totalUsers).toLocaleString() : 0}
+                    </p>
+                    <p className="text-slate-500 text-xs mt-1">Camlycoin/user</p>
                   </div>
                 </div>
               </div>
 
               <div className="bg-white/80 backdrop-blur-xl border-2 border-red-200 rounded-2xl p-6 shadow-lg">
                 <div className="flex items-center gap-3 mb-3">
-                  <Activity className="w-8 h-8 text-red-500" />
+                  <AlertCircle className="w-8 h-8 text-red-500" />
                   <div>
-                    <p className="text-slate-600 text-xs font-medium">Tổng Đóng Băng</p>
-                    <p className="text-slate-900 text-2xl font-bold">{(stats?.totalFrozen || 0).toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-2xl p-6 shadow-lg">
-                <div className="flex items-center gap-3 mb-3">
-                  <Clock className="w-8 h-8 text-blue-500" />
-                  <div>
-                    <p className="text-slate-600 text-xs font-medium">Pending Review</p>
-                    <p className="text-slate-900 text-2xl font-bold">{(stats?.totalPending || 0).toLocaleString()}</p>
+                    <p className="text-slate-600 text-xs font-medium">High Risk Users</p>
+                    <p className="text-slate-900 text-3xl font-bold">{stats?.highRiskUsers || 0}</p>
+                    <p className="text-slate-500 text-xs mt-1">Cần theo dõi</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Audit Stats */}
-            <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl">
-              <h3 className="text-slate-900 font-bold text-lg mb-4">Thống Kê Audit</h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-green-600">
-                    {allAuditLogs.filter(log => log.exclusion_reason === 'valid').length}
-                  </p>
-                  <p className="text-slate-600 text-sm mt-1">Hợp Lệ</p>
+            {/* Top Earners */}
+            <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl">
+              <h3 className="text-slate-900 font-bold text-lg mb-4 flex items-center gap-2">
+                <TrendingUp className="w-6 h-6 text-amber-500" />
+                Top 10 Earners
+              </h3>
+              <div className="space-y-2">
+                {stats?.topEarners?.map((user, idx) => (
+                  <div key={user.id} className="flex items-center justify-between bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
+                        idx === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white' :
+                        idx === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white' :
+                        idx === 2 ? 'bg-gradient-to-br from-amber-600 to-orange-600 text-white' :
+                        'bg-purple-100 text-purple-700'
+                      }`}>
+                        {idx + 1}
+                      </div>
+                      <p className="text-slate-900 font-semibold text-sm">{user.user_email}</p>
+                    </div>
+                    <p className="text-amber-600 font-bold text-lg">{(user.total_earned || 0).toLocaleString()}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Detailed Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Balance Breakdown */}
+              <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl">
+                <h3 className="text-slate-900 font-bold text-lg mb-4">Phân Tích Balance</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-purple-100">
+                    <span className="text-slate-700 font-medium text-sm">Tổng Đã Kiếm</span>
+                    <span className="text-purple-600 font-bold text-lg">{(stats?.totalEarned || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-green-100">
+                    <span className="text-slate-700 font-medium text-sm">✅ Sẵn Sàng TT</span>
+                    <span className="text-green-600 font-bold text-lg">{(stats?.totalAvailable || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-orange-100">
+                    <span className="text-slate-700 font-medium text-sm">⏳ Chờ Duyệt TT</span>
+                    <span className="text-orange-600 font-bold text-lg">{(stats?.totalUnpaid || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-blue-100">
+                    <span className="text-slate-700 font-medium text-sm">🔍 Chờ Review</span>
+                    <span className="text-blue-600 font-bold text-lg">{(stats?.totalPending || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-green-100">
+                    <span className="text-slate-700 font-medium text-sm">✅ Đã Thanh Toán</span>
+                    <span className="text-green-600 font-bold text-lg">{(stats?.totalPaid || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-red-100">
+                    <span className="text-slate-700 font-medium text-sm">❄️ Đóng Băng</span>
+                    <span className="text-red-600 font-bold text-lg">{(stats?.totalFrozen || 0).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t-2 border-purple-300">
+                    <span className="text-slate-900 font-bold">Tổng Balance</span>
+                    <span className="text-purple-600 font-bold text-xl">{(stats?.totalBalance || 0).toLocaleString()}</span>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-orange-600">
-                    {allAuditLogs.filter(log => log.exclusion_reason === 'duplicate').length}
-                  </p>
-                  <p className="text-slate-600 text-sm mt-1">Trùng Lặp</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-yellow-600">
-                    {allAuditLogs.filter(log => log.exclusion_reason === 'greeting').length}
-                  </p>
-                  <p className="text-slate-600 text-sm mt-1">Chào Hỏi</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-4xl font-bold text-purple-600">
-                    {allAuditLogs.filter(log => log.exclusion_reason === 'exceeds_daily_limit').length}
-                  </p>
-                  <p className="text-slate-600 text-sm mt-1">Câu 11+</p>
+              </div>
+
+              {/* Question Quality Analysis */}
+              <div className="bg-white/80 backdrop-blur-xl border-2 border-indigo-200 rounded-3xl p-6 shadow-xl">
+                <h3 className="text-slate-900 font-bold text-lg mb-4">Phân Tích Chất Lượng Câu Hỏi</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-indigo-100">
+                    <span className="text-slate-700 font-medium text-sm">Tổng Câu Hỏi</span>
+                    <span className="text-indigo-600 font-bold text-lg">{stats?.totalQuestions || 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-green-100">
+                    <span className="text-slate-700 font-medium text-sm">✅ Hợp Lệ</span>
+                    <div className="text-right">
+                      <span className="text-green-600 font-bold text-lg">{stats?.validQuestions || 0}</span>
+                      <p className="text-green-500 text-xs">
+                        {stats?.totalQuestions > 0 ? ((stats.validQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-orange-100">
+                    <span className="text-slate-700 font-medium text-sm">🔄 Trùng Lặp</span>
+                    <div className="text-right">
+                      <span className="text-orange-600 font-bold text-lg">{stats?.duplicateQuestions || 0}</span>
+                      <p className="text-orange-500 text-xs">
+                        {stats?.totalQuestions > 0 ? ((stats.duplicateQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-yellow-100">
+                    <span className="text-slate-700 font-medium text-sm">👋 Chào Hỏi</span>
+                    <div className="text-right">
+                      <span className="text-yellow-600 font-bold text-lg">{stats?.greetingQuestions || 0}</span>
+                      <p className="text-yellow-500 text-xs">
+                        {stats?.totalQuestions > 0 ? ((stats.greetingQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pb-2 border-b border-purple-100">
+                    <span className="text-slate-700 font-medium text-sm">📊 Câu 11+</span>
+                    <div className="text-right">
+                      <span className="text-purple-600 font-bold text-lg">{stats?.exceedsLimitQuestions || 0}</span>
+                      <p className="text-purple-500 text-xs">
+                        {stats?.totalQuestions > 0 ? ((stats.exceedsLimitQuestions / stats.totalQuestions) * 100).toFixed(1) : 0}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t-2 border-indigo-300">
+                    <span className="text-slate-900 font-bold">Tỷ Lệ Spam</span>
+                    <span className="text-red-600 font-bold text-xl">
+                      {stats?.totalQuestions > 0 ? (((stats.duplicateQuestions + stats.greetingQuestions) / stats.totalQuestions) * 100).toFixed(1) : 0}%
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
