@@ -45,6 +45,19 @@ export default function WithdrawCamlycoin() {
     req => req.status === 'pending' || req.status === 'approved' || req.status === 'processing'
   );
 
+  // Calculate total withdrawn today (all successful withdrawals created today)
+  const todayWithdrawnAmount = withdrawalRequests
+    .filter(req => {
+      const reqDate = new Date(req.created_date);
+      const today = new Date();
+      return reqDate.toDateString() === today.toDateString() && 
+             (req.status === 'pending' || req.status === 'approved' || req.status === 'processing' || req.status === 'completed');
+    })
+    .reduce((sum, req) => sum + req.amount, 0);
+
+  const DAILY_LIMIT = 500000;
+  const remainingDailyLimit = Math.max(0, DAILY_LIMIT - todayWithdrawnAmount);
+
   // Submit withdrawal request
   const submitWithdrawalMutation = useMutation({
     mutationFn: async ({ address, amount }) => {
@@ -58,6 +71,21 @@ export default function WithdrawCamlycoin() {
       
       if (pendingCheck.length > 0) {
         throw new Error('Bạn đã có yêu cầu đang chờ xử lý. Vui lòng đợi admin duyệt trước khi tạo yêu cầu mới.');
+      }
+
+      // Check daily limit
+      const allRequests = await base44.entities.WithdrawalRequest.filter({ user_email: currentUser.email });
+      const todayWithdrawn = allRequests
+        .filter(req => {
+          const reqDate = new Date(req.created_date);
+          const today = new Date();
+          return reqDate.toDateString() === today.toDateString() && 
+                 (req.status === 'pending' || req.status === 'approved' || req.status === 'processing' || req.status === 'completed');
+        })
+        .reduce((sum, req) => sum + req.amount, 0);
+
+      if (todayWithdrawn + requestAmount > DAILY_LIMIT) {
+        throw new Error(`Vượt quá giới hạn rút ${DAILY_LIMIT.toLocaleString()} Camlycoin/ngày!\nĐã rút hôm nay: ${todayWithdrawn.toLocaleString()}\nCòn lại: ${(DAILY_LIMIT - todayWithdrawn).toLocaleString()}`);
       }
 
       // Get current balance
@@ -196,7 +224,7 @@ export default function WithdrawCamlycoin() {
           className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
         >
           <div className="flex items-center justify-between mb-4">
-            <div>
+            <div className="flex-1">
               <p className="text-white/90 text-sm mb-1">Số Dư Sẵn Sàng Thanh Toán</p>
               <p className="text-white text-4xl font-bold">
                 {availableBalance.toLocaleString()}
@@ -204,6 +232,26 @@ export default function WithdrawCamlycoin() {
               <p className="text-white/80 text-xs mt-1">Camlycoin</p>
             </div>
             <Coins className="w-16 h-16 text-white/30" />
+          </div>
+          
+          {/* Daily Limit Info */}
+          <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-3 mb-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/90 text-xs font-semibold">Giới Hạn Rút Hôm Nay</p>
+                <p className="text-white text-lg font-bold">{remainingDailyLimit.toLocaleString()} / {DAILY_LIMIT.toLocaleString()}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-white/80 text-xs">Đã rút</p>
+                <p className="text-white/90 text-sm font-bold">{todayWithdrawnAmount.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="mt-2 bg-white/20 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-green-400 to-emerald-400 h-full transition-all"
+                style={{ width: `${Math.min(100, (todayWithdrawnAmount / DAILY_LIMIT) * 100)}%` }}
+              />
+            </div>
           </div>
           
           {canWithdraw && (
@@ -280,12 +328,17 @@ export default function WithdrawCamlycoin() {
                   onChange={(e) => setWithdrawalAmount(e.target.value)}
                   placeholder="Tối thiểu 100,000"
                   min="100000"
-                  max={availableBalance}
+                  max={Math.min(availableBalance, remainingDailyLimit)}
                   className="bg-white border-2 border-amber-300 rounded-xl"
                 />
-                <p className="text-xs text-slate-600 mt-1">
-                  Tối đa: {availableBalance.toLocaleString()} Camlycoin
-                </p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-xs text-slate-600">
+                    Tối đa: {Math.min(availableBalance, remainingDailyLimit).toLocaleString()} Camlycoin
+                  </p>
+                  <p className="text-xs text-orange-600 font-semibold">
+                    Giới hạn/ngày: {remainingDailyLimit.toLocaleString()}
+                  </p>
+                </div>
               </div>
 
               {hasPendingWithdrawal && (
@@ -304,6 +357,22 @@ export default function WithdrawCamlycoin() {
                 </div>
               )}
 
+              {remainingDailyLimit <= 0 && (
+                <div className="bg-red-100 border-2 border-red-300 rounded-xl p-4 mb-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-red-900 font-bold text-sm mb-1">
+                        ⚠️ Đã hết giới hạn rút hôm nay
+                      </p>
+                      <p className="text-red-800 text-xs">
+                        Bạn đã rút {todayWithdrawnAmount.toLocaleString()} Camlycoin hôm nay. Vui lòng quay lại vào ngày mai.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button
                 onClick={() => submitWithdrawalMutation.mutate({ 
                   address: withdrawalAddress, 
@@ -314,8 +383,10 @@ export default function WithdrawCamlycoin() {
                   !withdrawalAmount || 
                   parseFloat(withdrawalAmount) < 100000 || 
                   parseFloat(withdrawalAmount) > availableBalance ||
+                  parseFloat(withdrawalAmount) > remainingDailyLimit ||
                   submitWithdrawalMutation.isPending ||
-                  hasPendingWithdrawal
+                  hasPendingWithdrawal ||
+                  remainingDailyLimit <= 0
                 }
                 className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-6 font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
               >
@@ -380,6 +451,10 @@ export default function WithdrawCamlycoin() {
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold mt-0.5">•</span>
                   <span>Ngưỡng rút tối thiểu: <strong>100,000 Camlycoin</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange-600 font-bold mt-0.5">⚡</span>
+                  <span>Giới hạn rút: <strong>500,000 Camlycoin/người/ngày</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-blue-600 font-bold mt-0.5">•</span>
