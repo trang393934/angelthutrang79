@@ -69,6 +69,7 @@ function MyRankCard({ targetEmail }) {
 export default function UserProfile() {
   const [currentUser, setCurrentUser] = useState(null);
   const [targetUser, setTargetUser] = useState(null);
+  const [targetEmail, setTargetEmail] = useState('');
   const [copiedWallet, setCopiedWallet] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -80,13 +81,20 @@ export default function UserProfile() {
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Get email from URL params - CRITICAL: Do this immediately, not in useEffect
-  const urlParams = new URLSearchParams(window.location.search);
-  const targetEmail = urlParams.get('email') || '';
+  // Initialize targetEmail from URL on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email');
+    if (email) {
+      setTargetEmail(email);
+    }
+  }, []);
 
   useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
-    
+  }, []);
+
+  useEffect(() => {
     // Fetch target user info (optional - không bắt buộc)
     if (targetEmail) {
       base44.entities.User.filter({ email: targetEmail }).then(users => {
