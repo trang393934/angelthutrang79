@@ -86,23 +86,25 @@ export default function UserProfile() {
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Initialize targetEmail and currentUser
+  // Fetch current user once
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const emailFromUrl = urlParams.get('email');
-    console.log('URL email param:', emailFromUrl);
-    
     base44.auth.me().then(user => {
       setCurrentUser(user);
-      
-      // Priority: URL email first, then fallback to current user's email
-      if (emailFromUrl) {
-        setTargetEmail(decodeURIComponent(emailFromUrl));
-      } else if (user) {
-        setTargetEmail(user.email);
-      }
     }).catch(() => setCurrentUser(null));
   }, []);
+
+  // Listen to URL changes and update targetEmail
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const emailFromUrl = urlParams.get('email');
+    console.log('URL changed, email param:', emailFromUrl);
+    
+    if (emailFromUrl) {
+      setTargetEmail(decodeURIComponent(emailFromUrl));
+    } else if (currentUser && !emailFromUrl) {
+      setTargetEmail(currentUser.email);
+    }
+  }, [location.search, currentUser]);
 
   const isAdmin = currentUser?.role === 'admin';
 
