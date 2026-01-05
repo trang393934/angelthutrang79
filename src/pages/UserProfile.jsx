@@ -81,6 +81,8 @@ export default function UserProfile() {
   const [aiAnalysisResults, setAiAnalysisResults] = useState({});
   const [analyzingQuestions, setAnalyzingQuestions] = useState(new Set());
   const [questionFilter, setQuestionFilter] = useState('all');
+  const [isAnalyzingAll, setIsAnalyzingAll] = useState(false);
+  const [overallInsights, setOverallInsights] = useState(null);
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
@@ -533,7 +535,7 @@ export default function UserProfile() {
     }
   });
 
-  // AI Analysis for questions
+  // AI Analysis for individual questions
   const analyzeQuestionWithAI = async (log) => {
     const logId = log.id;
     if (analyzingQuestions.has(logId)) return;
@@ -541,36 +543,34 @@ export default function UserProfile() {
     setAnalyzingQuestions(prev => new Set(prev).add(logId));
 
     try {
-      // Lấy các câu hỏi khác của user để so sánh
       const otherQuestions = allUserLogs
         .filter(l => l.id !== logId)
         .slice(0, 20)
         .map(l => l.question_text);
 
-      const prompt = `Phân tích câu hỏi sau và đưa ra đề xuất:
+      const prompt = `Phân tích chất lượng câu hỏi sau và đưa ra đánh giá chi tiết:
 
 CÂU HỎI: "${log.question_text}"
 
-THÔNG TIN:
-- Ngày hỏi: ${new Date(log.question_date).toLocaleDateString('vi-VN')}
-- Câu thứ: ${log.question_number_in_day} trong ngày
-- Coins: ${log.coins_earned}
-- Phân loại hiện tại: ${log.exclusion_reason}
-${log.similar_to_question ? `- Tương tự câu: "${log.similar_to_question}" (${((log.similarity_score || 0) * 100).toFixed(0)}%)` : ''}
+YÊU CẦU PHÂN TÍCH:
+1. Chất lượng tổng thể (quality_score: 0-100)
+2. Độ rõ ràng (clarity_score: 0-100)
+3. Độ sâu sắc (depth_score: 0-100)
+4. Tính sáng tạo (creativity_score: 0-100)
+5. Giá trị học hỏi (educational_value: 0-100)
 
-CÁC CÂU HỎI KHÁC CỦA USER:
-${otherQuestions.slice(0, 10).map((q, i) => `${i + 1}. "${q}"`).join('\n')}
+6. Gợi ý cải thiện cụ thể (improvements: array of strings)
+7. Điểm mạnh (strengths: array of strings)
+8. Điểm yếu (weaknesses: array of strings)
 
-YÊU CẦU:
-1. Phân tích xem câu hỏi có phải là:
-   - Trùng lặp/tương tự với câu khác? (confidence: 0-100%)
-   - Chào hỏi/xã giao không có nội dung? (confidence: 0-100%)
-   - Spam/câu hỏi chất lượng thấp? (confidence: 0-100%)
-   - Hợp lệ và có giá trị? (confidence: 0-100%)
+9. Phân loại:
+   - Trùng lặp? (is_duplicate: boolean, confidence: 0-100)
+   - Spam? (is_spam: boolean, confidence: 0-100)
+   - Hợp lệ? (is_valid: boolean, confidence: 0-100)
 
-2. Đề xuất hành động: "approve" (duyệt thưởng), "reject" (từ chối/frozen), hoặc "review" (cần xem xét thêm)
-
-3. Lý do chi tiết cho đề xuất
+10. Tóm tắt ngắn gọn về câu hỏi (summary: string, max 100 chars)
+11. Đề xuất hành động (recommendation: "approve"/"reject"/"review")
+12. Lý do đề xuất (reason: string)
 
 Trả về JSON:`;
 
@@ -579,20 +579,23 @@ Trả về JSON:`;
         response_json_schema: {
           type: "object",
           properties: {
+            quality_score: { type: "number" },
+            clarity_score: { type: "number" },
+            depth_score: { type: "number" },
+            creativity_score: { type: "number" },
+            educational_value: { type: "number" },
+            improvements: { type: "array", items: { type: "string" } },
+            strengths: { type: "array", items: { type: "string" } },
+            weaknesses: { type: "array", items: { type: "string" } },
             is_duplicate: { type: "boolean" },
             duplicate_confidence: { type: "number" },
-            is_greeting: { type: "boolean" },
-            greeting_confidence: { type: "number" },
             is_spam: { type: "boolean" },
             spam_confidence: { type: "number" },
             is_valid: { type: "boolean" },
             valid_confidence: { type: "number" },
+            summary: { type: "string" },
             recommendation: { type: "string" },
-            reason: { type: "string" },
-            similar_questions: { 
-              type: "array",
-              items: { type: "string" }
-            }
+            reason: { type: "string" }
           }
         }
       });
@@ -609,6 +612,69 @@ Trả về JSON:`;
         next.delete(logId);
         return next;
       });
+    }
+  };
+
+  // Analyze all questions and generate insights
+  const analyzeAllQuestions = async () => {
+    if (isAnalyzingAll || allUserLogs.length === 0) return;
+
+    setIsAnalyzingAll(true);
+    try {
+      const validQuestions = allUserLogs.filter(log => log.exclusion_reason === 'valid');
+      const questionsList = validQuestions.slice(0, 30).map((log, i) => 
+        `${i + 1}. "${log.question_text}" (${log.coins_earned} coins, ${format(new Date(log.question_date), 'dd/MM/yyyy')})`
+      ).join('\n');
+
+      const prompt = `Phân tích tổng thể chất lượng câu hỏi của người dùng và đưa ra insights:
+
+DANH SÁCH CÂU HỎI HỢP LỆ (${validQuestions.length} câu):
+${questionsList}
+
+THỐNG KÊ:
+- Tổng số câu hỏi: ${allUserLogs.length}
+- Câu hỏi hợp lệ: ${validQuestions.length}
+- Câu bị loại: ${allUserLogs.length - validQuestions.length}
+
+YÊU CẦU:
+1. Đánh giá tổng quan về chất lượng câu hỏi (overall_quality: 0-100)
+2. Xu hướng chủ đề yêu thích (top_topics: array of strings)
+3. Điểm mạnh chung (strengths: array of strings)
+4. Lĩnh vực cần cải thiện (areas_for_improvement: array of strings)
+5. Top 3 câu hỏi nổi bật nhất (highlights: array of {question: string, reason: string})
+6. Gợi ý phát triển (suggestions: array of strings)
+
+Trả về JSON:`;
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            overall_quality: { type: "number" },
+            top_topics: { type: "array", items: { type: "string" } },
+            strengths: { type: "array", items: { type: "string" } },
+            areas_for_improvement: { type: "array", items: { type: "string" } },
+            highlights: { 
+              type: "array", 
+              items: { 
+                type: "object",
+                properties: {
+                  question: { type: "string" },
+                  reason: { type: "string" }
+                }
+              }
+            },
+            suggestions: { type: "array", items: { type: "string" } }
+          }
+        }
+      });
+
+      setOverallInsights(result);
+    } catch (error) {
+      console.error('Overall analysis error:', error);
+    } finally {
+      setIsAnalyzingAll(false);
     }
   };
 
@@ -1563,6 +1629,79 @@ Trả về JSON:`;
           )}
         </motion.div>
 
+        {/* AI Insights Overview */}
+        {overallInsights && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+          >
+            <h3 className="text-white font-bold text-xl mb-4 flex items-center gap-2">
+              <Activity className="w-6 h-6" />
+              AI Insights - Tổng Quan Chất Lượng
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/80 text-sm mb-1">Điểm Chất Lượng Tổng Thể</p>
+                <p className="text-white text-4xl font-bold">{overallInsights.overall_quality}/100</p>
+              </div>
+
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                <p className="text-white/80 text-sm mb-2">Chủ Đề Yêu Thích</p>
+                <div className="flex flex-wrap gap-2">
+                  {overallInsights.top_topics?.slice(0, 3).map((topic, i) => (
+                    <Badge key={i} className="bg-white/30 text-white border-white/50">
+                      {topic}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {overallInsights.highlights && overallInsights.highlights.length > 0 && (
+              <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 mb-4">
+                <p className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  Câu Hỏi Nổi Bật
+                </p>
+                <div className="space-y-2">
+                  {overallInsights.highlights.map((highlight, i) => (
+                    <div key={i} className="bg-white/10 rounded-lg p-3">
+                      <p className="text-white text-sm font-medium mb-1">"{highlight.question}"</p>
+                      <p className="text-white/80 text-xs">💡 {highlight.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {overallInsights.strengths && overallInsights.strengths.length > 0 && (
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                  <p className="text-white font-semibold mb-2">✨ Điểm Mạnh</p>
+                  <ul className="space-y-1">
+                    {overallInsights.strengths.map((strength, i) => (
+                      <li key={i} className="text-white/90 text-sm">• {strength}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {overallInsights.suggestions && overallInsights.suggestions.length > 0 && (
+                <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
+                  <p className="text-white font-semibold mb-2">💡 Gợi Ý Phát Triển</p>
+                  <ul className="space-y-1">
+                    {overallInsights.suggestions.map((suggestion, i) => (
+                      <li key={i} className="text-white/90 text-sm">• {suggestion}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
         {/* Questions History */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -1575,9 +1714,29 @@ Trả về JSON:`;
               <MessageSquare className="w-6 h-6 text-blue-500" />
               Câu Hỏi Đã Đóng Góp
             </h3>
-            <Badge className="bg-blue-100 text-blue-800">
-              {filteredQuestions.length} câu
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={analyzeAllQuestions}
+                disabled={isAnalyzingAll || allUserLogs.length === 0}
+                size="sm"
+                className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white"
+              >
+                {isAnalyzingAll ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                    Đang Phân Tích...
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-4 h-4 mr-1" />
+                    AI Phân Tích Tổng Thể
+                  </>
+                )}
+              </Button>
+              <Badge className="bg-blue-100 text-blue-800">
+                {filteredQuestions.length} câu
+              </Badge>
+            </div>
           </div>
 
           {/* Date Filter */}
@@ -1654,10 +1813,128 @@ Trả về JSON:`;
                         <Clock className="w-3 h-3 inline mr-1" />
                         {format(new Date(log.question_date), 'dd/MM/yyyy HH:mm')}
                       </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                      </div>
+                      </div>
+
+                      {/* AI Analysis Section */}
+                      {!aiAnalysisResults[log.id] && !analyzingQuestions.has(log.id) && (
+                      <Button
+                      onClick={() => analyzeQuestionWithAI(log)}
+                      size="sm"
+                      className="w-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white mt-3"
+                      >
+                      <Activity className="w-4 h-4 mr-1" />
+                      Phân Tích AI
+                      </Button>
+                      )}
+
+                      {analyzingQuestions.has(log.id) && (
+                      <div className="bg-purple-50 border border-purple-300 rounded-xl p-3 mt-3">
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />
+                        <p className="text-purple-800 text-sm font-medium">AI đang phân tích...</p>
+                      </div>
+                      </div>
+                      )}
+
+                      {aiAnalysisResults[log.id] && (
+                      <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 rounded-xl p-4 mt-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Activity className="w-5 h-5 text-purple-600" />
+                        <h4 className="text-purple-900 font-bold">Đánh Giá AI</h4>
+                      </div>
+
+                      {/* Quality Scores */}
+                      {aiAnalysisResults[log.id].quality_score && (
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div className="bg-white border border-purple-200 rounded-lg p-2">
+                            <p className="text-purple-900 text-xs font-semibold">Chất lượng</p>
+                            <p className="text-purple-700 text-xl font-bold">
+                              {aiAnalysisResults[log.id].quality_score}/100
+                            </p>
+                          </div>
+                          {aiAnalysisResults[log.id].clarity_score && (
+                            <div className="bg-white border border-blue-200 rounded-lg p-2">
+                              <p className="text-blue-900 text-xs font-semibold">Độ rõ ràng</p>
+                              <p className="text-blue-700 text-xl font-bold">
+                                {aiAnalysisResults[log.id].clarity_score}/100
+                              </p>
+                            </div>
+                          )}
+                          {aiAnalysisResults[log.id].depth_score && (
+                            <div className="bg-white border border-green-200 rounded-lg p-2">
+                              <p className="text-green-900 text-xs font-semibold">Độ sâu sắc</p>
+                              <p className="text-green-700 text-xl font-bold">
+                                {aiAnalysisResults[log.id].depth_score}/100
+                              </p>
+                            </div>
+                          )}
+                          {aiAnalysisResults[log.id].creativity_score && (
+                            <div className="bg-white border border-amber-200 rounded-lg p-2">
+                              <p className="text-amber-900 text-xs font-semibold">Sáng tạo</p>
+                              <p className="text-amber-700 text-xl font-bold">
+                                {aiAnalysisResults[log.id].creativity_score}/100
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Summary */}
+                      {aiAnalysisResults[log.id].summary && (
+                        <div className="bg-white/80 border border-purple-200 rounded-lg p-3 mb-3">
+                          <p className="text-purple-900 text-xs font-semibold mb-1">📝 Tóm tắt</p>
+                          <p className="text-purple-800 text-sm">{aiAnalysisResults[log.id].summary}</p>
+                        </div>
+                      )}
+
+                      {/* Strengths */}
+                      {aiAnalysisResults[log.id].strengths && aiAnalysisResults[log.id].strengths.length > 0 && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                          <p className="text-green-900 text-xs font-semibold mb-2">✨ Điểm mạnh</p>
+                          <ul className="space-y-1">
+                            {aiAnalysisResults[log.id].strengths.map((strength, i) => (
+                              <li key={i} className="text-green-800 text-xs">• {strength}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Improvements */}
+                      {aiAnalysisResults[log.id].improvements && aiAnalysisResults[log.id].improvements.length > 0 && (
+                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                          <p className="text-amber-900 text-xs font-semibold mb-2">💡 Gợi ý cải thiện</p>
+                          <ul className="space-y-1">
+                            {aiAnalysisResults[log.id].improvements.map((improvement, i) => (
+                              <li key={i} className="text-amber-800 text-xs">• {improvement}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Recommendation */}
+                      {aiAnalysisResults[log.id].recommendation && (
+                        <div className={`border-2 rounded-lg p-3 ${
+                          aiAnalysisResults[log.id].recommendation === 'approve' ? 'bg-green-100 border-green-300' :
+                          aiAnalysisResults[log.id].recommendation === 'reject' ? 'bg-red-100 border-red-300' :
+                          'bg-blue-100 border-blue-300'
+                        }`}>
+                          <p className={`font-bold text-sm mb-1 ${
+                            aiAnalysisResults[log.id].recommendation === 'approve' ? 'text-green-900' :
+                            aiAnalysisResults[log.id].recommendation === 'reject' ? 'text-red-900' :
+                            'text-blue-900'
+                          }`}>
+                            🤖 {aiAnalysisResults[log.id].recommendation === 'approve' ? '✅ Nên duyệt' :
+                                aiAnalysisResults[log.id].recommendation === 'reject' ? '❌ Nên từ chối' :
+                                '🔍 Cần xem xét'}
+                          </p>
+                          <p className="text-slate-700 text-xs">{aiAnalysisResults[log.id].reason}</p>
+                        </div>
+                      )}
+                      </div>
+                      )}
+                      </motion.div>
+                      ))}
               {filteredQuestions.length > 20 && (
                 <p className="text-center text-sm text-slate-600 mt-4">
                   Hiển thị 20 / {filteredQuestions.length} câu hỏi
