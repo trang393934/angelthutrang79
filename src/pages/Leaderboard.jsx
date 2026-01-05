@@ -293,32 +293,36 @@ export default function Leaderboard() {
                 const isCurrentUser = user.user_email === currentUser?.email;
                 
                 return (
-                  <motion.div
+                  <Link
+                    to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`}
                     key={user.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.02 }}
-                    className={`border-2 rounded-2xl p-4 transition-all hover:shadow-lg ${
-                      isCurrentUser 
-                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300' 
-                        : 'bg-white border-amber-100'
-                    }`}
+                    className="block"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4 flex-1">
-                        {/* Rank Badge */}
-                        <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${getRankColor(user.rank)} flex items-center justify-center shadow-md flex-shrink-0`}>
-                          {getRankIcon(user.rank)}
-                        </div>
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.02 }}
+                      className={`border-2 rounded-2xl p-4 transition-all hover:shadow-lg cursor-pointer ${
+                        isCurrentUser 
+                          ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300 hover:border-purple-400' 
+                          : 'bg-white border-amber-100 hover:border-amber-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 flex-1">
+                          {/* Rank Badge */}
+                          <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${getRankColor(user.rank)} flex items-center justify-center shadow-md flex-shrink-0`}>
+                            {getRankIcon(user.rank)}
+                          </div>
 
-                        {/* User Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className={`font-bold text-lg break-all ${isCurrentUser ? 'text-purple-900' : 'text-slate-900'}`}>
-                            {user.user_email}
-                            {isCurrentUser && (
-                              <Badge className="ml-2 bg-purple-100 text-purple-800">You</Badge>
-                            )}
-                          </p>
+                          {/* User Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-bold text-lg break-all ${isCurrentUser ? 'text-purple-900' : 'text-slate-900'}`}>
+                              {user.user_email}
+                              {isCurrentUser && (
+                                <Badge className="ml-2 bg-purple-100 text-purple-800">You</Badge>
+                              )}
+                            </p>
                           <div className="flex flex-wrap gap-2 mt-1">
                             <Badge className="bg-amber-100 text-amber-800 text-xs">
                               <Coins className="w-3 h-3 mr-1" />
@@ -372,7 +376,8 @@ export default function Leaderboard() {
                         </p>
                       </div>
                     </div>
-                  </motion.div>
+                    </motion.div>
+                  </Link>
                 );
               })}
 
