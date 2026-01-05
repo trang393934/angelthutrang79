@@ -995,7 +995,13 @@ export default function RewardsManagement() {
                           </Badge>
                         </div>
                         <p className="text-sm text-slate-700 mb-2">
-                          <strong>Người gửi:</strong> {sub.created_by}
+                          <strong>Người gửi:</strong>{' '}
+                          <Link 
+                            to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(sub.created_by)}`}
+                            className="text-purple-600 hover:text-purple-800 font-semibold hover:underline"
+                          >
+                            {sub.created_by}
+                          </Link>
                         </p>
                         {sub.description && (
                           <p className="text-sm text-slate-600 mb-2">{sub.description}</p>
