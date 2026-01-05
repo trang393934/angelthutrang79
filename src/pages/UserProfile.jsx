@@ -111,32 +111,27 @@ export default function UserProfile() {
   useEffect(() => {
     // Fetch target user info (optional - không bắt buộc)
     if (targetEmail && currentUser) {
-      const fetchUser = isAdmin 
-        ? base44.asServiceRole.entities.User.filter({ email: targetEmail })
-        : base44.entities.User.filter({ email: targetEmail });
-      
-      fetchUser.then(users => {
-        if (users.length > 0) {
-          setTargetUser(users[0]);
-        } else {
-          // Tạo dummy user object nếu không tìm thấy
+      base44.entities.User.filter({ email: targetEmail })
+        .then(users => {
+          if (users.length > 0) {
+            setTargetUser(users[0]);
+          } else {
+            // Tạo dummy user object nếu không tìm thấy
+            setTargetUser({ email: targetEmail, full_name: targetEmail });
+          }
+        }).catch(() => {
+          // Fallback nếu có lỗi
           setTargetUser({ email: targetEmail, full_name: targetEmail });
-        }
-      }).catch(() => {
-        // Fallback nếu có lỗi
-        setTargetUser({ email: targetEmail, full_name: targetEmail });
-      });
+        });
     }
-  }, [targetEmail, currentUser, isAdmin]);
+  }, [targetEmail, currentUser]);
 
   // Fetch target user's balance
   const { data: userBalance } = useQuery({
     queryKey: ['user-balance', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return null;
-      const balances = isAdmin 
-        ? await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail })
-        : await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
       return balances[0] || { balance: 0, total_earned: 0, total_spent: 0 };
     },
     enabled: !!targetEmail,
@@ -147,44 +142,29 @@ export default function UserProfile() {
     queryKey: ['user-transactions', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return [];
-      return isAdmin
-        ? await base44.asServiceRole.entities.CamlycoinTransaction.filter({ user_email: targetEmail }, '-created_date', 20)
-        : await base44.entities.CamlycoinTransaction.filter({ user_email: targetEmail }, '-created_date', 20);
+      return await base44.entities.CamlycoinTransaction.filter({ user_email: targetEmail }, '-created_date', 20);
     },
     enabled: !!targetEmail,
   });
 
   // Fetch ALL audit logs của user (bao gồm cả valid để hiển thị toàn bộ lịch sử)
   const { data: allUserLogs = [], isLoading: isLoadingLogs, refetch: refetchLogs } = useQuery({
-    queryKey: ['all-user-audit-logs', targetEmail, isAdmin],
+    queryKey: ['all-user-audit-logs', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return [];
       
-      // Admin: use service role to access all logs
-      if (isAdmin) {
-        const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-question_date', 10000);
-        const userLogs = allLogs.filter(log => log.user_email === targetEmail);
-        
-        console.log('Total audit logs for', targetEmail, ':', userLogs.length);
-        console.log('Breakdown:', {
-          valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
-          duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
-          greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
-          exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
-        });
-        
-        return userLogs;
-      }
+      const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 10000);
+      const userLogs = allLogs.filter(log => log.user_email === targetEmail);
       
-      // Regular user: can only see their own logs
-      if (currentUser && targetEmail === currentUser.email) {
-        const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 10000);
-        const userLogs = allLogs.filter(log => log.user_email === targetEmail);
-        return userLogs;
-      }
+      console.log('Total audit logs for', targetEmail, ':', userLogs.length);
+      console.log('Breakdown:', {
+        valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
+        duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
+        greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
+        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
+      });
       
-      // Cannot view other users' logs
-      return [];
+      return userLogs;
     },
     enabled: !!targetEmail && !!currentUser,
     staleTime: 0,
@@ -246,15 +226,13 @@ export default function UserProfile() {
     queryKey: ['user-level', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return null;
-      const levels = isAdmin
-        ? await base44.asServiceRole.entities.UserLevel.filter({ user_email: targetEmail })
-        : await base44.entities.UserLevel.filter({ user_email: targetEmail });
+      const levels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
       if (levels.length > 0) return levels[0];
       
       // Auto-create if not exists (admin only)
       if (isAdmin) {
         await base44.functions.invoke('updateUserLevel', { userEmail: targetEmail });
-        const newLevels = await base44.asServiceRole.entities.UserLevel.filter({ user_email: targetEmail });
+        const newLevels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
         return newLevels[0] || null;
       }
       
@@ -268,7 +246,7 @@ export default function UserProfile() {
     queryKey: ['user-submissions', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return [];
-      const allSubmissions = await base44.asServiceRole.entities.BountySubmission.list();
+      const allSubmissions = await base44.entities.BountySubmission.list();
       return allSubmissions.filter(sub => sub.created_by === targetEmail);
     },
     enabled: !!targetEmail && !!isAdmin,
@@ -278,7 +256,7 @@ export default function UserProfile() {
     queryKey: ['user-withdrawals', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return [];
-      const allWithdrawals = await base44.asServiceRole.entities.WithdrawalRequest.list();
+      const allWithdrawals = await base44.entities.WithdrawalRequest.list();
       return allWithdrawals.filter(req => req.user_email === targetEmail);
     },
     enabled: !!targetEmail && !!isAdmin,
@@ -310,12 +288,12 @@ export default function UserProfile() {
 
       const approveAmount = Math.floor(unpaidAmount * percentage / 100);
       
-      await base44.asServiceRole.entities.CamlycoinBalance.update(userBalance.id, {
+      await base44.entities.CamlycoinBalance.update(userBalance.id, {
         unpaid_amount: unpaidAmount - approveAmount,
         available_balance: (userBalance.available_balance || 0) + approveAmount
       });
 
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
+      await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
@@ -349,14 +327,14 @@ export default function UserProfile() {
       }
       
       // Reset available về 0 sau khi thanh toán, trừ balance
-      await base44.asServiceRole.entities.CamlycoinBalance.update(userBalance.id, {
+      await base44.entities.CamlycoinBalance.update(userBalance.id, {
         paid_amount: currentPaid + paidAmount,
         available_balance: 0,
         balance: currentBalance - paidAmount
       });
       
       // Create transaction record
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
+      await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
@@ -406,26 +384,26 @@ export default function UserProfile() {
       if (!log) return;
 
       // Move coins to available_balance
-      const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
       if (balances.length > 0) {
         const balance = balances[0];
         const currentAvailable = balance.available_balance || 0;
         const currentPending = balance.pending_review_balance || 0;
 
-        await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+        await base44.entities.CamlycoinBalance.update(balance.id, {
           pending_review_balance: Math.max(0, currentPending - log.coins_earned),
           available_balance: currentAvailable + log.coins_earned
         });
       }
 
       // Update log
-      await base44.asServiceRole.entities.QuestionAuditLog.update(logId, {
+      await base44.entities.QuestionAuditLog.update(logId, {
         coin_category: 'pending_withdrawal',
         exclusion_reason: 'valid'
       });
 
       // Create transaction
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
+      await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
@@ -447,21 +425,21 @@ export default function UserProfile() {
       if (!log) return;
 
       // Move to frozen
-      const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
       if (balances.length > 0) {
         const balance = balances[0];
-        await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+        await base44.entities.CamlycoinBalance.update(balance.id, {
           pending_review_balance: Math.max(0, (balance.pending_review_balance || 0) - log.coins_earned),
           frozen_balance: (balance.frozen_balance || 0) + log.coins_earned
         });
       }
 
-      await base44.asServiceRole.entities.QuestionAuditLog.update(logId, {
+      await base44.entities.QuestionAuditLog.update(logId, {
         coin_category: 'frozen'
       });
 
       // Create transaction
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
+      await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
@@ -483,7 +461,7 @@ export default function UserProfile() {
       if (!log) return;
 
       // Move coins to available_balance
-      const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
       if (balances.length > 0) {
         const balance = balances[0];
         const currentAvailable = balance.available_balance || 0;
@@ -491,12 +469,12 @@ export default function UserProfile() {
         const currentPending = balance.pending_review_balance || 0;
 
         if (log.coin_category === 'frozen') {
-          await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+          await base44.entities.CamlycoinBalance.update(balance.id, {
             frozen_balance: Math.max(0, currentFrozen - log.coins_earned),
             available_balance: currentAvailable + log.coins_earned
           });
         } else if (log.coin_category === 'pending_review') {
-          await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+          await base44.entities.CamlycoinBalance.update(balance.id, {
             pending_review_balance: Math.max(0, currentPending - log.coins_earned),
             available_balance: currentAvailable + log.coins_earned
           });
@@ -504,13 +482,13 @@ export default function UserProfile() {
       }
 
       // Update log
-      await base44.asServiceRole.entities.QuestionAuditLog.update(logId, {
+      await base44.entities.QuestionAuditLog.update(logId, {
         coin_category: 'pending_withdrawal',
         exclusion_reason: 'valid'
       });
 
       // Create transaction
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
+      await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
@@ -534,22 +512,22 @@ export default function UserProfile() {
 
       // If pending_review, move to frozen
       if (log.coin_category === 'pending_review') {
-        const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
+        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
         if (balances.length > 0) {
           const balance = balances[0];
-          await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+          await base44.entities.CamlycoinBalance.update(balance.id, {
             pending_review_balance: Math.max(0, (balance.pending_review_balance || 0) - log.coins_earned),
             frozen_balance: (balance.frozen_balance || 0) + log.coins_earned
           });
         }
 
-        await base44.asServiceRole.entities.QuestionAuditLog.update(logId, {
+        await base44.entities.QuestionAuditLog.update(logId, {
           coin_category: 'frozen'
         });
       }
 
       // Create transaction
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
+      await base44.entities.CamlycoinTransaction.create({
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
