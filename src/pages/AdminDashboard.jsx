@@ -292,34 +292,99 @@ export default function AdminDashboard() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-7xl mx-auto">
+        {/* System Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
+        >
+          <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+            <Activity className="w-6 h-6" />
+            Tổng Hợp Hệ Thống
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+              <p className="text-white/90 text-xs font-medium mb-1">Sẵn Sàng TT</p>
+              <p className="text-white text-xl font-bold">{(stats?.totalAvailable || 0).toLocaleString()}</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+              <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt TT</p>
+              <p className="text-white text-xl font-bold">{(stats?.totalUnpaid || 0).toLocaleString()}</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+              <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
+              <p className="text-white text-xl font-bold">{(stats?.totalPending || 0).toLocaleString()}</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+              <p className="text-white/90 text-xs font-medium mb-1">Đã TT</p>
+              <p className="text-white text-xl font-bold">{(stats?.totalPaid || 0).toLocaleString()}</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+              <p className="text-white/90 text-xs font-medium mb-1">Đóng Băng</p>
+              <p className="text-white text-xl font-bold">{(stats?.totalFrozen || 0).toLocaleString()}</p>
+            </div>
+          </div>
+
+          {/* Formula Validation */}
+          <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30 mt-4">
+            <p className="text-white/90 text-xs font-bold mb-2">✅ Kiểm Tra Công Thức:</p>
+            <p className="text-white text-xs leading-relaxed">
+              <strong>Tổng Kiếm:</strong> {(stats?.totalEarned || 0).toLocaleString()}<br/>
+              <strong>Tổng Chi Tiết:</strong> {(
+                (stats?.totalAvailable || 0) +
+                (stats?.totalUnpaid || 0) +
+                (stats?.totalPending || 0) +
+                (stats?.totalPaid || 0) +
+                (stats?.totalFrozen || 0)
+              ).toLocaleString()}<br/>
+              <strong className={
+                (stats?.totalEarned || 0) === 
+                ((stats?.totalAvailable || 0) + (stats?.totalUnpaid || 0) + (stats?.totalPending || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
+                ? 'text-green-300' : 'text-red-300'
+              }>
+                {(stats?.totalEarned || 0) === 
+                 ((stats?.totalAvailable || 0) + (stats?.totalUnpaid || 0) + (stats?.totalPending || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
+                 ? '✅ CHÍNH XÁC' : `❌ SAI LỆCH: ${(
+                  (stats?.totalEarned || 0) -
+                  ((stats?.totalAvailable || 0) + (stats?.totalUnpaid || 0) + (stats?.totalPending || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
+                 ).toLocaleString()}`}
+              </strong>
+            </p>
+          </div>
+        </motion.div>
+
         {/* Quick Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-2xl p-4 shadow-lg">
-            <Users className="w-8 h-8 text-purple-500 mb-2" />
-            <p className="text-slate-600 text-xs font-medium">Tổng Users</p>
-            <p className="text-slate-900 text-2xl font-bold">{stats?.totalUsers || 0}</p>
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 border-2 border-white rounded-2xl p-4 shadow-xl">
+            <Users className="w-8 h-8 text-white mb-2" />
+            <p className="text-white/90 text-xs font-medium">Tổng Users</p>
+            <p className="text-white text-3xl font-bold">{stats?.totalUsers || 0}</p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-2xl p-4 shadow-lg">
-            <Coins className="w-8 h-8 text-amber-500 mb-2" />
-            <p className="text-slate-600 text-xs font-medium">Tổng Coins</p>
-            <p className="text-slate-900 text-2xl font-bold">{(stats?.totalBalance || 0).toLocaleString()}</p>
+          <div className="bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-white rounded-2xl p-4 shadow-xl">
+            <Coins className="w-8 h-8 text-white mb-2" />
+            <p className="text-white/90 text-xs font-medium">Tổng Đã Kiếm</p>
+            <p className="text-white text-2xl font-bold">{(stats?.totalEarned || 0).toLocaleString()}</p>
+            <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-2xl p-4 shadow-lg">
-            <Clock className="w-8 h-8 text-orange-500 mb-2" />
-            <p className="text-slate-600 text-xs font-medium">Chờ Duyệt</p>
-            <p className="text-slate-900 text-2xl font-bold">{pendingActions.total}</p>
+          <div className="bg-gradient-to-br from-orange-400 to-red-500 border-2 border-white rounded-2xl p-4 shadow-xl">
+            <Clock className="w-8 h-8 text-white mb-2" />
+            <p className="text-white/90 text-xs font-medium">Chờ Duyệt TT</p>
+            <p className="text-white text-2xl font-bold">{(stats?.totalUnpaid || 0).toLocaleString()}</p>
+            <p className="text-white/80 text-xs mt-1">⏳ {pendingActions.unpaidCount} users</p>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-2xl p-4 shadow-lg">
-            <CheckCircle2 className="w-8 h-8 text-green-500 mb-2" />
-            <p className="text-slate-600 text-xs font-medium">Đã Thanh Toán</p>
-            <p className="text-slate-900 text-2xl font-bold">{(stats?.totalPaid || 0).toLocaleString()}</p>
+          <div className="bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white rounded-2xl p-4 shadow-xl">
+            <CheckCircle2 className="w-8 h-8 text-white mb-2" />
+            <p className="text-white/90 text-xs font-medium">Đã Thanh Toán</p>
+            <p className="text-white text-2xl font-bold">{(stats?.totalPaid || 0).toLocaleString()}</p>
+            <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
         </motion.div>
 
