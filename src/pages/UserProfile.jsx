@@ -90,19 +90,30 @@ export default function UserProfile() {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const email = urlParams.get('email');
+    console.log('URL email param:', email);
     if (email) {
-      setTargetEmail(email);
+      setTargetEmail(decodeURIComponent(email));
     }
   }, []);
 
   useEffect(() => {
-    base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
+    base44.auth.me().then(user => {
+      setCurrentUser(user);
+      // If no targetEmail in URL but user is logged in, show their own profile
+      if (!targetEmail && user) {
+        setTargetEmail(user.email);
+      }
+    }).catch(() => setCurrentUser(null));
   }, []);
 
   useEffect(() => {
     // Fetch target user info (optional - không bắt buộc)
-    if (targetEmail) {
-      base44.entities.User.filter({ email: targetEmail }).then(users => {
+    if (targetEmail && currentUser) {
+      const fetchUser = isAdmin 
+        ? base44.asServiceRole.entities.User.filter({ email: targetEmail })
+        : base44.entities.User.filter({ email: targetEmail });
+      
+      fetchUser.then(users => {
         if (users.length > 0) {
           setTargetUser(users[0]);
         } else {
@@ -114,7 +125,7 @@ export default function UserProfile() {
         setTargetUser({ email: targetEmail, full_name: targetEmail });
       });
     }
-  }, [targetEmail]);
+  }, [targetEmail, currentUser, isAdmin]);
 
   const isAdmin = currentUser?.role === 'admin';
 
