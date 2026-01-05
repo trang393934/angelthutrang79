@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { motion } from 'framer-motion';
-import { Sparkles, Heart, Users, Cpu, Sun, LogOut, BookOpen, Eye, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, Heart, Users, Cpu, Sun, LogOut, BookOpen, Eye, Check, TrendingUp, MessageSquare, Award, Coins, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 import HonorBoard from '@/components/HonorBoard';
 import CamlyCoinWidget from '@/components/CamlyCoinWidget';
 
@@ -14,6 +16,37 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState(null);
   const [agreedToLightLaw, setAgreedToLightLaw] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Fetch user balance and stats
+  const { data: userBalance } = useQuery({
+    queryKey: ['user-balance', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return null;
+      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
+      return balances[0] || null;
+    },
+    enabled: !!currentUser?.email,
+  });
+
+  const { data: userLevel } = useQuery({
+    queryKey: ['user-level', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return null;
+      const levels = await base44.entities.UserLevel.filter({ user_email: currentUser.email });
+      return levels[0] || null;
+    },
+    enabled: !!currentUser?.email,
+  });
+
+  const { data: recentMessages = [] } = useQuery({
+    queryKey: ['recent-messages', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser?.email) return [];
+      const messages = await base44.entities.LightMessage.filter({ created_by: currentUser.email }, '-created_date', 5);
+      return messages;
+    },
+    enabled: !!currentUser?.email,
+  });
 
   useEffect(() => {
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
@@ -339,6 +372,107 @@ export default function Home() {
       {/* Only show content if user has agreed to Light Law */}
       {currentUser && currentUser.light_law_agreed && (
         <>
+      {/* User Dashboard Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="relative py-4 px-4 max-w-7xl mx-auto"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Balance Card */}
+          <motion.div
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="bg-gradient-to-br from-amber-500 to-orange-500 rounded-3xl p-6 shadow-2xl border-2 border-white"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Coins className="w-8 h-8 text-white" />
+              <div>
+                <p className="text-white/90 text-xs font-medium">Tổng Camlycoin</p>
+                <p className="text-white text-2xl font-bold">{(userBalance?.total_earned || 0).toLocaleString()}</p>
+              </div>
+            </div>
+            <Link to={createPageUrl('CamlycoinHistory')}>
+              <Button className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl mt-2">
+                Xem Chi Tiết <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Level Card */}
+          <motion.div
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl border-2 border-white"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <Award className="w-8 h-8 text-white" />
+              <div>
+                <p className="text-white/90 text-xs font-medium">Level</p>
+                <p className="text-white text-2xl font-bold">{userLevel?.level || 1}</p>
+              </div>
+            </div>
+            <div className="bg-white/20 rounded-full h-2 overflow-hidden mt-2">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${((userLevel?.total_points || 0) / ((userLevel?.level || 1) * 1000)) * 100}%` }}
+                transition={{ duration: 1, delay: 0.5 }}
+                className="bg-white h-full rounded-full"
+              />
+            </div>
+          </motion.div>
+
+          {/* Recent Activity Card */}
+          <motion.div
+            whileHover={{ scale: 1.02, y: -5 }}
+            className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-3xl p-6 shadow-2xl border-2 border-white"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <MessageSquare className="w-8 h-8 text-white" />
+              <div>
+                <p className="text-white/90 text-xs font-medium">Hoạt Động Gần Đây</p>
+                <p className="text-white text-2xl font-bold">{recentMessages.length}</p>
+              </div>
+            </div>
+            <Link to={createPageUrl('Library')}>
+              <Button className="w-full bg-white/20 hover:bg-white/30 text-white border-white/30 rounded-xl mt-2">
+                Xem Lịch Sử <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4"
+        >
+          {[
+            { name: 'Chat', icon: MessageSquare, color: 'from-amber-400 to-rose-400', path: 'Chat' },
+            { name: 'Leaderboard', icon: TrendingUp, color: 'from-yellow-400 to-amber-500', path: 'Leaderboard' },
+            { name: 'Quests', icon: Award, color: 'from-indigo-400 to-purple-500', path: 'Quests' },
+            { name: 'Whitepaper', icon: BookOpen, color: 'from-purple-400 to-pink-400', path: 'Whitepaper' },
+          ].map((action, idx) => (
+            <Link key={action.name} to={createPageUrl(action.path)}>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.6 + idx * 0.1 }}
+                whileHover={{ scale: 1.05, y: -3 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all"
+              >
+                <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${action.color} flex items-center justify-center mb-2 mx-auto`}>
+                  <action.icon className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-slate-900 font-semibold text-sm text-center">{action.name}</p>
+              </motion.div>
+            </Link>
+          ))}
+        </motion.div>
+      </motion.section>
+
       {/* Sacred Pillars Section */}
       <section className="relative py-4 lg:py-6 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">

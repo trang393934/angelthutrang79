@@ -302,6 +302,7 @@ export default function Leaderboard() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.02 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
                       className={`border-2 rounded-2xl p-4 transition-all hover:shadow-lg cursor-pointer ${
                         isCurrentUser 
                           ? 'bg-gradient-to-r from-purple-50 to-pink-50 border-purple-300 hover:border-purple-400' 
