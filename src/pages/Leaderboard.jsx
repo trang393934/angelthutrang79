@@ -293,10 +293,12 @@ export default function Leaderboard() {
                 const isCurrentUser = user.user_email === currentUser?.email;
                 
                 return (
-                  <Link
-                    to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`}
+                  <motion.div
                     key={user.id}
-                    className="block"
+                    onClick={() => {
+                      window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`;
+                    }}
+                    className="block cursor-pointer"
                   >
                     <motion.div
                       initial={{ opacity: 0, x: -20 }}
@@ -378,7 +380,7 @@ export default function Leaderboard() {
                       </div>
                     </div>
                     </motion.div>
-                  </Link>
+                    </motion.div>
                 );
               })}
 
