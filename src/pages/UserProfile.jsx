@@ -86,14 +86,29 @@ export default function UserProfile() {
   const fileInputRef = useRef(null);
   const queryClient = useQueryClient();
 
-  // Fetch current user once
+  // Initialize on mount - fetch user and set targetEmail from URL
   useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const emailFromUrl = urlParams.get('email');
+    console.log('Initial mount - URL email param:', emailFromUrl);
+    
+    // Set targetEmail from URL immediately if available
+    if (emailFromUrl) {
+      setTargetEmail(decodeURIComponent(emailFromUrl));
+    }
+    
+    // Fetch current user
     base44.auth.me().then(user => {
       setCurrentUser(user);
+      
+      // Only set targetEmail to current user if no URL param
+      if (!emailFromUrl && user) {
+        setTargetEmail(user.email);
+      }
     }).catch(() => setCurrentUser(null));
   }, []);
 
-  // Listen to URL changes and update targetEmail
+  // Listen to URL changes ONLY (not currentUser)
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const emailFromUrl = urlParams.get('email');
@@ -101,10 +116,8 @@ export default function UserProfile() {
     
     if (emailFromUrl) {
       setTargetEmail(decodeURIComponent(emailFromUrl));
-    } else if (currentUser && !emailFromUrl) {
-      setTargetEmail(currentUser.email);
     }
-  }, [location.search, currentUser]);
+  }, [location.search]);
 
   const isAdmin = currentUser?.role === 'admin';
 
