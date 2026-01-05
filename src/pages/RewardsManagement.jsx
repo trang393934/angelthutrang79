@@ -1357,9 +1357,12 @@ export default function RewardsManagement() {
                                     🪙 {req.amount.toLocaleString()} Camlycoin
                                   </Badge>
                                 </div>
-                                <p className="text-slate-900 font-semibold mb-2">
+                                <Link 
+                                  to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(req.user_email)}`}
+                                  className="text-purple-600 hover:text-purple-800 font-semibold mb-2 hover:underline inline-block"
+                                >
                                   {req.user_email}
-                                </p>
+                                </Link>
                                 <p className="text-slate-700 text-sm mb-2 break-all">
                                   <strong>Địa chỉ ví:</strong> {req.withdrawal_address}
                                 </p>
@@ -1690,7 +1693,12 @@ export default function RewardsManagement() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="text-slate-900 font-semibold">{balance.user_email}</p>
+                          <Link 
+                            to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                            className="text-purple-600 hover:text-purple-800 font-semibold hover:underline inline-block"
+                          >
+                            {balance.user_email}
+                          </Link>
                           <div className="flex gap-2 mt-2 flex-wrap">
                             <Badge className="bg-green-100 text-green-800 text-xs">
                               ✅ Đã TT: {(balance.paid_amount || 0).toLocaleString()}

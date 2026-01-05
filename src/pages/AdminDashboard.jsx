@@ -629,7 +629,12 @@ export default function AdminDashboard() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex-1">
-                        <p className="text-slate-900 font-bold break-all">{balance.user_email}</p>
+                        <Link 
+                          to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                          className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline inline-block"
+                        >
+                          {balance.user_email}
+                        </Link>
                         <div className="flex flex-wrap gap-2 mt-2">
                           <Badge className="bg-amber-100 text-amber-800">
                             💰 {(balance.balance || 0).toLocaleString()}
@@ -692,7 +697,12 @@ export default function AdminDashboard() {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex-1">
-                            <p className="text-slate-900 font-bold break-all">{balance.user_email}</p>
+                            <Link 
+                              to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                              className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline inline-block"
+                            >
+                              {balance.user_email}
+                            </Link>
                             <Badge className="bg-orange-200 text-orange-900 mt-2">
                               💰 {(balance.unpaid_amount || 0).toLocaleString()} Camlycoin
                             </Badge>
@@ -746,7 +756,12 @@ export default function AdminDashboard() {
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
-                            <p className="text-slate-900 font-bold break-all">{withdrawal.user_email}</p>
+                            <Link 
+                              to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(withdrawal.user_email)}`}
+                              className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline inline-block"
+                            >
+                              {withdrawal.user_email}
+                            </Link>
                             <Badge className="bg-blue-200 text-blue-900 mt-2">
                               💰 {(withdrawal.amount || 0).toLocaleString()} Camlycoin
                             </Badge>
@@ -891,7 +906,12 @@ export default function AdminDashboard() {
                       }`}>
                         {idx + 1}
                       </div>
-                      <p className="text-slate-900 font-semibold text-sm">{user.user_email}</p>
+                      <Link 
+                        to={`${createPageUrl('UserProfile')}?email=${encodeURIComponent(user.user_email)}`}
+                        className="text-purple-600 hover:text-purple-800 font-semibold text-sm hover:underline"
+                      >
+                        {user.user_email}
+                      </Link>
                     </div>
                     <p className="text-amber-600 font-bold text-lg">{(user.total_earned || 0).toLocaleString()}</p>
                   </div>
