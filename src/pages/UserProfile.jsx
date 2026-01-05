@@ -106,6 +106,8 @@ export default function UserProfile() {
     }).catch(() => setCurrentUser(null));
   }, []);
 
+  const isAdmin = currentUser?.role === 'admin';
+
   useEffect(() => {
     // Fetch target user info (optional - không bắt buộc)
     if (targetEmail && currentUser) {
@@ -126,8 +128,6 @@ export default function UserProfile() {
       });
     }
   }, [targetEmail, currentUser, isAdmin]);
-
-  const isAdmin = currentUser?.role === 'admin';
 
   // Fetch target user's balance
   const { data: userBalance } = useQuery({
