@@ -292,19 +292,19 @@ export default function UserProfile() {
     }
   };
 
-  // Approve percentage mutation - SỬA LẠI DÙNG UNPAID_AMOUNT
+  // Approve percentage mutation - DUYỆT TỪ ADMIN_REVIEW_PENDING
   const approvePercentageMutation = useMutation({
     mutationFn: async (percentage) => {
       if (!userBalance) return;
       
-      const unpaidAmount = userBalance.unpaid_amount || 0;
+      const adminReviewAmount = userBalance.admin_review_pending || 0;
       
-      if (unpaidAmount <= 0) return;
+      if (adminReviewAmount <= 0) return;
 
-      const approveAmount = Math.floor(unpaidAmount * percentage / 100);
+      const approveAmount = Math.floor(adminReviewAmount * percentage / 100);
       
       await base44.entities.CamlycoinBalance.update(userBalance.id, {
-        unpaid_amount: unpaidAmount - approveAmount,
+        admin_review_pending: adminReviewAmount - approveAmount,
         available_balance: (userBalance.available_balance || 0) + approveAmount
       });
 
@@ -312,12 +312,13 @@ export default function UserProfile() {
         user_email: targetEmail,
         amount: 0,
         type: 'admin_adjustment',
-        description: `✅ Admin duyệt ${percentage}% (${approveAmount.toLocaleString()}/${unpaidAmount.toLocaleString()}) Camlycoin → Sẵn Sàng Thanh Toán`,
+        description: `✅ Admin duyệt ${percentage}% Chờ Review (${approveAmount.toLocaleString()}/${adminReviewAmount.toLocaleString()}) Camlycoin → Sẵn Sàng Thanh Toán`,
         processed_by: currentUser.email
       });
 
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['all-user-audit-logs'] });
     },
     onSuccess: () => {
       alert('✅ Đã duyệt thanh toán!');
@@ -1049,6 +1050,40 @@ Trả về JSON:`;
               <RefreshCw className="w-5 h-5 mr-2" />
               Sync Toàn Hệ Thống
             </Button>
+          </motion.div>
+        )}
+
+        {/* Chờ Admin Review - Duyệt Phần Trăm */}
+        {isAdmin && userBalance && (userBalance.admin_review_pending || 0) > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
+          >
+            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+              <Eye className="w-6 h-6" />
+              Duyệt Điểm Chờ Admin Review
+            </h3>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
+              <p className="text-white/90 text-sm mb-2">Tổng Chờ Admin Review:</p>
+              <p className="text-white text-3xl font-bold">
+                {(userBalance.admin_review_pending || 0).toLocaleString()} Camlycoin
+              </p>
+            </div>
+            <p className="text-white/90 text-sm mb-4">Chọn phần trăm muốn duyệt chuyển sang "Sẵn Sàng Thanh Toán":</p>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              {[10, 20, 30, 50, 70, 100].map(percentage => (
+                <Button
+                  key={percentage}
+                  onClick={() => approvePercentageMutation.mutate(percentage)}
+                  disabled={approvePercentageMutation.isPending}
+                  className="bg-white text-blue-600 rounded-2xl font-bold py-4 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all"
+                >
+                  {percentage}%
+                </Button>
+              ))}
+            </div>
           </motion.div>
         )}
 
