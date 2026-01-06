@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
         const auditResult = await auditSingleUser(userEmail, base44);
         results.push(auditResult);
         
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Tăng delay giữa users
       } catch (error) {
         console.error(`Failed to audit ${userEmail}:`, error);
         results.push({
@@ -203,25 +203,38 @@ async function auditSingleUser(userEmail, base44) {
         }
       }
 
-      // Create audit log
+      // Create audit log (with retry on rate limit)
       try {
-        await base44.asServiceRole.entities.QuestionAuditLog.create({
-          user_email: userEmail,
-          transaction_id: question.id,
-          question_text: question.text,
-          question_date: question.date.toISOString(),
-          coins_earned: question.coins,
-          exclusion_reason: exclusionReason,
-          coin_category: coinCategory,
-          audit_date: new Date().toISOString(),
-          question_number_in_day: i + 1,
-          similar_to_question: similarTo || null,
-          similarity_score: similarityScore || 0
-        });
+        let retries = 0;
+        while (retries < 3) {
+          try {
+            await base44.asServiceRole.entities.QuestionAuditLog.create({
+              user_email: userEmail,
+              transaction_id: question.id,
+              question_text: question.text,
+              question_date: question.date.toISOString(),
+              coins_earned: question.coins,
+              exclusion_reason: exclusionReason,
+              coin_category: coinCategory,
+              audit_date: new Date().toISOString(),
+              question_number_in_day: i + 1,
+              similar_to_question: similarTo || null,
+              similarity_score: similarityScore || 0
+            });
+            break; // Success
+          } catch (createError) {
+            if (createError.status === 429 && retries < 2) {
+              retries++;
+              await new Promise(resolve => setTimeout(resolve, 1000 * retries)); // Exponential backoff
+            } else {
+              throw createError;
+            }
+          }
+        }
         
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200)); // Tăng delay
       } catch (error) {
-        console.error('Failed to create audit log:', error);
+        console.error('Failed to create audit log after retries:', error);
       }
     }
   }
