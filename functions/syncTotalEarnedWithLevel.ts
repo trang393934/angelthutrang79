@@ -9,72 +9,106 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    console.log('🔄 Syncing total_earned with level total_points for all users...');
+    console.log('🔄 Starting sync: total_earned = total_points from UserLevel');
 
-    // Fetch all UserLevel records
-    const allLevels = await base44.asServiceRole.entities.UserLevel.list('-total_points', 10000);
+    // Fetch all user levels and balances
+    const [allLevels, allBalances] = await Promise.all([
+      base44.asServiceRole.entities.UserLevel.list('-total_points', 10000),
+      base44.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 10000)
+    ]);
+
     console.log(`📊 Found ${allLevels.length} user levels`);
+    console.log(`💰 Found ${allBalances.length} user balances`);
 
-    const report = [];
-    let successCount = 0;
-    let errorCount = 0;
+    const results = [];
 
     for (const level of allLevels) {
-      try {
-        const userEmail = level.user_email;
-        const totalPoints = level.total_points || 0;
+      const userEmail = level.user_email;
+      const correctTotalEarned = level.total_points || 0;
 
-        // Find user's balance
-        const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ 
-          user_email: userEmail 
+      // Find corresponding balance
+      const balance = allBalances.find(b => b.user_email === userEmail);
+
+      if (!balance) {
+        console.warn(`⚠️ No balance found for ${userEmail}`);
+        results.push({
+          userEmail,
+          status: 'no_balance',
+          correctTotalEarned
+        });
+        continue;
+      }
+
+      const currentTotalEarned = balance.total_earned || 0;
+
+      if (currentTotalEarned === correctTotalEarned) {
+        results.push({
+          userEmail,
+          status: 'already_correct',
+          totalEarned: correctTotalEarned
+        });
+        continue;
+      }
+
+      // Calculate the difference
+      const difference = correctTotalEarned - currentTotalEarned;
+
+      try {
+        // Update total_earned to match total_points
+        await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+          total_earned: correctTotalEarned,
+          balance: (balance.balance || 0) + difference
         });
 
-        if (balances.length > 0) {
-          const balance = balances[0];
-          const oldTotalEarned = balance.total_earned || 0;
+        // Create transaction log
+        await base44.asServiceRole.entities.CamlycoinTransaction.create({
+          user_email: userEmail,
+          amount: 0,
+          type: 'admin_adjustment',
+          description: `🔄 Sync: total_earned từ ${currentTotalEarned.toLocaleString()} → ${correctTotalEarned.toLocaleString()} (match với UserLevel total_points)`,
+          processed_by: user.email
+        });
 
-          // Update total_earned to match total_points
-          await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-            total_earned: totalPoints
-          });
+        results.push({
+          userEmail,
+          status: 'updated',
+          oldTotalEarned: currentTotalEarned,
+          newTotalEarned: correctTotalEarned,
+          difference
+        });
 
-          console.log(`✅ ${userEmail}: ${oldTotalEarned} → ${totalPoints}`);
-          
-          report.push({
-            user_email: userEmail,
-            old_total_earned: oldTotalEarned,
-            new_total_earned: totalPoints,
-            difference: totalPoints - oldTotalEarned
-          });
-          
-          successCount++;
-        } else {
-          console.log(`⚠️ ${userEmail}: No balance record found`);
-          errorCount++;
-        }
-
-        // Wait 100ms between updates to avoid rate limits
-        await new Promise(resolve => setTimeout(resolve, 100));
+        console.log(`✅ ${userEmail}: ${currentTotalEarned.toLocaleString()} → ${correctTotalEarned.toLocaleString()}`);
 
       } catch (error) {
-        console.error(`❌ Error updating ${level.user_email}:`, error.message);
-        errorCount++;
+        console.error(`❌ Error updating ${userEmail}:`, error);
+        results.push({
+          userEmail,
+          status: 'error',
+          error: error.message
+        });
       }
     }
 
+    const updated = results.filter(r => r.status === 'updated');
+    const alreadyCorrect = results.filter(r => r.status === 'already_correct');
+    const errors = results.filter(r => r.status === 'error');
+
     return Response.json({
       success: true,
-      message: `Synced ${successCount} users successfully, ${errorCount} errors`,
+      message: '✅ Đã sync total_earned = total_points cho tất cả users',
       summary: {
-        total_processed: allLevels.length,
-        success_count: successCount,
-        error_count: errorCount
+        totalProcessed: results.length,
+        updated: updated.length,
+        alreadyCorrect: alreadyCorrect.length,
+        errors: errors.length,
+        noBalance: results.filter(r => r.status === 'no_balance').length
       },
-      report: report
+      updated: updated.slice(0, 20),
+      errors: errors.length > 0 ? errors : undefined
     });
 
   } catch (error) {
-    console.error('Sync error:', error);
+    console.error('Error syncing total_earned:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
