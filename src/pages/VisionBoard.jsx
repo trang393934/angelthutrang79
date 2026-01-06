@@ -391,6 +391,19 @@ Format: Markdown, đầy cảm hứng, bằng tiếng Việt.`,
                 )}
                 Tạo Hình Ảnh
               </Button>
+              <Button onClick={copyVisionBoard} variant="outline" className="border-purple-300">
+                {copied ? (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Đã Copy!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Text
+                  </>
+                )}
+              </Button>
               <Button onClick={saveVision} variant="outline" className="border-purple-300">
                 💾 Lưu Vision
               </Button>
