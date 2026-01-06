@@ -1,5 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// Rate limiting: Track last claim time per user
+const rateLimitMap = new Map();
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -7,6 +10,20 @@ Deno.serve(async (req) => {
 
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Rate limiting: 1 claim per 60 seconds
+    const now = Date.now();
+    const lastClaimTime = rateLimitMap.get(user.email) || 0;
+    const timeSinceLastClaim = now - lastClaimTime;
+    
+    if (timeSinceLastClaim < 60000) { // 60 seconds
+      const waitTime = Math.ceil((60000 - timeSinceLastClaim) / 1000);
+      return Response.json({ 
+        error: `Vui lòng đợi ${waitTime} giây trước khi thử lại!`,
+        rateLimited: true,
+        waitSeconds: waitTime
+      }, { status: 429 });
     }
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
@@ -23,6 +40,9 @@ Deno.serve(async (req) => {
         alreadyClaimed: true 
       }, { status: 400 });
     }
+
+    // Update rate limit map
+    rateLimitMap.set(user.email, now);
 
     const rewardAmount = 100;
 
