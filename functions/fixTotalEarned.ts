@@ -3,7 +3,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 /**
  * SỬA LẠI TOTAL_EARNED CHO TẤT CẢ USERS
  * 
- * Công thức đúng: total_earned = available_balance + admin_review_pending + frozen_balance + paid_amount
+ * Công thức đúng: total_earned = available_balance + admin_review_pending + frozen_balance
+ * (paid_amount là số đã rút RA NGOÀI, không tính vào total_earned)
  */
 
 Deno.serve(async (req) => {
@@ -29,8 +30,8 @@ Deno.serve(async (req) => {
       const paid = balance.paid_amount || 0;
       const currentTotal = balance.total_earned || 0;
 
-      // Công thức đúng
-      const correctTotal = available + adminReview + frozen + paid;
+      // Công thức đúng: paid đã rút ra ngoài, không tính vào total_earned
+      const correctTotal = available + adminReview + frozen;
       const difference = correctTotal - currentTotal;
 
       if (difference !== 0) {
@@ -62,9 +63,9 @@ Deno.serve(async (req) => {
           breakdown: {
             available,
             admin_review: adminReview,
-            frozen,
-            paid
-          }
+            frozen
+          },
+          note: `Paid ${paid.toLocaleString()} đã rút ra ngoài, không tính vào total_earned`
         });
       }
     }
