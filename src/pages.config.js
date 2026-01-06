@@ -37,6 +37,7 @@ import WalletBreakdown from './pages/WalletBreakdown';
 import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
+import IncomeReport from './pages/IncomeReport';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,7 @@ export const PAGES = {
     "Whitepaper": Whitepaper,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
+    "IncomeReport": IncomeReport,
 }
 
 export const pagesConfig = {
