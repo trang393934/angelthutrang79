@@ -166,6 +166,17 @@ Trả về JSON:`,
           paid_amount: 0
         });
       }
+
+      // Update UserLevel.total_points = total_earned - frozen_balance
+      const userLevels = await base44.entities.UserLevel.filter({ user_email: idea.created_by });
+      if (userLevels.length > 0) {
+        const currentLevel = userLevels[0];
+        const frozenBalance = balances.length > 0 ? (balances[0].frozen_balance || 0) : 0;
+        const newTotalPoints = (balances.length > 0 ? (balances[0].total_earned || 0) : idea.reward_points) - frozenBalance + idea.reward_points;
+        await base44.entities.UserLevel.update(currentLevel.id, {
+          total_points: newTotalPoints
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
