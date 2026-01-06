@@ -134,6 +134,45 @@ Format: Markdown, đầy cảm hứng, bằng tiếng Việt.`,
     link.click();
   };
 
+  const copyVisionBoard = () => {
+    const timelineText = inputs.timeline === '1year' ? '1 Năm' : inputs.timeline === '3years' ? '3 Năm' : '5 Năm';
+    
+    let text = `🌟 VISION BOARD CỦA TÔI 🌟\n`;
+    text += `Khung thời gian: ${timelineText}\n\n`;
+    
+    text += `📌 TẦM NHÌN:\n${generatedVision.vision_statement}\n\n`;
+    
+    text += `💎 GIÁ TRỊ CỐT LÕI:\n`;
+    generatedVision.core_values?.forEach((value, idx) => {
+      text += `${idx + 1}. ${value}\n`;
+    });
+    text += '\n';
+    
+    text += `🎯 MỤC TIÊU CỤ THỂ:\n`;
+    Object.entries(generatedVision.goals || {}).forEach(([category, goals]) => {
+      text += `\n${category.toUpperCase()}:\n`;
+      goals?.forEach((goal, idx) => {
+        text += `  ✓ ${goal}\n`;
+      });
+    });
+    text += '\n';
+    
+    text += `🚀 CÁC BƯỚC HÀNH ĐỘNG:\n`;
+    generatedVision.action_steps?.forEach((step, idx) => {
+      text += `${idx + 1}. ${step}\n`;
+    });
+    text += '\n';
+    
+    text += `💫 KHẲNG ĐỊNH TÍCH CỰC:\n`;
+    generatedVision.affirmations?.forEach((affirmation, idx) => {
+      text += `${idx + 1}. "${affirmation}"\n`;
+    });
+    
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 relative">
       {/* Header */}
