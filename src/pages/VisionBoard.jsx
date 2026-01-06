@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Sparkles, Target, Heart, TrendingUp, Calendar, Image as ImageIcon, Download, Loader2, Wand2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, Target, Heart, TrendingUp, Calendar, Image as ImageIcon, Download, Loader2, Wand2, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
