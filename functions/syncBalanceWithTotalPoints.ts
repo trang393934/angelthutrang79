@@ -39,21 +39,27 @@ Deno.serve(async (req) => {
 
       const correctTotalEarned = level.total_points || 0;
       
-      // Công thức: total_earned = available + frozen + pending_review + paid_amount
-      const calculatedTotalEarned = (balance.available_balance || 0) + 
-                                    (balance.frozen_balance || 0) + 
-                                    (balance.pending_review_balance || 0) + 
-                                    (balance.paid_amount || 0);
+      // Công thức MỚI: total_earned = pending_review + paid_amount + frozen
+      // pending_review_balance = Chờ Duyệt Thanh Toán (bao gồm available)
+      // frozen_balance = Đóng Băng Vĩnh Viễn (không bao giờ thanh toán)
+      // paid_amount = Đã Thanh Toán
+      
+      const paidAmount = balance.paid_amount || 0;
+      const frozenBalance = balance.frozen_balance || 0;
+      const correctPendingReview = correctTotalEarned - paidAmount - frozenBalance;
 
       const needsUpdate = 
         balance.total_earned !== correctTotalEarned || 
-        balance.balance !== correctTotalEarned;
+        balance.balance !== correctTotalEarned ||
+        balance.pending_review_balance !== correctPendingReview;
 
       if (needsUpdate) {
         await base44.entities.CamlycoinBalance.update(balance.id, {
           total_earned: correctTotalEarned,
           balance: correctTotalEarned,
-          unpaid_amount: correctTotalEarned - (balance.paid_amount || 0)
+          pending_review_balance: Math.max(0, correctPendingReview),
+          available_balance: Math.max(0, correctPendingReview), // Available = Pending Review
+          unpaid_amount: correctTotalEarned - paidAmount
         });
 
         results.updated++;
@@ -61,18 +67,18 @@ Deno.serve(async (req) => {
         results.correct++;
       }
 
-      // Check if sub-balances add up correctly
-      if (calculatedTotalEarned !== correctTotalEarned) {
+      // Check if formula is correct
+      const calculatedTotal = (balance.pending_review_balance || 0) + paidAmount + frozenBalance;
+      if (Math.abs(calculatedTotal - correctTotalEarned) > 0.01) {
         results.issues.push({
           user_email: level.user_email,
           total_points: correctTotalEarned,
-          calculated_from_subs: calculatedTotalEarned,
-          available: balance.available_balance || 0,
-          frozen: balance.frozen_balance || 0,
+          calculated_from_formula: calculatedTotal,
           pending_review: balance.pending_review_balance || 0,
-          paid_amount: balance.paid_amount || 0,
-          diff: correctTotalEarned - calculatedTotalEarned,
-          note: 'Sub-balances do not add up to total_points'
+          frozen: frozenBalance,
+          paid_amount: paidAmount,
+          diff: correctTotalEarned - calculatedTotal,
+          note: 'Formula: total_earned ≠ pending_review + paid + frozen'
         });
       }
     }
@@ -82,7 +88,11 @@ Deno.serve(async (req) => {
       user_email: user.email,
       amount: 0,
       type: 'admin_adjustment',
-      description: `🔄 Đồng Bộ Balance = Total_Points cho ${results.updated} users\n✅ Đã đúng: ${results.correct}\n⚠️ Có vấn đề phụ: ${results.issues.length}`,
+      description: `🔄 Đồng Bộ Balance Công Thức Mới
+📊 Total = Pending Review + Paid + Frozen
+✅ Đã cập nhật: ${results.updated} users
+✔️ Đã đúng: ${results.correct} users
+⚠️ Vấn đề: ${results.issues.length} cases`,
       processed_by: user.email
     });
 
