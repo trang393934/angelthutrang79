@@ -83,9 +83,11 @@ Deno.serve(async (req) => {
         user_email: userEmail 
       });
 
+      let currentPaid = 0;
+      
       if (balances.length > 0) {
         const balance = balances[0];
-        const currentPaid = balance.paid_amount || 0;
+        currentPaid = balance.paid_amount || 0;
 
         await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
           total_earned: totalEarned,
@@ -123,7 +125,7 @@ Deno.serve(async (req) => {
         frozen: frozenCoins,
         admin_review_pending: adminReviewPendingCoins,
         available: availableCoins,
-        paid: currentPaid || 0,
+        paid: currentPaid,
         level_points: levelPoints,
         total_questions: userLogs.length
       });
