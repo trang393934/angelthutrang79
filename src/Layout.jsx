@@ -134,7 +134,7 @@ export default function Layout({ children, currentPageName }) {
       name: 'Nhật Ký Biết Ơn', 
       icon: Heart, 
       path: 'GratitudeJournal',
-      gradient: 'from-yellow-400 to-amber-400'
+      gradient: 'from-pink-400 to-rose-400'
     },
     { 
       name: 'Dự án', 

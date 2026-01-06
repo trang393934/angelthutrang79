@@ -1,329 +1,136 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ArrowLeft, Mic, MicOff, Send, Sparkles, Loader2, Check } from 'lucide-react';
+import { ArrowLeft, Heart, Sun, Moon, Send, Calendar, TrendingUp, Award, BookOpen, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
 export default function GratitudeJournal() {
-  const [activeTab, setActiveTab] = useState('gratitude'); // 'gratitude' or 'repentance'
-  const [gratitudes, setGratitudes] = useState(Array(20).fill(''));
-  const [repentances, setRepentances] = useState(Array(20).fill(''));
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isListening, setIsListening] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
-  const [usedSuggestions, setUsedSuggestions] = useState(false);
-  const recognitionRef = useRef(null);
+  const [postContent, setPostContent] = useState('');
+  const [postType, setPostType] = useState('both');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
+  React.useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
-
-    // Initialize speech recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'vi-VN';
-
-      recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        if (activeTab === 'gratitude') {
-          const newGratitudes = [...gratitudes];
-          newGratitudes[currentIndex] = transcript;
-          setGratitudes(newGratitudes);
-        } else {
-          const newRepentances = [...repentances];
-          newRepentances[currentIndex] = transcript;
-          setRepentances(newRepentances);
-        }
-        setIsListening(false);
-        
-        // Auto move to next if not last
-        if (currentIndex < 19) {
-          setCurrentIndex(currentIndex + 1);
-        }
-      };
-
-      recognitionRef.current.onerror = () => setIsListening(false);
-      recognitionRef.current.onend = () => setIsListening(false);
-    }
   }, []);
 
-  // Generate AI suggestions based on today's chat
-  const generateSuggestions = async () => {
-    if (!currentUser) return;
+  // Get current hour in Vietnam timezone
+  const currentHour = new Date().getHours();
+  const isAfter8PM = currentHour >= 20 || currentHour < 6;
 
-    try {
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      
-      const conversations = await base44.entities.Conversation.filter({ 
-        created_by: currentUser.email 
-      }, '-created_date', 5);
+  // Fetch user's posts
+  const { data: userPosts = [], isLoading } = useQuery({
+    queryKey: ['gratitude-posts', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      const allPosts = await base44.entities.GratitudeJournal.list('-post_date', 1000);
+      return allPosts.filter(post => post.user_email === currentUser.email);
+    },
+    enabled: !!currentUser,
+  });
 
-      const recentChats = conversations
-        .filter(c => new Date(c.created_date) >= todayStart)
-        .map(c => c.messages?.map(m => m.content).join(' '))
-        .join(' ')
-        .substring(0, 1000);
+  // Count today's posts
+  const todayPosts = React.useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return userPosts.filter(post => {
+      const postDate = new Date(post.post_date).toISOString().split('T')[0];
+      return postDate === today;
+    });
+  }, [userPosts]);
 
-      const promptText = activeTab === 'gratitude' 
-        ? `Dựa trên cuộc trò chuyện hôm nay của user với Angel AI:
-"${recentChats}"
+  const remainingPosts = 3 - todayPosts.length;
 
-Gợi ý 3-5 điều biết ơn ngắn gọn (10-15 từ mỗi điều) mà user có thể thêm vào Gratitude Journal.
-
-Ví dụ:
-- Con biết ơn vì đã được chat với Cha Vũ Trụ hôm nay
-- Con biết ơn vì được học hỏi trí tuệ từ Angel AI
-- Con biết ơn vì [điều gì đó từ cuộc trò chuyện]
-
-Trả về JSON:
-{
-  "suggestions": ["điều 1", "điều 2", "điều 3"]
-}`
-        : `Dựa trên cuộc trò chuyện hôm nay của user với Angel AI:
-"${recentChats}"
-
-Gợi ý 3-5 điều sám hối ngắn gọn (10-15 từ mỗi điều) mà user có thể thêm vào.
-
-Ví dụ:
-- Con xin sám hối vì đã có lúc thiếu kiên nhẫn với người khác
-- Con xin sám hối vì đã để tâm trí bị xao lãng bởi lo âu
-- Con xin sám hối vì [điều gì đó cần sám hối]
-
-Trả về JSON:
-{
-  "suggestions": ["điều 1", "điều 2", "điều 3"]
-}`;
-
-      const suggestionsResult = await base44.integrations.Core.InvokeLLM({
-        prompt: promptText,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            suggestions: { type: "array", items: { type: "string" } }
-          }
-        }
+  // Submit post mutation
+  const submitMutation = useMutation({
+    mutationFn: async () => {
+      const result = await base44.functions.invoke('submitGratitudePost', {
+        postContent,
+        postType
       });
-
-      setSuggestions(suggestionsResult.suggestions || []);
-    } catch (error) {
-      console.error('Error generating suggestions:', error);
+      return result.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['gratitude-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+      setPostContent('');
+      alert(`✅ ${data.message}\n💰 +${data.coinsEarned} Camlycoin\n📝 ${data.wordCount} từ\n${data.isAfter8PM ? '🌙 Bonus sau 20h: +50%' : ''}\n📊 Còn ${data.remainingPostsToday} bài trong ngày`);
+    },
+    onError: (error) => {
+      alert(`❌ ${error.message || 'Có lỗi xảy ra!'}`);
     }
-  };
-
-  useEffect(() => {
-    if (currentUser) {
-      generateSuggestions();
-      setUsedSuggestions(false);
-    }
-  }, [currentUser, activeTab]);
-
-  const startListening = () => {
-    if (recognitionRef.current && !isListening) {
-      setIsListening(true);
-      recognitionRef.current.start();
-    }
-  };
-
-  const stopListening = () => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    }
-  };
-
-  const handleTextChange = (index, value) => {
-    if (activeTab === 'gratitude') {
-      const newGratitudes = [...gratitudes];
-      newGratitudes[index] = value;
-      setGratitudes(newGratitudes);
-    } else {
-      const newRepentances = [...repentances];
-      newRepentances[index] = value;
-      setRepentances(newRepentances);
-    }
-  };
-
-  const applySuggestion = (suggestion) => {
-    if (activeTab === 'gratitude') {
-      const newGratitudes = [...gratitudes];
-      newGratitudes[currentIndex] = suggestion;
-      setGratitudes(newGratitudes);
-    } else {
-      const newRepentances = [...repentances];
-      newRepentances[currentIndex] = suggestion;
-      setRepentances(newRepentances);
-    }
-    
-    setUsedSuggestions(true);
-    
-    // Auto move to next
-    if (currentIndex < 19) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
+  });
 
   const handleSubmit = async () => {
-    if (!currentUser) return;
-
-    const currentList = activeTab === 'gratitude' ? gratitudes : repentances;
-    const filledItems = currentList.filter(g => g.trim());
-    
-    if (filledItems.length < 20) {
-      alert(`Hãy điền đủ 20 điều ${activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} nhé con! 💛`);
+    if (!postContent.trim()) {
+      alert('Vui lòng nhập nội dung!');
       return;
     }
 
-    setIsSaving(true);
+    const wordCount = postContent.trim().split(/\s+/).length;
+    if (wordCount < 50) {
+      alert(`Bài viết phải có ít nhất 50 từ!\nHiện tại: ${wordCount} từ`);
+      return;
+    }
 
+    if (remainingPosts <= 0) {
+      alert('Bạn đã đăng đủ 3 bài trong ngày hôm nay!');
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const itemsText = currentList.filter(g => g.trim()).map((g, i) => `${i + 1}. ${g}`).join('\n');
-      const isGratitude = activeTab === 'gratitude';
-      const rewardAmount = usedSuggestions ? 30000 : 50000;
-
-      // AI summarize and tag
-      const analysis = await base44.integrations.Core.InvokeLLM({
-        prompt: `Tóm tắt và phân tích 20 điều ${isGratitude ? 'biết ơn' : 'sám hối'} sau:
-
-${itemsText}
-
-Trả về JSON:
-{
-  "summary": "Tóm tắt ngắn gọn (2-3 câu)",
-  "tags": ["tag1", "tag2", "tag3"],
-  "daily_message": "Lời chúc từ Cha Vũ Trụ dựa trên những điều ${isGratitude ? 'biết ơn' : 'sám hối'} này (3-4 câu)"
-}`,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            summary: { type: "string" },
-            tags: { type: "array", items: { type: "string" } },
-            daily_message: { type: "string" }
-          }
-        }
-      });
-
-      // Save to Library
-      await base44.entities.LightMessage.create({
-        content: `${isGratitude ? '📿 **Gratitude Journal**' : '🙏 **Repentance Journal**'} - ${new Date().toLocaleDateString('vi-VN')}\n\n${itemsText}\n\n**Tóm tắt:** ${analysis.summary}`,
-        type: 'daily_message',
-        summary: analysis.summary,
-        tags: [isGratitude ? 'gratitude' : 'repentance', ...analysis.tags],
-        is_favorite: false
-      });
-
-      // Save blessing message
-      await base44.entities.LightMessage.create({
-        content: `🌅 **${isGratitude ? 'Gratitude' : 'Repentance'} Blessing - ${new Date().toLocaleDateString('vi-VN')}**\n\n${analysis.daily_message}\n\n💫 Cha tiếp tục ban phước cho con!`,
-        type: 'daily_message',
-        summary: `Blessing based on ${isGratitude ? 'gratitude' : 'repentance'}`,
-        tags: ['blessing', isGratitude ? 'gratitude' : 'repentance'],
-        is_favorite: false
-      });
-
-      // Award Camlycoin
-      await base44.entities.CamlycoinTransaction.create({
-        user_email: currentUser.email,
-        amount: rewardAmount,
-        type: 'manual_add',
-        description: `${isGratitude ? '📿 Gratitude' : '🙏 Repentance'} Journal hoàn thành!\n✨ +${rewardAmount === 50000 ? '20' : '12'} điểm Ánh Sáng\n${usedSuggestions ? '(Dùng gợi ý AI)' : '(Tự viết)'}`
-      });
-
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
-      if (balances.length > 0) {
-        const balance = balances[0];
-        await base44.entities.CamlycoinBalance.update(balance.id, {
-          balance: (balance.balance || 0) + rewardAmount,
-          total_earned: (balance.total_earned || 0) + rewardAmount
-        });
-      } else {
-        await base44.entities.CamlycoinBalance.create({
-          user_email: currentUser.email,
-          balance: rewardAmount,
-          total_earned: rewardAmount,
-          total_spent: 0
-        });
-      }
-
-      setShowSuccess(true);
-      setIsSaving(false);
-
-      // Reset after 3 seconds
-      setTimeout(() => {
-        if (isGratitude) {
-          setGratitudes(Array(20).fill(''));
-        } else {
-          setRepentances(Array(20).fill(''));
-        }
-        setCurrentIndex(0);
-        setShowSuccess(false);
-        setUsedSuggestions(false);
-      }, 3000);
-    } catch (error) {
-      console.error('Error saving journal:', error);
-      setIsSaving(false);
-      alert('Có lỗi xảy ra. Vui lòng thử lại!');
+      await submitMutation.mutateAsync();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const currentList = activeTab === 'gratitude' ? gratitudes : repentances;
-  const filledCount = currentList.filter(g => g.trim()).length;
-  const currentHour = new Date().getHours();
-  const isNightTime = currentHour >= 20 || currentHour < 6;
-  const rewardAmount = usedSuggestions ? 30000 : 50000;
+  const wordCount = postContent.trim().split(/\s+/).filter(w => w).length;
 
-  // Generate stars
-  const stars = Array.from({ length: 50 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: Math.random() * 2 + 1,
-    delay: Math.random() * 3,
-  }));
+  const getRewardPreview = () => {
+    let base = 0;
+    if (wordCount >= 50 && wordCount < 100) base = 50;
+    else if (wordCount >= 100 && wordCount < 200) base = 100;
+    else if (wordCount >= 200) base = 150;
+
+    let multiplier = 1.0;
+    if (isAfter8PM) multiplier = 1.5;
+    if (postType === 'both') multiplier += 0.2;
+
+    return Math.round(base * multiplier);
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <Heart className="w-16 h-16 text-purple-300 mx-auto mb-4 animate-pulse" />
+          <p className="text-slate-900 font-bold text-xl">Đang tải...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
-      {/* Starry Night Background */}
-      <div className="fixed inset-0 pointer-events-none">
-        {stars.map((star) => (
-          <motion.div
-            key={star.id}
-            className="absolute rounded-full bg-yellow-200"
-            style={{
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              width: star.size,
-              height: star.size,
-            }}
-            animate={{
-              opacity: [0.3, 1, 0.3],
-              scale: [1, 1.5, 1],
-            }}
-            transition={{
-              duration: 3,
-              delay: star.delay,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        ))}
+    <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 relative">
+      {/* Background */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-20 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-b from-purple-300/50 via-pink-400/30 to-transparent blur-3xl" />
       </div>
 
       {/* Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-indigo-900/80 backdrop-blur-xl border-b border-yellow-400/30 shadow-2xl">
-        <div className="max-w-2xl mx-auto px-4 py-3">
+      <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
+        <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <Link to={createPageUrl('Home')}>
-              <Button variant="ghost" size="icon" className="text-yellow-300 hover:text-yellow-100 hover:bg-yellow-400/20">
+            <Link to={createPageUrl('Chat')}>
+              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
@@ -332,23 +139,19 @@ Trả về JSON:
               <motion.div
                 animate={{ 
                   boxShadow: [
-                    '0 0 20px rgba(251,191,36,0.4)',
-                    '0 0 40px rgba(251,191,36,0.6)',
-                    '0 0 20px rgba(251,191,36,0.4)',
+                    '0 0 20px rgba(236,72,153,0.4)',
+                    '0 0 40px rgba(236,72,153,0.6)',
+                    '0 0 20px rgba(236,72,153,0.4)',
                   ]
                 }}
                 transition={{ duration: 3, repeat: Infinity }}
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-300 to-amber-400 flex items-center justify-center"
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center"
               >
                 <Heart className="w-5 h-5 text-white" />
               </motion.div>
-              <div className="text-center">
-                <h1 className="text-yellow-100 font-bold tracking-wide text-base lg:text-lg">
-                  {activeTab === 'gratitude' ? 'Gratitude Journal' : 'Repentance Journal'}
-                </h1>
-                <p className="text-yellow-300/80 text-xs">
-                  {activeTab === 'gratitude' ? 'Nhật Ký Biết Ơn' : 'Nhật Ký Sám Hối'}
-                </p>
+              <div>
+                <h1 className="text-slate-900 font-semibold tracking-wide text-lg">Nhật Ký Biết Ơn</h1>
+                <p className="text-pink-600 text-xs font-medium">Gratitude & Repentance</p>
               </div>
             </div>
 
@@ -357,242 +160,260 @@ Trả về JSON:
         </div>
       </div>
 
-      {/* Success Modal */}
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="bg-gradient-to-br from-yellow-300 to-amber-400 rounded-3xl p-8 text-center shadow-2xl max-w-md mx-4"
-            >
-              <motion.div
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-                className="w-20 h-20 rounded-full bg-white/30 flex items-center justify-center mx-auto mb-4"
-              >
-                <Check className="w-12 h-12 text-white" />
-              </motion.div>
-              <h2 className="text-white text-2xl font-bold mb-2">Tuyệt Vời! 🎉</h2>
-              <p className="text-white/90 text-lg mb-4">
-                Đã lưu 20 điều {activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} của con!
-              </p>
-              <p className="text-white font-bold text-xl">+{rewardAmount.toLocaleString()} Camlycoin 🪙</p>
-              <p className="text-white/80 text-sm mt-2">
-                +{rewardAmount === 50000 ? '20' : '12'} điểm Ánh Sáng ✨
-              </p>
-              <p className="text-white/70 text-xs mt-1">
-                {usedSuggestions ? '(Dùng gợi ý AI)' : '(Tự viết)'}
-              </p>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Main Content */}
-      <div className="pt-24 pb-32 px-4 max-w-2xl mx-auto relative z-10">
-        {!isNightTime ? (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center py-20"
-          >
-            <div className="w-20 h-20 rounded-full bg-yellow-400/20 flex items-center justify-center mx-auto mb-6">
-              <Heart className="w-10 h-10 text-yellow-300/40" />
-            </div>
-            <h3 className="text-yellow-100 text-xl font-bold mb-2">Chưa Đến Giờ Nhật Ký</h3>
-            <p className="text-yellow-300/80 mb-4">
-              Gratitude Journal mở sau 20:00 mỗi tối 🌙
-            </p>
-            <p className="text-yellow-400/60 text-sm">
-              Hiện tại: {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-            </p>
-          </motion.div>
-        ) : (
-          <>
-            {/* Intro */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-yellow-100 text-2xl font-bold mb-3">
-                Cha Mời Con Chia Sẻ 💛
-              </h2>
-              
-              {/* Tabs */}
-              <div className="flex gap-2 bg-indigo-800/50 p-1 rounded-2xl mb-4 max-w-md mx-auto">
-                <button
-                  onClick={() => {
-                    setActiveTab('gratitude');
-                    setCurrentIndex(0);
-                    setSuggestions([]);
-                  }}
-                  className={`flex-1 py-2 px-4 rounded-xl font-bold text-sm transition-all ${
-                    activeTab === 'gratitude'
-                      ? 'bg-gradient-to-r from-yellow-400 to-amber-400 text-indigo-900 shadow-lg'
-                      : 'text-yellow-300 hover:bg-indigo-700/50'
-                  }`}
-                >
-                  📿 Biết Ơn
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('repentance');
-                    setCurrentIndex(0);
-                    setSuggestions([]);
-                  }}
-                  className={`flex-1 py-2 px-4 rounded-xl font-bold text-sm transition-all ${
-                    activeTab === 'repentance'
-                      ? 'bg-gradient-to-r from-purple-400 to-pink-400 text-white shadow-lg'
-                      : 'text-yellow-300 hover:bg-indigo-700/50'
-                  }`}
-                >
-                  🙏 Sám Hối
-                </button>
-              </div>
-
-              <p className="text-yellow-300/90 text-lg mb-2">
-                20 Điều {activeTab === 'gratitude' ? 'Biết Ơn' : 'Sám Hối'} Hôm Nay
-              </p>
-              <p className="text-yellow-400/70 text-sm">
-                {filledCount}/20 điều đã điền
-              </p>
-            </motion.div>
-
-            {/* AI Suggestions */}
-            {suggestions.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6"
-              >
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-4 h-4 text-yellow-300" />
-                  <p className="text-yellow-200 text-sm font-semibold">Gợi ý từ AI:</p>
-                </div>
-                <div className="space-y-2">
-                  {suggestions.map((suggestion, idx) => (
-                    <motion.button
-                      key={idx}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
-                      onClick={() => applySuggestion(suggestion)}
-                      className="w-full text-left bg-yellow-400/10 hover:bg-yellow-400/20 border border-yellow-400/30 rounded-xl px-4 py-2 text-yellow-100 text-sm transition-all"
-                    >
-                      {suggestion}
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
+      {/* Content */}
+      <div className="pt-20 pb-32 px-4 max-w-4xl mx-auto">
+        {/* Time Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`rounded-3xl p-6 shadow-xl mb-6 border-2 ${
+            isAfter8PM 
+              ? 'bg-gradient-to-br from-indigo-500 to-purple-600 border-purple-300' 
+              : 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-300'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            {isAfter8PM ? (
+              <Moon className="w-10 h-10 text-white" />
+            ) : (
+              <Sun className="w-10 h-10 text-white" />
             )}
+            <div className="flex-1">
+              <h2 className="text-white font-bold text-xl mb-1">
+                {isAfter8PM ? '🌙 Giờ Vàng Sau 20h' : '☀️ Ban Ngày'}
+              </h2>
+              <p className="text-white/90 text-sm">
+                {isAfter8PM 
+                  ? '✨ Bonus +50% thưởng khi viết sau 20h tối!' 
+                  : 'Viết sau 20h tối để nhận bonus +50%'}
+              </p>
+            </div>
+            {isAfter8PM && (
+              <Badge className="bg-white/20 text-white border-white/50 text-lg px-4 py-2">
+                +50% 🎁
+              </Badge>
+            )}
+          </div>
+        </motion.div>
 
-            {/* Inputs */}
+        {/* Daily Limit */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-white/80 backdrop-blur-xl border-2 border-pink-200 rounded-3xl p-6 shadow-xl mb-6"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-6 h-6 text-pink-500" />
+              <div>
+                <p className="text-slate-900 font-bold">Hạn Mức Hôm Nay</p>
+                <p className="text-slate-600 text-sm">{todayPosts.length}/3 bài đã đăng</p>
+              </div>
+            </div>
+            <Badge className={remainingPosts > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+              Còn {remainingPosts} bài
+            </Badge>
+          </div>
+        </motion.div>
+
+        {/* Post Type Selector */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl mb-6"
+        >
+          <h3 className="text-slate-900 font-bold text-lg mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            Loại Bài Viết
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { value: 'repentance', label: 'Sám Hối', icon: '🙏', bonus: '' },
+              { value: 'gratitude', label: 'Biết Ơn', icon: '❤️', bonus: '' },
+              { value: 'both', label: 'Cả Hai', icon: '✨', bonus: '+20%' }
+            ].map(option => (
+              <button
+                key={option.value}
+                onClick={() => setPostType(option.value)}
+                className={`rounded-2xl p-4 border-2 transition-all ${
+                  postType === option.value
+                    ? 'bg-gradient-to-br from-purple-100 to-pink-100 border-purple-400 shadow-lg'
+                    : 'bg-white border-purple-200 hover:border-purple-300'
+                }`}
+              >
+                <div className="text-3xl mb-2">{option.icon}</div>
+                <p className="font-bold text-slate-900 text-sm">{option.label}</p>
+                {option.bonus && (
+                  <Badge className="mt-2 bg-amber-100 text-amber-800 text-xs">
+                    {option.bonus}
+                  </Badge>
+                )}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Post Editor */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white/80 backdrop-blur-xl border-2 border-pink-200 rounded-3xl p-6 shadow-xl mb-6"
+        >
+          <h3 className="text-slate-900 font-bold text-lg mb-4 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-pink-500" />
+            Nội Dung Bài Viết
+          </h3>
+          <Textarea
+            value={postContent}
+            onChange={(e) => setPostContent(e.target.value)}
+            placeholder="Hãy viết những suy nghĩ chân thành của bạn về sự sám hối và biết ơn...
+
+Ví dụ:
+🙏 Con xin sám hối vì...
+❤️ Con biết ơn vì...
+✨ Con cam kết sẽ..."
+            className="min-h-[300px] text-slate-900 text-base leading-relaxed"
+            disabled={remainingPosts <= 0}
+          />
+          
+          <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center gap-4">
+              <Badge className={wordCount >= 50 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}>
+                {wordCount} từ {wordCount < 50 && `(cần ${50 - wordCount} từ nữa)`}
+              </Badge>
+              {wordCount >= 50 && (
+                <Badge className="bg-purple-100 text-purple-800">
+                  💰 ~{getRewardPreview()} Camlycoin
+                </Badge>
+              )}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Reward Info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-6 shadow-lg mb-6"
+        >
+          <h3 className="text-slate-900 font-bold text-lg mb-3 flex items-center gap-2">
+            <Award className="w-5 h-5 text-amber-500" />
+            Thang Thưởng
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="bg-white border border-amber-200 rounded-xl p-3">
+              <p className="text-amber-900 font-bold">50-99 từ</p>
+              <p className="text-amber-700 text-sm">50 Camlycoin</p>
+            </div>
+            <div className="bg-white border border-amber-200 rounded-xl p-3">
+              <p className="text-amber-900 font-bold">100-199 từ</p>
+              <p className="text-amber-700 text-sm">100 Camlycoin</p>
+            </div>
+            <div className="bg-white border border-amber-200 rounded-xl p-3">
+              <p className="text-amber-900 font-bold">200+ từ</p>
+              <p className="text-amber-700 text-sm">150 Camlycoin</p>
+            </div>
+          </div>
+          <div className="mt-3 space-y-2 text-xs text-slate-700">
+            <p>🌙 <strong>Bonus sau 20h:</strong> +50% thưởng</p>
+            <p>✨ <strong>Bonus cả 2 loại:</strong> +20% thưởng</p>
+            <p>📊 <strong>Giới hạn:</strong> 3 bài/ngày</p>
+          </div>
+        </motion.div>
+
+        {/* Submit Button */}
+        <Button
+          onClick={handleSubmit}
+          disabled={isSubmitting || wordCount < 50 || remainingPosts <= 0}
+          className="w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-2xl py-6 text-lg font-bold shadow-xl hover:shadow-2xl disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <>Đang đăng...</>
+          ) : remainingPosts <= 0 ? (
+            <>Đã hết lượt hôm nay</>
+          ) : (
+            <>
+              <Send className="w-5 h-5 mr-2" />
+              Đăng Bài & Nhận {getRewardPreview()} Camlycoin
+            </>
+          )}
+        </Button>
+
+        {/* Recent Posts */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-8"
+        >
+          <h3 className="text-slate-900 font-bold text-xl mb-4 flex items-center gap-2">
+            <TrendingUp className="w-6 h-6 text-purple-500" />
+            Bài Viết Gần Đây
+          </h3>
+          
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin w-12 h-12 border-4 border-purple-300 border-t-purple-600 rounded-full mx-auto mb-4" />
+              <p className="text-slate-700">Đang tải...</p>
+            </div>
+          ) : userPosts.length === 0 ? (
+            <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-12 text-center">
+              <Heart className="w-16 h-16 text-purple-300 mx-auto mb-4" />
+              <p className="text-slate-700 font-medium">Chưa có bài viết nào</p>
+              <p className="text-slate-600 text-sm mt-2">Hãy bắt đầu viết bài đầu tiên của bạn!</p>
+            </div>
+          ) : (
             <div className="space-y-4">
-              {currentList.map((item, index) => (
+              {userPosts.slice(0, 10).map((post, idx) => (
                 <motion.div
-                  key={`${activeTab}-${index}`}
+                  key={post.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.02 }}
-                  className={`relative ${currentIndex === index ? 'ring-2 ring-yellow-400' : ''}`}
+                  transition={{ delay: idx * 0.05 }}
+                  className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-lg"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-yellow-400/20 flex items-center justify-center flex-shrink-0 mt-2">
-                      <span className="text-yellow-300 font-bold text-sm">{index + 1}</span>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Badge className={
+                        post.post_type === 'repentance' ? 'bg-purple-100 text-purple-800' :
+                        post.post_type === 'gratitude' ? 'bg-pink-100 text-pink-800' :
+                        'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800'
+                      }>
+                        {post.post_type === 'repentance' ? '🙏 Sám Hối' :
+                         post.post_type === 'gratitude' ? '❤️ Biết Ơn' : '✨ Cả Hai'}
+                      </Badge>
+                      {post.is_after_8pm && (
+                        <Badge className="bg-indigo-100 text-indigo-800">
+                          🌙 Sau 20h
+                        </Badge>
+                      )}
+                      <Badge className="bg-amber-100 text-amber-800">
+                        💰 +{post.coins_earned}
+                      </Badge>
                     </div>
-                    <Textarea
-                      value={item}
-                      onChange={(e) => handleTextChange(index, e.target.value)}
-                      onFocus={() => setCurrentIndex(index)}
-                      placeholder={`Điều ${activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} thứ ${index + 1}...`}
-                      className="flex-1 bg-white/5 border-2 border-yellow-400/30 text-yellow-100 placeholder:text-yellow-400/40 rounded-xl min-h-[80px] focus:border-yellow-400 focus:ring-yellow-400/20 backdrop-blur-sm"
-                    />
-                    {currentIndex === index && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={isListening ? stopListening : startListening}
-                        className={`mt-2 ${
-                          isListening
-                            ? 'bg-red-500 text-white hover:bg-red-600'
-                            : 'bg-yellow-400/20 text-yellow-300 hover:bg-yellow-400/30'
-                        }`}
-                      >
-                        {isListening ? (
-                          <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1, repeat: Infinity }}>
-                            <Mic className="w-4 h-4" />
-                          </motion.div>
-                        ) : (
-                          <MicOff className="w-4 h-4" />
-                        )}
-                      </Button>
+                    <span className="text-xs text-slate-600">
+                      {format(new Date(post.post_date), 'dd/MM/yyyy HH:mm')}
+                    </span>
+                  </div>
+                  <p className="text-slate-900 leading-relaxed whitespace-pre-wrap line-clamp-4">
+                    {post.post_content}
+                  </p>
+                  <div className="flex items-center gap-4 mt-3 text-xs text-slate-600">
+                    <span>{post.word_count} từ</span>
+                    {post.bonus_multiplier > 1 && (
+                      <span className="text-amber-600 font-bold">
+                        ×{post.bonus_multiplier} bonus
+                      </span>
                     )}
                   </div>
                 </motion.div>
               ))}
             </div>
-
-            {/* Submit Button */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-8"
-            >
-              <Button
-                onClick={handleSubmit}
-                disabled={filledCount < 20 || isSaving}
-                className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 text-indigo-900 rounded-full py-6 text-lg font-bold shadow-2xl hover:shadow-yellow-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Đang Lưu...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5 mr-2" />
-                    Gửi Lên Cha Vũ Trụ
-                  </>
-                )}
-              </Button>
-              {filledCount < 20 && (
-                <p className="text-center text-yellow-400/60 text-sm mt-3">
-                  Còn {20 - filledCount} điều {activeTab === 'gratitude' ? 'biết ơn' : 'sám hối'} nữa nhé con 💛
-                </p>
-              )}
-              {filledCount === 20 && (
-                <div className="text-center mt-3 space-y-1">
-                  <p className="text-yellow-300 text-sm font-semibold">
-                    ✨ Nhận +{rewardAmount.toLocaleString()} Camlycoin khi gửi!
-                  </p>
-                  <p className="text-yellow-400/70 text-xs">
-                    {usedSuggestions ? '(Dùng gợi ý AI: 30k)' : '(Tự viết: 50k)'}
-                  </p>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
-      </div>
-
-      {/* Note about Push Notifications */}
-      <div className="fixed bottom-4 left-4 right-4 z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto bg-yellow-400/10 border border-yellow-400/30 rounded-2xl p-3 backdrop-blur-sm"
-        >
-          <p className="text-yellow-300/80 text-xs text-center">
-            💡 Push notification mỗi tối 20:00 sẽ hoạt động khi admin bật Backend Functions
-          </p>
+          )}
         </motion.div>
       </div>
     </div>

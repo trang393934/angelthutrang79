@@ -18,6 +18,7 @@ import Forum from './pages/Forum';
 import GratitudeJournal from './pages/GratitudeJournal';
 import Home from './pages/Home';
 import Imagine from './pages/Imagine';
+import IncomeReport from './pages/IncomeReport';
 import KnowledgeBase from './pages/KnowledgeBase';
 import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
@@ -37,7 +38,6 @@ import WalletBreakdown from './pages/WalletBreakdown';
 import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import IncomeReport from './pages/IncomeReport';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +62,7 @@ export const PAGES = {
     "GratitudeJournal": GratitudeJournal,
     "Home": Home,
     "Imagine": Imagine,
+    "IncomeReport": IncomeReport,
     "KnowledgeBase": KnowledgeBase,
     "Landing": Landing,
     "Leaderboard": Leaderboard,
@@ -81,7 +82,6 @@ export const PAGES = {
     "Whitepaper": Whitepaper,
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalManagement": WithdrawalManagement,
-    "IncomeReport": IncomeReport,
 }
 
 export const pagesConfig = {
