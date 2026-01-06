@@ -1005,7 +1005,7 @@ Trả về JSON:`;
                 size="sm"
                 className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
               >
-                Xem Lịch Sử ({allUserLogs.length} câu)
+                Xem Lịch Sử ({eliminatedLogs.length} câu)
               </Button>
             )}
           </div>
