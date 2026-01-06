@@ -1080,6 +1080,40 @@ Trả về JSON:`;
 
 
 
+        {/* Sync Total Earned - Admin Only */}
+        {isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
+          >
+            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
+              <RefreshCw className="w-6 h-6" />
+              Sync Tổng Đã Kiếm = Level Points
+            </h3>
+            <p className="text-white/90 text-sm mb-4">
+              Reset total_earned để khớp với total_points từ UserLevel cho tất cả users
+            </p>
+            <Button
+              onClick={async () => {
+                if (!confirm('Xác nhận sync total_earned = total_points cho TẤT CẢ users?')) return;
+                try {
+                  const result = await base44.functions.invoke('syncTotalEarnedWithLevel', {});
+                  alert(`✅ ${result.data.message}\nĐã cập nhật: ${result.data.summary.updated} users`);
+                  queryClient.invalidateQueries({ queryKey: ['user-balance'] });
+                } catch (error) {
+                  alert('❌ Lỗi: ' + error.message);
+                }
+              }}
+              className="w-full bg-white text-indigo-600 rounded-2xl font-bold py-6 text-lg hover:bg-indigo-50 shadow-lg hover:shadow-xl transition-all"
+            >
+              <RefreshCw className="w-5 h-5 mr-2" />
+              Sync Toàn Hệ Thống
+            </Button>
+          </motion.div>
+        )}
+
         {/* Admin Payment Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
