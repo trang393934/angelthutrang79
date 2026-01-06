@@ -242,9 +242,9 @@ async function auditSingleUser(userEmail, base44) {
   // Update balance với LOGIC MỚI
   const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: userEmail });
 
-  // CÔNG THỨC ĐÚNG: total_earned = available + admin_review + frozen (KHÔNG cộng paid vì đã rút ra ngoài)
+  // CÔNG THỨC ĐÚNG: total_earned = paid + available + admin_review + frozen
   const currentPaidAmount = balances.length > 0 ? (balances[0].paid_amount || 0) : 0;
-  const totalEarned = result.available_coins + result.admin_review_pending_coins + result.frozen_coins;
+  const totalEarned = currentPaidAmount + result.available_coins + result.admin_review_pending_coins + result.frozen_coins;
   
   if (balances.length > 0) {
     const balance = balances[0];
