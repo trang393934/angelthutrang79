@@ -1019,7 +1019,7 @@ Trả về JSON:`;
 
 
 
-        {/* Sync Total Earned - Admin Only */}
+        {/* Sync Level Points - Admin Only */}
         {isAdmin && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1029,17 +1029,17 @@ Trả về JSON:`;
           >
             <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
               <RefreshCw className="w-6 h-6" />
-              Sync Tổng Đã Kiếm = Level Points
+              Sync Level Points = Tổng Đã Kiếm - Tổng Bị Đóng Băng
             </h3>
             <p className="text-white/90 text-sm mb-4">
-              Reset total_earned để khớp với total_points từ UserLevel cho tất cả users
+              Cập nhật total_points = total_earned - frozen_balance cho tất cả users
             </p>
             <Button
               onClick={async () => {
-                if (!confirm('Xác nhận sync total_earned = total_points cho TẤT CẢ users?')) return;
+                if (!confirm('Xác nhận sync Level Points cho TẤT CẢ users?')) return;
                 try {
-                  const result = await base44.functions.invoke('syncTotalEarnedWithLevel', {});
-                  alert(`✅ ${result.data.message}\nĐã cập nhật: ${result.data.summary.updated} users`);
+                  const result = await base44.functions.invoke('syncLevelPoints', {});
+                  alert(`✅ ${result.data.message}\nĐã cập nhật: ${result.data.updated} users`);
                   queryClient.invalidateQueries({ queryKey: ['user-balance'] });
                 } catch (error) {
                   alert('❌ Lỗi: ' + error.message);
