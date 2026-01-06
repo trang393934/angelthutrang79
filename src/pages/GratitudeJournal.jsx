@@ -14,6 +14,7 @@ export default function GratitudeJournal() {
   const [currentUser, setCurrentUser] = useState(null);
   const [postContent, setPostContent] = useState('');
   const [postType, setPostType] = useState('both');
+  const [isSelfWritten, setIsSelfWritten] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const queryClient = useQueryClient();
 
@@ -52,7 +53,8 @@ export default function GratitudeJournal() {
     mutationFn: async () => {
       const result = await base44.functions.invoke('submitGratitudePost', {
         postContent,
-        postType
+        postType,
+        isSelfWritten
       });
       return result.data;
     },
@@ -60,7 +62,10 @@ export default function GratitudeJournal() {
       queryClient.invalidateQueries({ queryKey: ['gratitude-posts'] });
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       setPostContent('');
-      alert(`✅ ${data.message}\n💰 +${data.coinsEarned} Camlycoin\n📝 ${data.wordCount} từ\n${data.isAfter8PM ? '🌙 Bonus sau 20h: +50%' : ''}\n📊 Còn ${data.remainingPostsToday} bài trong ngày`);
+      const bonusInfo = data.isSelfWritten 
+        ? `${data.isAfter8PM ? '\n🌙 Bonus sau 20h: +50%' : ''}${data.postType === 'both' ? '\n✨ Bonus cả 2 loại: +20%' : ''}`
+        : '\n⚠️ Không có bonus (dựa gợi ý)';
+      alert(`✅ ${data.message}\n💰 +${data.coinsEarned} Camlycoin\n📝 ${data.wordCount} từ${bonusInfo}\n📊 Còn ${data.remainingPostsToday} bài trong ngày`);
     },
     onError: (error) => {
       alert(`❌ ${error.message || 'Có lỗi xảy ra!'}`);
@@ -96,13 +101,15 @@ export default function GratitudeJournal() {
 
   const getRewardPreview = () => {
     let base = 0;
-    if (wordCount >= 50 && wordCount < 100) base = 50;
-    else if (wordCount >= 100 && wordCount < 200) base = 100;
-    else if (wordCount >= 200) base = 150;
+    if (wordCount >= 50 && wordCount < 100) base = 5000;
+    else if (wordCount >= 100 && wordCount < 200) base = 7500;
+    else if (wordCount >= 200) base = 10000;
 
     let multiplier = 1.0;
-    if (isAfter8PM) multiplier = 1.5;
-    if (postType === 'both') multiplier += 0.2;
+    if (isSelfWritten) {
+      if (isAfter8PM) multiplier = 1.5;
+      if (postType === 'both') multiplier += 0.2;
+    }
 
     return Math.round(base * multiplier);
   };
@@ -184,8 +191,8 @@ export default function GratitudeJournal() {
               </h2>
               <p className="text-white/90 text-sm">
                 {isAfter8PM 
-                  ? '✨ Bonus +50% thưởng khi viết sau 20h tối!' 
-                  : 'Viết sau 20h tối để nhận bonus +50%'}
+                  ? '✨ Bonus +50% khi TỰ VIẾT sau 20h tối!' 
+                  : 'Tự viết sau 20h để nhận bonus +50%'}
               </p>
             </div>
             {isAfter8PM && (
@@ -217,11 +224,47 @@ export default function GratitudeJournal() {
           </div>
         </motion.div>
 
-        {/* Post Type Selector */}
+        {/* Self-Written Toggle */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-3xl p-6 shadow-xl mb-6"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${isSelfWritten ? 'bg-gradient-to-br from-green-400 to-emerald-500' : 'bg-gray-300'}`}>
+                <span className="text-2xl">{isSelfWritten ? '✍️' : '📝'}</span>
+              </div>
+              <div>
+                <p className="text-slate-900 font-bold text-lg">
+                  {isSelfWritten ? 'Tự Viết (Sáng Tạo)' : 'Dựa Gợi Ý Angel AI'}
+                </p>
+                <p className="text-slate-600 text-sm">
+                  {isSelfWritten 
+                    ? '✅ Được nhận bonus sau 20h và bonus cả 2 loại' 
+                    : '⚠️ Không nhận bonus (chỉ thưởng cơ bản)'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsSelfWritten(!isSelfWritten)}
+              className={`w-16 h-8 rounded-full transition-all ${
+                isSelfWritten ? 'bg-green-500' : 'bg-gray-400'
+              }`}
+            >
+              <div className={`w-6 h-6 bg-white rounded-full shadow-lg transition-transform ${
+                isSelfWritten ? 'translate-x-9' : 'translate-x-1'
+              }`} />
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Post Type Selector */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
           className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl mb-6"
         >
           <h3 className="text-slate-900 font-bold text-lg mb-4 flex items-center gap-2">
@@ -245,7 +288,7 @@ export default function GratitudeJournal() {
               >
                 <div className="text-3xl mb-2">{option.icon}</div>
                 <p className="font-bold text-slate-900 text-sm">{option.label}</p>
-                {option.bonus && (
+                {option.bonus && isSelfWritten && (
                   <Badge className="mt-2 bg-amber-100 text-amber-800 text-xs">
                     {option.bonus}
                   </Badge>
@@ -259,7 +302,7 @@ export default function GratitudeJournal() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          transition={{ delay: 0.2 }}
           className="bg-white/80 backdrop-blur-xl border-2 border-pink-200 rounded-3xl p-6 shadow-xl mb-6"
         >
           <h3 className="text-slate-900 font-bold text-lg mb-4 flex items-center gap-2">
@@ -297,7 +340,7 @@ Ví dụ:
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          transition={{ delay: 0.25 }}
           className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-3xl p-6 shadow-lg mb-6"
         >
           <h3 className="text-slate-900 font-bold text-lg mb-3 flex items-center gap-2">
@@ -307,20 +350,22 @@ Ví dụ:
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-white border border-amber-200 rounded-xl p-3">
               <p className="text-amber-900 font-bold">50-99 từ</p>
-              <p className="text-amber-700 text-sm">50 Camlycoin</p>
+              <p className="text-amber-700 text-sm">5,000 Camlycoin</p>
             </div>
             <div className="bg-white border border-amber-200 rounded-xl p-3">
               <p className="text-amber-900 font-bold">100-199 từ</p>
-              <p className="text-amber-700 text-sm">100 Camlycoin</p>
+              <p className="text-amber-700 text-sm">7,500 Camlycoin</p>
             </div>
             <div className="bg-white border border-amber-200 rounded-xl p-3">
               <p className="text-amber-900 font-bold">200+ từ</p>
-              <p className="text-amber-700 text-sm">150 Camlycoin</p>
+              <p className="text-amber-700 text-sm">10,000 Camlycoin</p>
             </div>
           </div>
           <div className="mt-3 space-y-2 text-xs text-slate-700">
-            <p>🌙 <strong>Bonus sau 20h:</strong> +50% thưởng</p>
-            <p>✨ <strong>Bonus cả 2 loại:</strong> +20% thưởng</p>
+            <p>✍️ <strong>Tự viết:</strong> Được nhận bonus</p>
+            <p>🌙 <strong>Bonus sau 20h (tự viết):</strong> +50% thưởng</p>
+            <p>✨ <strong>Bonus cả 2 loại (tự viết):</strong> +20% thưởng</p>
+            <p>📝 <strong>Dựa gợi ý Angel AI:</strong> Chỉ thưởng cơ bản, không bonus</p>
             <p>📊 <strong>Giới hạn:</strong> 3 bài/ngày</p>
           </div>
         </motion.div>
@@ -386,13 +431,22 @@ Ví dụ:
                         {post.post_type === 'repentance' ? '🙏 Sám Hối' :
                          post.post_type === 'gratitude' ? '❤️ Biết Ơn' : '✨ Cả Hai'}
                       </Badge>
-                      {post.is_after_8pm && (
+                      {post.is_self_written ? (
+                        <Badge className="bg-green-100 text-green-800">
+                          ✍️ Tự viết
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-gray-100 text-gray-800">
+                          📝 Gợi ý
+                        </Badge>
+                      )}
+                      {post.is_after_8pm && post.is_self_written && (
                         <Badge className="bg-indigo-100 text-indigo-800">
                           🌙 Sau 20h
                         </Badge>
                       )}
                       <Badge className="bg-amber-100 text-amber-800">
-                        💰 +{post.coins_earned}
+                        💰 +{post.coins_earned?.toLocaleString()}
                       </Badge>
                     </div>
                     <span className="text-xs text-slate-600">

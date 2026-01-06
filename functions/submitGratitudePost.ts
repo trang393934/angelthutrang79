@@ -9,10 +9,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { postContent, postType } = await req.json();
+    const { postContent, postType, isSelfWritten } = await req.json();
 
     if (!postContent || !postType) {
       return Response.json({ error: 'Missing postContent or postType' }, { status: 400 });
+    }
+
+    // isSelfWritten must be explicitly provided
+    if (typeof isSelfWritten !== 'boolean') {
+      return Response.json({ error: 'Missing isSelfWritten field' }, { status: 400 });
     }
 
     // Validate post type
@@ -29,14 +34,14 @@ Deno.serve(async (req) => {
     // Calculate word count
     const wordCount = postContent.trim().split(/\s+/).length;
 
-    // Calculate base reward
+    // Calculate base reward (5000-10000 Camlycoin)
     let baseReward = 0;
     if (wordCount >= 50 && wordCount < 100) {
-      baseReward = 50;
+      baseReward = 5000;
     } else if (wordCount >= 100 && wordCount < 200) {
-      baseReward = 100;
+      baseReward = 7500;
     } else if (wordCount >= 200) {
-      baseReward = 150;
+      baseReward = 10000;
     } else {
       return Response.json({ 
         error: 'Bài viết phải có ít nhất 50 từ để nhận thưởng',
@@ -44,15 +49,17 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Apply bonus multiplier for after 8pm
+    // Apply bonus multiplier ONLY if self-written
     let bonusMultiplier = 1.0;
-    if (isAfter8PM) {
-      bonusMultiplier = 1.5; // 50% bonus after 8pm
-    }
+    if (isSelfWritten) {
+      if (isAfter8PM) {
+        bonusMultiplier = 1.5; // 50% bonus after 8pm
+      }
 
-    // Apply bonus for type "both"
-    if (postType === 'both') {
-      bonusMultiplier += 0.2; // Additional 20% for both types
+      // Apply bonus for type "both"
+      if (postType === 'both') {
+        bonusMultiplier += 0.2; // Additional 20% for both types
+      }
     }
 
     const coinsEarned = Math.round(baseReward * bonusMultiplier);
@@ -83,7 +90,8 @@ Deno.serve(async (req) => {
       coins_earned: coinsEarned,
       word_count: wordCount,
       status: 'approved',
-      bonus_multiplier: bonusMultiplier
+      bonus_multiplier: bonusMultiplier,
+      is_self_written: isSelfWritten
     });
 
     // Update user balance
@@ -110,14 +118,15 @@ Deno.serve(async (req) => {
     const typeLabel = postType === 'repentance' ? 'Sám Hối' :
                       postType === 'gratitude' ? 'Biết Ơn' : 'Sám Hối & Biết Ơn';
     
-    const bonusText = isAfter8PM ? '\n🌙 Bonus sau 20h: +50%' : '';
-    const bothTypeBonus = postType === 'both' ? '\n✨ Bonus cả 2 loại: +20%' : '';
+    const selfWrittenText = isSelfWritten ? '\n✍️ Tự viết' : '\n📝 Dựa gợi ý';
+    const bonusText = (isSelfWritten && isAfter8PM) ? '\n🌙 Bonus sau 20h: +50%' : '';
+    const bothTypeBonus = (isSelfWritten && postType === 'both') ? '\n✨ Bonus cả 2 loại: +20%' : '';
 
     await base44.entities.CamlycoinTransaction.create({
       user_email: user.email,
       amount: coinsEarned,
       type: 'manual_add',
-      description: `📝 ${typeLabel}\n💰 +${coinsEarned} Camlycoin (${wordCount} từ)${bonusText}${bothTypeBonus}\n⏰ ${vietnamTime.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}`,
+      description: `📝 ${typeLabel}${selfWrittenText}\n💰 +${coinsEarned} Camlycoin (${wordCount} từ)${bonusText}${bothTypeBonus}\n⏰ ${vietnamTime.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}`,
       reference_id: journal.id
     });
 
@@ -132,6 +141,7 @@ Deno.serve(async (req) => {
       bonusMultiplier,
       isAfter8PM,
       postType,
+      isSelfWritten,
       journal,
       remainingPostsToday: 3 - (todayPosts.length + 1)
     });
