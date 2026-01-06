@@ -29,6 +29,7 @@ export default function VisionBoard() {
   const [generatedVision, setGeneratedVision] = useState(null);
   const [visionImages, setVisionImages] = useState([]);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [copied, setCopied] = useState(false);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
