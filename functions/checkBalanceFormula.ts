@@ -6,79 +6,71 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
 
     if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+      return Response.json({ error: 'Unauthorized - Admin only' }, { status: 403 });
     }
 
-    const { targetUserEmail } = await req.json();
+    // Fetch all balances
+    const balances = await base44.entities.CamlycoinBalance.list('-created_date', 10000);
 
-    if (!targetUserEmail) {
-      return Response.json({ error: 'targetUserEmail is required' }, { status: 400 });
+    const results = {
+      total_users: balances.length,
+      formula_violations: [],
+      correct: 0,
+      violated: 0
+    };
+
+    for (const balance of balances) {
+      const totalEarned = balance.total_earned || 0;
+      const pendingReview = balance.pending_review_balance || 0;
+      const frozen = balance.frozen_balance || 0;
+      const paid = balance.paid_amount || 0;
+
+      // Check if: pending_review + frozen > total_earned
+      const sum = pendingReview + frozen;
+      
+      if (sum > totalEarned) {
+        results.violated++;
+        results.formula_violations.push({
+          user_email: balance.user_email,
+          total_earned: totalEarned,
+          pending_review: pendingReview,
+          frozen: frozen,
+          paid_amount: paid,
+          sum_pending_frozen: sum,
+          difference: sum - totalEarned,
+          correct_pending_review: Math.max(0, totalEarned - paid - frozen)
+        });
+      } else {
+        results.correct++;
+      }
+
+      // Also check formula: total_earned = pending_review + paid + frozen
+      const calculatedTotal = pendingReview + paid + frozen;
+      if (Math.abs(calculatedTotal - totalEarned) > 0.01) {
+        if (!results.formula_violations.find(v => v.user_email === balance.user_email)) {
+          results.violated++;
+          results.formula_violations.push({
+            user_email: balance.user_email,
+            total_earned: totalEarned,
+            pending_review: pendingReview,
+            frozen: frozen,
+            paid_amount: paid,
+            calculated_total: calculatedTotal,
+            difference: totalEarned - calculatedTotal,
+            issue: 'total_earned ≠ pending + paid + frozen'
+          });
+        }
+      }
     }
-
-    console.log(`🔍 Checking balance formula for ${targetUserEmail}...`);
-
-    // Get user balance
-    const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ 
-      user_email: targetUserEmail 
-    });
-
-    if (balances.length === 0) {
-      return Response.json({ error: 'No balance found for user' }, { status: 404 });
-    }
-
-    const balance = balances[0];
-
-    // Extract values
-    const totalEarned = balance.total_earned || 0;
-    const availableBalance = balance.available_balance || 0;
-    const paidAmount = balance.paid_amount || 0;
-    const frozenBalance = balance.frozen_balance || 0;
-    const unpaidAmount = balance.unpaid_amount || 0;
-    const pendingReviewBalance = balance.pending_review_balance || 0;
-    const currentBalance = balance.balance || 0;
-
-    // Calculate expected unpaid_amount using formula:
-    // unpaid_amount = total_earned - available_balance - paid_amount - frozen_balance - pending_review_balance
-    const calculatedUnpaidAmount = totalEarned - availableBalance - paidAmount - frozenBalance - pendingReviewBalance;
-
-    // Check if formula is correct
-    const isCorrect = Math.abs(calculatedUnpaidAmount - unpaidAmount) < 1;
-
-    console.log('\n📊 Balance Breakdown:');
-    console.log(`Total Earned: ${totalEarned.toLocaleString()}`);
-    console.log(`Available Balance: ${availableBalance.toLocaleString()}`);
-    console.log(`Paid Amount: ${paidAmount.toLocaleString()}`);
-    console.log(`Frozen Balance: ${frozenBalance.toLocaleString()}`);
-    console.log(`Pending Review: ${pendingReviewBalance.toLocaleString()}`);
-    console.log(`Current Balance: ${currentBalance.toLocaleString()}`);
-    console.log(`\n🧮 Formula Check:`);
-    console.log(`${totalEarned.toLocaleString()} - ${availableBalance.toLocaleString()} - ${paidAmount.toLocaleString()} - ${frozenBalance.toLocaleString()} - ${pendingReviewBalance.toLocaleString()} = ${calculatedUnpaidAmount.toLocaleString()}`);
-    console.log(`Actual Unpaid Amount: ${unpaidAmount.toLocaleString()}`);
-    console.log(`Difference: ${(calculatedUnpaidAmount - unpaidAmount).toLocaleString()}`);
 
     return Response.json({
       success: true,
-      user_email: targetUserEmail,
-      balance_data: {
-        total_earned: totalEarned,
-        available_balance: availableBalance,
-        paid_amount: paidAmount,
-        frozen_balance: frozenBalance,
-        pending_review_balance: pendingReviewBalance,
-        unpaid_amount: unpaidAmount,
-        current_balance: currentBalance
-      },
-      formula_check: {
-        calculated_unpaid_amount: calculatedUnpaidAmount,
-        actual_unpaid_amount: unpaidAmount,
-        difference: calculatedUnpaidAmount - unpaidAmount,
-        is_correct: isCorrect,
-        formula: 'total_earned - available_balance - paid_amount - frozen_balance - pending_review_balance = unpaid_amount'
-      }
+      summary: results,
+      violations: results.formula_violations.slice(0, 50) // Top 50 violations
     });
 
   } catch (error) {
-    console.error('Check error:', error);
+    console.error('Check balance formula error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
