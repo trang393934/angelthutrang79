@@ -37,42 +37,43 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const correctBalance = level.total_points || 0;
-      const correctUnpaidAmount = correctBalance - (balance.paid_amount || 0);
+      const correctTotalEarned = level.total_points || 0;
+      
+      // Công thức: total_earned = available + frozen + pending_review + paid_amount
+      const calculatedTotalEarned = (balance.available_balance || 0) + 
+                                    (balance.frozen_balance || 0) + 
+                                    (balance.pending_review_balance || 0) + 
+                                    (balance.paid_amount || 0);
 
       const needsUpdate = 
-        balance.balance !== correctBalance || 
-        balance.unpaid_amount !== correctUnpaidAmount;
+        balance.total_earned !== correctTotalEarned || 
+        balance.balance !== correctTotalEarned;
 
       if (needsUpdate) {
         await base44.entities.CamlycoinBalance.update(balance.id, {
-          balance: correctBalance,
-          unpaid_amount: correctUnpaidAmount
+          total_earned: correctTotalEarned,
+          balance: correctTotalEarned,
+          unpaid_amount: correctTotalEarned - (balance.paid_amount || 0)
         });
-
-        // Check if sub-balances add up correctly
-        const subTotal = (balance.available_balance || 0) + 
-                        (balance.frozen_balance || 0) + 
-                        (balance.pending_review_balance || 0);
-
-        if (subTotal !== correctUnpaidAmount) {
-          results.issues.push({
-            user_email: level.user_email,
-            balance: correctBalance,
-            unpaid_amount: correctUnpaidAmount,
-            paid_amount: balance.paid_amount || 0,
-            available: balance.available_balance || 0,
-            frozen: balance.frozen_balance || 0,
-            pending_review: balance.pending_review_balance || 0,
-            sub_total: subTotal,
-            diff: correctUnpaidAmount - subTotal,
-            note: 'Sub-balances do not add up to unpaid_amount'
-          });
-        }
 
         results.updated++;
       } else {
         results.correct++;
+      }
+
+      // Check if sub-balances add up correctly
+      if (calculatedTotalEarned !== correctTotalEarned) {
+        results.issues.push({
+          user_email: level.user_email,
+          total_points: correctTotalEarned,
+          calculated_from_subs: calculatedTotalEarned,
+          available: balance.available_balance || 0,
+          frozen: balance.frozen_balance || 0,
+          pending_review: balance.pending_review_balance || 0,
+          paid_amount: balance.paid_amount || 0,
+          diff: correctTotalEarned - calculatedTotalEarned,
+          note: 'Sub-balances do not add up to total_points'
+        });
       }
     }
 
