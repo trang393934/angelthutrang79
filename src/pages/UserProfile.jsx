@@ -392,39 +392,14 @@ export default function UserProfile() {
     }
   });
 
-  // Approve pending review question mutation
+  // Approve pending review question mutation - LOGIC MỚI
   const approvePendingReviewMutation = useMutation({
     mutationFn: async (logId) => {
-      const log = pendingReviewLogs.find(l => l.id === logId);
-      if (!log) return;
-
-      // Move coins to available_balance
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
-      if (balances.length > 0) {
-        const balance = balances[0];
-        const currentAvailable = balance.available_balance || 0;
-        const currentPending = balance.pending_review_balance || 0;
-
-        await base44.entities.CamlycoinBalance.update(balance.id, {
-          pending_review_balance: Math.max(0, currentPending - log.coins_earned),
-          available_balance: currentAvailable + log.coins_earned
-        });
-      }
-
-      // Update log
-      await base44.entities.QuestionAuditLog.update(logId, {
-        coin_category: 'pending_withdrawal',
-        exclusion_reason: 'valid'
+      const response = await base44.functions.invoke('approveAdminReviewQuestion', {
+        log_ids: [logId],
+        reason: 'Admin duyệt từ User Profile'
       });
-
-      // Create transaction
-      await base44.entities.CamlycoinTransaction.create({
-        user_email: targetEmail,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `✅ Admin duyệt câu chờ review: "${log.question_text.substring(0, 50)}..."\n💰 +${log.coins_earned} → Available`,
-        processed_by: currentUser.email
-      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
@@ -433,34 +408,14 @@ export default function UserProfile() {
     }
   });
 
-  // Reject pending review question mutation
+  // Reject pending review question mutation - LOGIC MỚI
   const rejectPendingReviewMutation = useMutation({
     mutationFn: async (logId) => {
-      const log = pendingReviewLogs.find(l => l.id === logId);
-      if (!log) return;
-
-      // Move to frozen
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
-      if (balances.length > 0) {
-        const balance = balances[0];
-        await base44.entities.CamlycoinBalance.update(balance.id, {
-          pending_review_balance: Math.max(0, (balance.pending_review_balance || 0) - log.coins_earned),
-          frozen_balance: (balance.frozen_balance || 0) + log.coins_earned
-        });
-      }
-
-      await base44.entities.QuestionAuditLog.update(logId, {
-        coin_category: 'frozen'
+      const response = await base44.functions.invoke('rejectAdminReviewQuestion', {
+        log_ids: [logId],
+        reason: 'Admin từ chối từ User Profile'
       });
-
-      // Create transaction
-      await base44.entities.CamlycoinTransaction.create({
-        user_email: targetEmail,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `❌ Admin từ chối câu chờ review: "${log.question_text.substring(0, 50)}..."\n💰 ${log.coins_earned} → Frozen`,
-        processed_by: currentUser.email
-      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
@@ -984,33 +939,16 @@ Trả về JSON:`;
             <p className="text-amber-600 text-xs mt-1">⏳ Admin sẽ thanh toán ngày 1/10/20</p>
           </div>
 
-          {/* Chờ Duyệt Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
+          {/* Chờ Duyệt Thanh Toán - TỔNG CỦA AVAILABLE + ADMIN_REVIEW */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-orange-500" />
               <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.unpaid_amount || 0).toLocaleString()}
+              {((userBalance?.available_balance || 0) + (userBalance?.admin_review_pending || 0)).toLocaleString()}
             </p>
-            <p className="text-orange-600 text-xs mt-1">⏳ Cần admin duyệt</p>
-            
-            {/* Quick Approve Buttons - 20%, 30%, 50%, 70%, 100% - ADMIN ONLY */}
-            {isAdmin && (userBalance?.unpaid_amount || 0) > 0 && (
-              <div className="grid grid-cols-2 gap-2 mt-3">
-                {[20, 30, 50, 70, 100].map(percent => (
-                  <Button
-                    key={percent}
-                    onClick={() => approvePercentageMutation.mutate(percent)}
-                    disabled={approvePercentageMutation.isPending}
-                    size="sm"
-                    className="bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
-                  >
-                    Duyệt {percent}%
-                  </Button>
-                ))}
-              </div>
-            )}
+            <p className="text-orange-600 text-xs mt-1">💡 = Sẵn Sàng + Chờ Admin Review</p>
           </div>
 
           {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
@@ -1026,22 +964,22 @@ Trả về JSON:`;
           </div>
 
           {/* Chờ Admin Review - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-3xl p-6 shadow-lg">
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
-              <Eye className="w-6 h-6 text-orange-500" />
+              <Eye className="w-6 h-6 text-blue-500" />
               <span className="text-slate-700 text-xs font-medium">Chờ Admin Review</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.pending_review_balance || 0).toLocaleString()}
+              {(userBalance?.admin_review_pending || 0).toLocaleString()}
             </p>
-            <p className="text-orange-600 text-xs mt-1">🔍 Câu 11+ mỗi ngày</p>
+            <p className="text-blue-600 text-xs mt-1">🔍 Câu 11+ mỗi ngày</p>
 
             {/* Button Xem Danh Sách - ADMIN ONLY */}
-            {isAdmin && (userBalance?.pending_review_balance || 0) > 0 && (
+            {isAdmin && (userBalance?.admin_review_pending || 0) > 0 && (
               <Button
                 onClick={() => setShowPendingReviewModal(true)}
                 size="sm"
-                className="w-full bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
+                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
               >
                 Xem Danh Sách ({pendingReviewLogs.length} câu)
               </Button>
@@ -1164,7 +1102,11 @@ Trả về JSON:`;
                 </div>
                 <div className="flex items-start gap-2">
                   <Clock className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Chờ Duyệt Thanh Toán:</strong> Số coins đang chờ admin xét duyệt để chuyển vào Sẵn Sàng Thanh Toán</p>
+                  <p><strong>Chờ Duyệt Thanh Toán:</strong> Tổng của Sẵn Sàng Thanh Toán + Chờ Admin Review</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Eye className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Chờ Admin Review:</strong> Điểm từ câu 11+ mỗi ngày, khi được duyệt sẽ chuyển sang Sẵn Sàng Thanh Toán</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Lock className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />

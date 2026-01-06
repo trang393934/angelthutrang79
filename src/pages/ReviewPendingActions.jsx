@@ -40,55 +40,14 @@ export default function ReviewPendingActions() {
     enabled: isAdmin,
   });
 
-  // Approve logs mutation
+  // Approve logs mutation - LOGIC MỚI
   const approveMutation = useMutation({
     mutationFn: async ({ logIds, reason }) => {
-      const results = [];
-      
-      for (const logId of logIds) {
-        const log = auditLogs.find(l => l.id === logId);
-        if (!log) continue;
-
-        // Move coins to available_balance
-        const balances = await base44.entities.CamlycoinBalance.filter({ user_email: log.user_email });
-        if (balances.length > 0) {
-          const balance = balances[0];
-          const currentAvailable = balance.available_balance || 0;
-          const currentFrozen = balance.frozen_balance || 0;
-          const currentPending = balance.pending_review_balance || 0;
-
-          if (log.coin_category === 'frozen') {
-            await base44.entities.CamlycoinBalance.update(balance.id, {
-              frozen_balance: Math.max(0, currentFrozen - log.coins_earned),
-              available_balance: currentAvailable + log.coins_earned
-            });
-          } else if (log.coin_category === 'pending_review') {
-            await base44.entities.CamlycoinBalance.update(balance.id, {
-              pending_review_balance: Math.max(0, currentPending - log.coins_earned),
-              available_balance: currentAvailable + log.coins_earned
-            });
-          }
-        }
-
-        // Update log to mark as approved
-        await base44.entities.QuestionAuditLog.update(logId, {
-          coin_category: 'pending_withdrawal',
-          exclusion_reason: 'valid'
-        });
-
-        // Create admin action log
-        await base44.entities.CamlycoinTransaction.create({
-          user_email: log.user_email,
-          amount: 0,
-          type: 'admin_adjustment',
-          description: `✅ Admin duyệt câu hỏi: "${log.question_text.substring(0, 50)}..."\n💰 +${log.coins_earned} → Available\n📝 ${reason}`,
-          processed_by: currentUser.email
-        });
-
-        results.push({ logId, success: true });
-      }
-
-      return results;
+      const response = await base44.functions.invoke('approveAdminReviewQuestion', {
+        log_ids: logIds,
+        reason: reason
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-audit-logs'] });
@@ -98,44 +57,14 @@ export default function ReviewPendingActions() {
     }
   });
 
-  // Reject logs mutation
+  // Reject logs mutation - LOGIC MỚI
   const rejectMutation = useMutation({
     mutationFn: async ({ logIds, reason }) => {
-      const results = [];
-      
-      for (const logId of logIds) {
-        const log = auditLogs.find(l => l.id === logId);
-        if (!log) continue;
-
-        // If pending_review, move to frozen. If already frozen, keep frozen
-        if (log.coin_category === 'pending_review') {
-          const balances = await base44.entities.CamlycoinBalance.filter({ user_email: log.user_email });
-          if (balances.length > 0) {
-            const balance = balances[0];
-            await base44.entities.CamlycoinBalance.update(balance.id, {
-              pending_review_balance: Math.max(0, (balance.pending_review_balance || 0) - log.coins_earned),
-              frozen_balance: (balance.frozen_balance || 0) + log.coins_earned
-            });
-          }
-
-          await base44.entities.QuestionAuditLog.update(logId, {
-            coin_category: 'frozen'
-          });
-        }
-
-        // Create admin action log
-        await base44.entities.CamlycoinTransaction.create({
-          user_email: log.user_email,
-          amount: 0,
-          type: 'admin_adjustment',
-          description: `❌ Admin từ chối câu hỏi: "${log.question_text.substring(0, 50)}..."\n💰 ${log.coins_earned} → Frozen\n📝 ${reason}`,
-          processed_by: currentUser.email
-        });
-
-        results.push({ logId, success: true });
-      }
-
-      return results;
+      const response = await base44.functions.invoke('rejectAdminReviewQuestion', {
+        log_ids: logIds,
+        reason: reason
+      });
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-audit-logs'] });

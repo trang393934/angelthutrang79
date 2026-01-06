@@ -32,7 +32,7 @@ export default function AdminAuditControl() {
   const runAuditMutation = useMutation({
     mutationFn: async ({ target_email, batch_size, audit_all }) => {
       setIsRunning(true);
-      const response = await base44.functions.invoke('comprehensiveAudit', {
+      const response = await base44.functions.invoke('newComprehensiveAudit', {
         target_user_email: target_email || null,
         batch_size: batch_size || 50,
         audit_all: audit_all || false
@@ -46,23 +46,17 @@ export default function AdminAuditControl() {
 
   const approvePendingReviewMutation = useMutation({
     mutationFn: async ({ user_email }) => {
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email });
-      if (balances.length > 0) {
-        const balance = balances[0];
-        const pendingAmount = balance.pending_review_balance || 0;
-        
-        await base44.entities.CamlycoinBalance.update(balance.id, {
-          available_balance: (balance.available_balance || 0) + pendingAmount,
-          pending_review_balance: 0
-        });
-
-        // Log transaction
-        await base44.entities.CamlycoinTransaction.create({
-          user_email,
-          amount: 0,
-          type: 'admin_adjustment',
-          description: `✅ Admin approved pending review coins: +${pendingAmount} to available`,
-          processed_by: currentUser.email
+      // Lấy tất cả audit logs của user có coin_category = 'pending_review'
+      const allLogs = await base44.entities.QuestionAuditLog.list('-created_date', 10000);
+      const userPendingLogs = allLogs.filter(log => 
+        log.user_email === user_email && log.coin_category === 'pending_review'
+      );
+      
+      if (userPendingLogs.length > 0) {
+        const logIds = userPendingLogs.map(log => log.id);
+        await base44.functions.invoke('approveAdminReviewQuestion', {
+          log_ids: logIds,
+          reason: 'Admin duyệt tất cả pending review'
         });
       }
 
@@ -81,7 +75,7 @@ export default function AdminAuditControl() {
     );
   }
 
-  const totalPendingReview = allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0);
+  const totalPendingReview = allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50 relative">
@@ -206,12 +200,12 @@ export default function AdminAuditControl() {
                 <p className="text-red-700 text-3xl font-bold">{auditResults.summary.total_frozen.toLocaleString()}</p>
               </div>
               <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4">
-                <p className="text-xs text-blue-600 font-medium mb-1">Pending Review</p>
-                <p className="text-blue-700 text-3xl font-bold">{auditResults.summary.total_pending_review.toLocaleString()}</p>
+                <p className="text-xs text-blue-600 font-medium mb-1">Chờ Admin Review</p>
+                <p className="text-blue-700 text-3xl font-bold">{auditResults.summary.total_admin_review_pending.toLocaleString()}</p>
               </div>
               <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4">
-                <p className="text-xs text-green-600 font-medium mb-1">Valid</p>
-                <p className="text-green-700 text-3xl font-bold">{auditResults.summary.total_valid.toLocaleString()}</p>
+                <p className="text-xs text-green-600 font-medium mb-1">Sẵn Sàng</p>
+                <p className="text-green-700 text-3xl font-bold">{auditResults.summary.total_available.toLocaleString()}</p>
               </div>
             </div>
 
@@ -229,12 +223,12 @@ export default function AdminAuditControl() {
                       <p className="font-bold text-red-700">{result.frozen_coins.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-blue-600">Pending</p>
-                      <p className="font-bold text-blue-700">{result.pending_review_coins.toLocaleString()}</p>
+                      <p className="text-blue-600">Chờ Review</p>
+                      <p className="font-bold text-blue-700">{result.admin_review_pending_coins.toLocaleString()}</p>
                     </div>
                     <div>
-                      <p className="text-green-600">Valid</p>
-                      <p className="font-bold text-green-700">{result.valid_coins.toLocaleString()}</p>
+                      <p className="text-green-600">Sẵn Sàng</p>
+                      <p className="font-bold text-green-700">{result.available_coins.toLocaleString()}</p>
                     </div>
                   </div>
                 </div>
@@ -251,17 +245,17 @@ export default function AdminAuditControl() {
         >
           <h3 className="text-slate-900 font-bold text-2xl mb-6 flex items-center gap-2">
             <Users className="w-6 h-6 text-blue-500" />
-            Pending Review Approval ({totalPendingReview.toLocaleString()} coins)
+            Chờ Admin Review ({totalPendingReview.toLocaleString()} coins)
           </h3>
 
           <div className="space-y-3">
-            {allBalances.filter(b => (b.pending_review_balance || 0) > 0).map((balance) => (
+            {allBalances.filter(b => (b.admin_review_pending || 0) > 0).map((balance) => (
               <div key={balance.id} className="bg-white border-2 border-blue-200 rounded-2xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-bold text-slate-900">{balance.user_email}</p>
                     <p className="text-sm text-slate-600 mt-1">
-                      Pending: <strong>{balance.pending_review_balance.toLocaleString()} Camly</strong>
+                      Chờ Review: <strong>{balance.admin_review_pending.toLocaleString()} Camly</strong>
                     </p>
                   </div>
                   <Button
@@ -270,16 +264,16 @@ export default function AdminAuditControl() {
                     className="bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full"
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
-                    Approve → Available
+                    Duyệt Tất Cả
                   </Button>
                 </div>
               </div>
             ))}
 
-            {allBalances.filter(b => (b.pending_review_balance || 0) > 0).length === 0 && (
+            {allBalances.filter(b => (b.admin_review_pending || 0) > 0).length === 0 && (
               <div className="text-center py-8">
                 <CheckCircle className="w-12 h-12 text-blue-300 mx-auto mb-3" />
-                <p className="text-slate-700 font-medium">No pending review items</p>
+                <p className="text-slate-700 font-medium">Không có câu hỏi chờ duyệt</p>
               </div>
             )}
           </div>
