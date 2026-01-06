@@ -148,23 +148,22 @@ Trả về JSON:`,
         processed_by: currentUser.email
       });
 
-      // Update user balance
+      // Update user balance - LOGIC MỚI: Cộng vào available_balance (Sẵn Sàng Thanh Toán)
       const balances = await base44.entities.CamlycoinBalance.filter({ user_email: idea.created_by });
       if (balances.length > 0) {
         const balance = balances[0];
         await base44.entities.CamlycoinBalance.update(balance.id, {
-          balance: (balance.balance || 0) + idea.reward_points,
           total_earned: (balance.total_earned || 0) + idea.reward_points,
-          unpaid_amount: (balance.unpaid_amount || 0) + idea.reward_points
+          available_balance: (balance.available_balance || 0) + idea.reward_points
         });
       } else {
         await base44.entities.CamlycoinBalance.create({
           user_email: idea.created_by,
-          balance: idea.reward_points,
           total_earned: idea.reward_points,
-          total_spent: 0,
-          paid_amount: 0,
-          unpaid_amount: idea.reward_points
+          available_balance: idea.reward_points,
+          admin_review_pending: 0,
+          frozen_balance: 0,
+          paid_amount: 0
         });
       }
     },
