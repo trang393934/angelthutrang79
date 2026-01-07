@@ -204,7 +204,15 @@ Trả về JSON:`,
     setIsConnectingWallet(true);
     
     if (typeof window.ethereum === 'undefined') {
-      alert('Vui lòng cài đặt MetaMask hoặc ví Web3 để tiếp tục!');
+      // Mobile: Direct to MetaMask app or show instructions
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        const currentUrl = window.location.href;
+        const metamaskDeepLink = `https://metamask.app.link/dapp/${currentUrl.replace('https://', '')}`;
+        window.location.href = metamaskDeepLink;
+      } else {
+        window.open('https://metamask.io/download/', '_blank');
+      }
       setIsConnectingWallet(false);
       return;
     }
@@ -214,7 +222,6 @@ Trả về JSON:`,
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       
       if (accounts.length === 0) {
-        alert('Không tìm thấy tài khoản. Vui lòng mở khóa ví của bạn.');
         setIsConnectingWallet(false);
         return;
       }

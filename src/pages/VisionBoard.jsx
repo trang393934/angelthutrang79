@@ -11,6 +11,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import html2canvas from 'html2canvas';
+import { toast } from 'sonner';
 
 export default function VisionBoard() {
   const [currentUser, setCurrentUser] = useState(null);
