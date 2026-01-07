@@ -86,14 +86,16 @@ export default function IncomeReport() {
       sourceMap[type] = (sourceMap[type] || 0) + tx.amount;
     });
 
-    return Object.entries(sourceMap).map(([type, amount]) => ({
-      name: type === 'manual_add' ? 'Câu Hỏi' :
-            type === 'bounty_reward' ? 'Bounty' :
-            type === 'build_reward' ? 'Build Reward' :
-            type === 'admin_adjustment' ? 'Admin Bonus' : type,
-      value: amount,
-      type
-    }));
+    return Object.entries(sourceMap)
+      .filter(([type]) => currentUser?.role === 'admin' || type !== 'admin_adjustment')
+      .map(([type, amount]) => ({
+        name: type === 'manual_add' ? 'Câu Hỏi' :
+              type === 'bounty_reward' ? 'Bounty' :
+              type === 'build_reward' ? 'Build Reward' :
+              type === 'admin_adjustment' ? 'Admin Bonus' : type,
+        value: amount,
+        type
+      }));
   }, [filteredTransactions]);
 
   // Calculate daily income for chart
@@ -273,7 +275,7 @@ export default function IncomeReport() {
                   { value: 'all', label: 'Tất Cả' },
                   { value: 'manual_add', label: 'Câu Hỏi' },
                   { value: 'bounty_reward', label: 'Bounty' },
-                  { value: 'admin_adjustment', label: 'Admin' }
+                  ...(currentUser?.role === 'admin' ? [{ value: 'admin_adjustment', label: 'Admin' }] : [])
                 ].map(option => (
                   <Button
                     key={option.value}

@@ -112,14 +112,23 @@ export default function CamlycoinHistory() {
     spent: filteredTransactions.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0),
   };
 
-  const transactionTypes = {
-    bounty_reward: { label: 'Bounty Reward', icon: Award, color: 'bg-purple-100 text-purple-800' },
-    build_reward: { label: 'Build Reward', icon: Award, color: 'bg-indigo-100 text-indigo-800' },
-    admin_adjustment: { label: 'Admin Adjustment', icon: DollarSign, color: 'bg-blue-100 text-blue-800' },
-    manual_add: { label: 'Thưởng', icon: Plus, color: 'bg-green-100 text-green-800' },
-    manual_deduct: { label: 'Trừ', icon: Minus, color: 'bg-red-100 text-red-800' },
-    purchase: { label: 'Mua', icon: TrendingDown, color: 'bg-orange-100 text-orange-800' }
+  const getTransactionTypes = () => {
+    const types = {
+      bounty_reward: { label: 'Bounty Reward', icon: Award, color: 'bg-purple-100 text-purple-800' },
+      build_reward: { label: 'Build Reward', icon: Award, color: 'bg-indigo-100 text-indigo-800' },
+      manual_add: { label: 'Thưởng', icon: Plus, color: 'bg-green-100 text-green-800' },
+      manual_deduct: { label: 'Trừ', icon: Minus, color: 'bg-red-100 text-red-800' },
+      purchase: { label: 'Mua', icon: TrendingDown, color: 'bg-orange-100 text-orange-800' }
+    };
+    
+    if (currentUser?.role === 'admin') {
+      types.admin_adjustment = { label: 'Admin Adjustment', icon: DollarSign, color: 'bg-blue-100 text-blue-800' };
+    }
+    
+    return types;
   };
+  
+  const transactionTypes = getTransactionTypes();
 
   // Parse energy scores from transaction descriptions
   const parseEnergyScore = (description) => {
@@ -458,7 +467,7 @@ export default function CamlycoinHistory() {
                             </span>
                           </div>
                           <p className="text-slate-900 font-medium mb-1 break-words whitespace-pre-line">{tx.description}</p>
-                          {tx.processed_by && (
+                          {currentUser?.role === 'admin' && tx.processed_by && (
                             <p className="text-xs text-purple-600">
                               Xử lý bởi: {tx.processed_by}
                             </p>

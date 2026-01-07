@@ -73,8 +73,16 @@ export default function BuildAndBounty() {
   };
 
   const { data: ideas = [] } = useQuery({
-    queryKey: ['build-ideas'],
-    queryFn: () => base44.entities.BuildIdea.list('-created_date'),
+    queryKey: ['build-ideas', currentUser?.email],
+    queryFn: async () => {
+      if (!currentUser) return [];
+      // Admin sees all, regular users see only their own
+      if (currentUser.role === 'admin') {
+        return base44.entities.BuildIdea.list('-created_date');
+      }
+      return base44.entities.BuildIdea.filter({ created_by: currentUser.email }, '-created_date');
+    },
+    enabled: !!currentUser,
   });
 
   const submitIdeaMutation = useMutation({
@@ -704,8 +712,12 @@ Trả về JSON:`,
                       </Button>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-purple-600 font-medium">
-                      <span>Bởi {idea.created_by}</span>
-                      <span>•</span>
+                      {currentUser?.role === 'admin' && (
+                        <>
+                          <span>Bởi {idea.created_by}</span>
+                          <span>•</span>
+                        </>
+                      )}
                       <span>{new Date(idea.created_date).toLocaleDateString('vi-VN')}</span>
                     </div>
                   </motion.div>
