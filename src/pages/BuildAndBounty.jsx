@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import MultiWalletConnect from '@/components/wallet/MultiWalletConnect';
 
 export default function BuildAndBounty() {
   const [activeTab, setActiveTab] = useState('build');
@@ -191,118 +192,19 @@ Trả về JSON:`,
     },
   });
 
-  const networkConfigs = {
-    'Ethereum': { chainId: '0x1', name: 'Ethereum Mainnet', symbol: 'ETH' },
-    'Binance Smart Chain': { chainId: '0x38', name: 'BSC Mainnet', symbol: 'BNB' },
-    'Polygon': { chainId: '0x89', name: 'Polygon Mainnet', symbol: 'MATIC' },
-    'Arbitrum': { chainId: '0xa4b1', name: 'Arbitrum One', symbol: 'ETH' },
-    'Optimism': { chainId: '0xa', name: 'Optimism', symbol: 'ETH' },
-    'Base': { chainId: '0x2105', name: 'Base', symbol: 'ETH' }
-  };
-
-  const connectWallet = async (network) => {
-    setIsConnectingWallet(true);
-    
-    if (typeof window.ethereum === 'undefined') {
-      // Mobile: Direct to MetaMask app or show instructions
-      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-      if (isMobile) {
-        const currentUrl = window.location.href;
-        const metamaskDeepLink = `https://metamask.app.link/dapp/${currentUrl.replace('https://', '')}`;
-        window.location.href = metamaskDeepLink;
-      } else {
-        window.open('https://metamask.io/download/', '_blank');
+  const handleWalletConnect = (walletData) => {
+    setWalletAddress(walletData.address);
+    setSelectedNetwork(walletData.network);
+    setWalletBalances({
+      native: {
+        symbol: walletData.symbol,
+        balance: walletData.balance
       }
-      setIsConnectingWallet(false);
-      return;
-    }
+    });
 
-    try {
-      // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      
-      if (accounts.length === 0) {
-        setIsConnectingWallet(false);
-        return;
-      }
-
-      const address = accounts[0];
-      const config = networkConfigs[network];
-
-      // Switch to correct network
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: config.chainId }],
-        });
-      } catch (switchError) {
-        // Chain not added, try adding it
-        if (switchError.code === 4902) {
-          try {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: config.chainId,
-                chainName: config.name,
-              }],
-            });
-          } catch (addError) {
-            console.error('Add network error:', addError);
-            setIsConnectingWallet(false);
-            return;
-          }
-          } else {
-          console.error('Switch network error:', switchError);
-          setIsConnectingWallet(false);
-          return;
-          }
-          }
-
-          // Save to state and localStorage
-          setWalletAddress(address);
-          setSelectedNetwork(network);
-          localStorage.setItem('walletAddress', address);
-          localStorage.setItem('selectedNetwork', network);
-
-          // Load balances
-          await loadWalletBalances(address, network);
-
-          setShowWalletModal(false);
-          } catch (error) {
-          console.error('Connection error:', error);
-          // Silently handle - user may have rejected or closed popup
-          }
-
-          setIsConnectingWallet(false);
-          };
-
-  const loadWalletBalances = async (address, network) => {
-    if (!window.ethereum || !address) return;
-    
-    setIsLoadingBalances(true);
-    const config = networkConfigs[network];
-    
-    try {
-      // Get native token balance (ETH, BNB, MATIC, etc.)
-      const balance = await window.ethereum.request({
-        method: 'eth_getBalance',
-        params: [address, 'latest'],
-      });
-      
-      // Convert from Wei to Ether
-      const balanceInEther = parseInt(balance, 16) / Math.pow(10, 18);
-      
-      setWalletBalances({
-        native: {
-          symbol: config.symbol,
-          balance: balanceInEther.toFixed(4)
-        }
-      });
-    } catch (error) {
-      console.error('Error loading balances:', error);
-    }
-    
-    setIsLoadingBalances(false);
+    localStorage.setItem('walletAddress', walletData.address);
+    localStorage.setItem('selectedNetwork', walletData.network);
+    localStorage.setItem('walletType', walletData.walletType);
   };
 
   const disconnectWallet = () => {
@@ -480,7 +382,10 @@ Trả về JSON:`,
             </div>
           ) : (
             <Button
-              onClick={() => setShowWalletModal(true)}
+              onClick={() => {
+                setSelectedNetwork('Binance Smart Chain');
+                setShowWalletModal(true);
+              }}
               variant="outline"
               size="sm"
               className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full flex-shrink-0 text-xs px-3"
@@ -493,80 +398,12 @@ Trả về JSON:`,
       </div>
 
       {/* Wallet Connection Modal */}
-      <AnimatePresence>
-        {showWalletModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowWalletModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-8 max-w-md w-full shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
-                    <Wallet className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-slate-900 text-xl font-semibold">Kết Nối Ví</h3>
-                    <p className="text-purple-700 text-sm">Chọn mạng blockchain</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowWalletModal(false)}
-                  className="text-purple-600 hover:bg-purple-100"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {Object.keys(networkConfigs).map((network) => {
-                  const config = networkConfigs[network];
-                  return (
-                    <Button
-                      key={network}
-                      onClick={() => connectWallet(network)}
-                      disabled={isConnectingWallet}
-                      className="w-full bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border-2 border-purple-200 hover:border-purple-400 text-slate-900 rounded-2xl py-6 font-semibold shadow-md hover:shadow-lg transition-all group"
-                    >
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                          {isConnectingWallet ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <Wallet className="w-5 h-5" />
-                          )}
-                          <span>{network}</span>
-                        </div>
-                        <Badge variant="outline" className="bg-white border-purple-300 text-purple-700">
-                          {config.symbol}
-                        </Badge>
-                      </div>
-                    </Button>
-                  );
-                })}
-              </div>
-
-              <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 mt-4">
-               <p className="text-purple-900 text-xs font-semibold mb-2">📱 Hướng dẫn cho Mobile:</p>
-               <p className="text-purple-800 text-xs leading-relaxed">
-                 Nếu bạn dùng điện thoại, vui lòng mở trang này trong <strong>MetaMask Browser</strong> hoặc <strong>Trust Wallet Browser</strong> để kết nối ví.
-               </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <MultiWalletConnect
+        isOpen={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        onConnect={handleWalletConnect}
+        selectedNetwork={selectedNetwork || 'Binance Smart Chain'}
+      />
 
       {/* Task Submission Modal */}
       <AnimatePresence>
