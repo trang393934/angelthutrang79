@@ -247,34 +247,34 @@ Trả về JSON:`,
               }],
             });
           } catch (addError) {
-            alert('Không thể thêm mạng. Vui lòng thử lại.');
+            console.error('Add network error:', addError);
             setIsConnectingWallet(false);
             return;
           }
-        } else {
-          alert('Không thể chuyển đổi mạng. Vui lòng thử lại.');
+          } else {
+          console.error('Switch network error:', switchError);
           setIsConnectingWallet(false);
           return;
-        }
-      }
+          }
+          }
 
-      // Save to state and localStorage
-      setWalletAddress(address);
-      setSelectedNetwork(network);
-      localStorage.setItem('walletAddress', address);
-      localStorage.setItem('selectedNetwork', network);
-      
-      // Load balances
-      await loadWalletBalances(address, network);
-      
-      setShowWalletModal(false);
-    } catch (error) {
-      console.error('Connection error:', error);
-      alert('Không thể kết nối ví. Vui lòng thử lại.');
-    }
-    
-    setIsConnectingWallet(false);
-  };
+          // Save to state and localStorage
+          setWalletAddress(address);
+          setSelectedNetwork(network);
+          localStorage.setItem('walletAddress', address);
+          localStorage.setItem('selectedNetwork', network);
+
+          // Load balances
+          await loadWalletBalances(address, network);
+
+          setShowWalletModal(false);
+          } catch (error) {
+          console.error('Connection error:', error);
+          // Silently handle - user may have rejected or closed popup
+          }
+
+          setIsConnectingWallet(false);
+          };
 
   const loadWalletBalances = async (address, network) => {
     if (!window.ethereum || !address) return;
@@ -316,7 +316,6 @@ Trả về JSON:`,
   const submitTaskMutation = useMutation({
     mutationFn: async () => {
       if (!walletAddress) {
-        alert('Vui lòng kết nối ví trước!');
         return;
       }
 
@@ -333,7 +332,9 @@ Trả về JSON:`,
       setShowTaskModal(false);
       setProofLink('');
       setTaskDescription('');
-      alert('🎉 Đã gửi thành công! Team sẽ xem xét và phê duyệt trong 3-5 ngày.');
+    },
+    onSuccess: () => {
+      // Success feedback
     }
   });
 
@@ -556,9 +557,12 @@ Trả về JSON:`,
                 })}
               </div>
 
-              <p className="text-center text-xs text-purple-600 mt-4">
-                Hỗ trợ MetaMask, WalletConnect, và các ví Web3 khác
-              </p>
+              <div className="bg-purple-50 border border-purple-200 rounded-2xl p-4 mt-4">
+               <p className="text-purple-900 text-xs font-semibold mb-2">📱 Hướng dẫn cho Mobile:</p>
+               <p className="text-purple-800 text-xs leading-relaxed">
+                 Nếu bạn dùng điện thoại, vui lòng mở trang này trong <strong>MetaMask Browser</strong> hoặc <strong>Trust Wallet Browser</strong> để kết nối ví.
+               </p>
+              </div>
             </motion.div>
           </motion.div>
         )}
