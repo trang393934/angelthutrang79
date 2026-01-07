@@ -9,12 +9,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    console.log('🔍 Starting duplicate valid questions fix...');
+    const { targetEmail, batchSize = 10 } = await req.json().catch(() => ({}));
 
-    // Fetch all valid questions
+    console.log('🔍 Starting duplicate valid questions fix...');
+    console.log(`Target user: ${targetEmail || 'ALL'}, Batch size: ${batchSize}`);
+
+    // Fetch valid questions (filter by user if specified)
+    const queryFilter = { exclusion_reason: 'valid' };
+    if (targetEmail) {
+      queryFilter.user_email = targetEmail;
+    }
+    
     const allValidQuestions = await base44.asServiceRole.entities.QuestionAuditLog.filter(
-      { exclusion_reason: 'valid' },
-      '-question_date'
+      queryFilter,
+      '-question_date',
+      targetEmail ? 10000 : 1000 // Limit to avoid timeout
     );
 
     console.log(`📊 Found ${allValidQuestions.length} valid questions to check`);
@@ -45,8 +54,10 @@ Deno.serve(async (req) => {
       return intersection.size / union.size;
     };
 
-    // Process each user-date group
-    for (const [key, questions] of Object.entries(userDateGroups)) {
+    // Process each user-date group (limit to batchSize)
+    const groupKeys = Object.keys(userDateGroups).slice(0, batchSize);
+    for (const key of groupKeys) {
+      const questions = userDateGroups[key];
       const [userEmail, date] = key.split('_');
       
       // Sort by question_number_in_day
