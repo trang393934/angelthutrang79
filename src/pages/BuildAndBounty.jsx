@@ -149,6 +149,10 @@ Trả về JSON:`,
       base44.entities.BuildIdea.update(id, { votes: currentVotes + 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
+      toast.success('⭐ Đã vote!', {
+        description: 'Cảm ơn bạn đã ủng hộ ý tưởng này',
+        duration: 2000,
+      });
     },
   });
 
