@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Trophy, Medal, Crown, TrendingUp, Calendar, Filter, Award, Coins, Star } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, Crown, TrendingUp, Calendar, Filter, Award, Coins, Star, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
