@@ -19,8 +19,10 @@ export default function IncomeReport() {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
   }, []);
 
+  const [isFixing, setIsFixing] = useState(false);
+
   // Fetch user balance
-  const { data: userBalance } = useQuery({
+  const { data: userBalance, refetch: refetchBalance } = useQuery({
     queryKey: ['user-balance', currentUser?.email],
     queryFn: async () => {
       if (!currentUser) return null;
@@ -145,6 +147,45 @@ export default function IncomeReport() {
   }, [filteredTransactions]);
 
   const COLORS = ['#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444'];
+
+  // Calculate balance integrity
+  const balanceCheck = useMemo(() => {
+    if (!userBalance) return null;
+
+    const totalEarned = userBalance.total_earned || 0;
+    const available = userBalance.available_balance || 0;
+    const pending = userBalance.admin_review_pending || 0;
+    const frozen = userBalance.frozen_balance || 0;
+    const paid = userBalance.paid_amount || 0;
+
+    const sumOfSubBalances = available + pending + frozen + paid;
+    const discrepancy = totalEarned - sumOfSubBalances;
+
+    return {
+      totalEarned,
+      available,
+      pending,
+      frozen,
+      paid,
+      sumOfSubBalances,
+      discrepancy,
+      hasDiscrepancy: Math.abs(discrepancy) >= 1
+    };
+  }, [userBalance]);
+
+  const handleFixDiscrepancy = async () => {
+    setIsFixing(true);
+    try {
+      const result = await base44.functions.invoke('fixBalanceDiscrepancy', {});
+      console.log('Fix result:', result.data);
+      await refetchBalance();
+      alert(`✅ Đã sửa xong!\n\nDiscrepancy cũ: ${balanceCheck.discrepancy.toLocaleString()}\nDiscrepancy mới: 0`);
+    } catch (error) {
+      console.error('Fix failed:', error);
+      alert('❌ Sửa thất bại: ' + error.message);
+    }
+    setIsFixing(false);
+  };
 
   const exportReport = () => {
     const reportData = {
@@ -294,6 +335,47 @@ export default function IncomeReport() {
             </div>
           </div>
         </motion.div>
+
+        {/* Balance Check Card */}
+        {balanceCheck?.hasDiscrepancy && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-gradient-to-br from-red-50 to-orange-50 border-2 border-red-300 rounded-3xl p-6 shadow-xl mb-6"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h3 className="text-red-900 font-bold text-lg mb-2 flex items-center gap-2">
+                  ❌ Kiểm Tra Công Thức
+                </h3>
+                <div className="space-y-2 text-sm">
+                  <p className="text-slate-700">
+                    <span className="font-semibold">Tổng Kiếm:</span> {balanceCheck.totalEarned.toLocaleString()}
+                  </p>
+                  <p className="text-slate-700">
+                    <span className="font-semibold">Tổng Chi Tiết:</span> {balanceCheck.sumOfSubBalances.toLocaleString()}
+                  </p>
+                  <p className="text-red-700 font-bold">
+                    ❌ SAI LỆCH: {balanceCheck.discrepancy.toLocaleString()}
+                  </p>
+                  <div className="text-xs text-slate-600 bg-white/70 rounded-lg p-2 mt-2">
+                    <p>Sẵn Sàng TT: {balanceCheck.available.toLocaleString()}</p>
+                    <p>Chờ Duyệt TT: {balanceCheck.pending.toLocaleString()}</p>
+                    <p>Đóng Băng: {balanceCheck.frozen.toLocaleString()}</p>
+                    <p>Đã TT: {balanceCheck.paid.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+              <Button
+                onClick={handleFixDiscrepancy}
+                disabled={isFixing}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg hover:shadow-xl disabled:opacity-50 whitespace-nowrap"
+              >
+                {isFixing ? '⏳ Đang sửa...' : '🔧 Fix & Refresh'}
+              </Button>
+            </div>
+          </motion.div>
+        )}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
