@@ -3,6 +3,7 @@ import AdminAuditControl from './pages/AdminAuditControl';
 import AdminCommunityRewards from './pages/AdminCommunityRewards';
 import AdminDashboard from './pages/AdminDashboard';
 import Analytics from './pages/Analytics';
+import AppRoot from './pages/AppRoot';
 import AuditDashboard from './pages/AuditDashboard';
 import AutoClaimSettings from './pages/AutoClaimSettings';
 import BlogEditor from './pages/BlogEditor';
@@ -32,6 +33,7 @@ import ReviewPendingActions from './pages/ReviewPendingActions';
 import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
+import UserManagement from './pages/UserManagement';
 import UserProfile from './pages/UserProfile';
 import VisionBoard from './pages/VisionBoard';
 import WalletBreakdown from './pages/WalletBreakdown';
@@ -39,8 +41,6 @@ import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import AppRoot from './pages/AppRoot';
-import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +50,7 @@ export const PAGES = {
     "AdminCommunityRewards": AdminCommunityRewards,
     "AdminDashboard": AdminDashboard,
     "Analytics": Analytics,
+    "AppRoot": AppRoot,
     "AuditDashboard": AuditDashboard,
     "AutoClaimSettings": AutoClaimSettings,
     "BlogEditor": BlogEditor,
@@ -79,6 +80,7 @@ export const PAGES = {
     "RewardsManagement": RewardsManagement,
     "Settings": Settings,
     "TestR2Upload": TestR2Upload,
+    "UserManagement": UserManagement,
     "UserProfile": UserProfile,
     "VisionBoard": VisionBoard,
     "WalletBreakdown": WalletBreakdown,
@@ -86,8 +88,6 @@ export const PAGES = {
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
-    "AppRoot": AppRoot,
-    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {

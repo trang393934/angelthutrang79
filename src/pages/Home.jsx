@@ -10,6 +10,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import HonorBoard from '@/components/HonorBoard';
 import CamlyCoinWidget from '@/components/CamlyCoinWidget';
+import PersonalizedRecommendations from '@/components/PersonalizedRecommendations';
 
 export default function Home() {
   const [particles, setParticles] = useState([]);
@@ -372,6 +373,16 @@ export default function Home() {
       {/* Only show content if user has agreed to Light Law */}
       {currentUser && currentUser.light_law_agreed && (
         <>
+      {/* Personalized Recommendations */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="relative py-4 px-4 max-w-7xl mx-auto"
+      >
+        <PersonalizedRecommendations />
+      </motion.section>
+
       {/* User Dashboard Section */}
       <motion.section 
         initial={{ opacity: 0, y: 20 }}
