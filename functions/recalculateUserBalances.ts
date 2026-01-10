@@ -202,6 +202,9 @@ Deno.serve(async (req) => {
 
         successCount++;
 
+        // Add delay between users to avoid rate limiting
+        await sleep(300);
+
       } catch (error) {
         console.error(`  ❌ Error processing ${userEmail}:`, error.message);
         console.error(`  📋 Error stack:`, error.stack);
