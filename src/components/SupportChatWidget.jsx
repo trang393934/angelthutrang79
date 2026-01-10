@@ -155,13 +155,6 @@ Trả lời bằng tiếng Việt:`,
     { text: 'Tính năng nào dành cho tôi?', icon: '✨' },
   ];
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
     <>
       {/* Chat Button - Draggable */}
