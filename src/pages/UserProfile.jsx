@@ -315,20 +315,17 @@ export default function UserProfile() {
       if (!userBalance) return;
       
       const paidAmount = parseFloat(amount);
-      const currentAvailable = userBalance.available_balance || 0;
+      const currentAvailable = userBalance.available_for_withdrawal || 0;
       const currentPaid = userBalance.paid_amount || 0;
-      const currentBalance = userBalance.balance || 0;
-      
+
       if (paidAmount > currentAvailable) {
-        alert('Số tiền thanh toán không được lớn hơn số Sẵn Sàng Thanh Toán!');
+        alert('Số tiền thanh toán không được lớn hơn số Sẵn Sàng Rút!');
         return;
       }
-      
-      // Reset available về 0 sau khi thanh toán, trừ balance
+
+      // Update paid amount, available_for_withdrawal will be recalculated by formula
       await base44.entities.CamlycoinBalance.update(userBalance.id, {
-        paid_amount: currentPaid + paidAmount,
-        available_balance: 0,
-        balance: currentBalance - paidAmount
+        paid_amount: currentPaid + paidAmount
       });
       
       // Create transaction record
@@ -1505,9 +1502,9 @@ Trả về JSON:`;
                 </div>
 
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 mb-6">
-                  <p className="text-blue-900 text-sm font-medium mb-2">Tổng Sẵn Sàng Thanh Toán:</p>
+                  <p className="text-blue-900 text-sm font-medium mb-2">Tổng Sẵn Sàng Rút:</p>
                   <p className="text-blue-600 text-3xl font-bold">
-                    {(userBalance?.available_balance || 0).toLocaleString()} Camlycoin
+                    {(userBalance?.available_for_withdrawal || 0).toLocaleString()} Camlycoin
                   </p>
                 </div>
 
@@ -1541,7 +1538,7 @@ Trả về JSON:`;
                   </Button>
                   <Button
                     onClick={() => markAsPaidMutation.mutate(paymentAmount)}
-                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > (userBalance?.available_balance || 0)}
+                    disabled={!paymentAmount || parseFloat(paymentAmount) <= 0 || parseFloat(paymentAmount) > (userBalance?.available_for_withdrawal || 0)}
                     className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl py-6 font-bold disabled:opacity-50 shadow-lg hover:shadow-xl"
                   >
                     <CheckCircle2 className="w-5 h-5 mr-2" />
