@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 export default function WithdrawCamlycoin() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -94,10 +95,16 @@ export default function WithdrawCamlycoin() {
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       setWithdrawalAddress('');
       setWithdrawalAmount('');
-      alert(`✅ Rút tiền tự động thành công!\n💰 ${data.amount_withdrawn.toLocaleString()} Camlycoin đã được chuyển vào ví\n📬 TX: ${data.tx_hash}\n⛽ Gas: ${data.gas_fee_bnb.toFixed(8)} BNB`);
+      toast.success('✅ Rút tiền tự động thành công!', {
+        description: `💰 ${data.amount_withdrawn.toLocaleString()} Camlycoin đã được chuyển vào ví\n📬 TX: ${data.tx_hash.slice(0, 10)}...`,
+        duration: 5000,
+      });
     },
     onError: (error) => {
-      alert('❌ Lỗi: ' + error.message);
+      toast.error('❌ Rút tiền thất bại', {
+        description: error.message,
+        duration: 5000,
+      });
     }
   });
 
@@ -128,10 +135,16 @@ export default function WithdrawCamlycoin() {
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       setShowAutoClaimModal(false);
       setAutoClaimAmount('');
-      alert(`✅ Rút tiền tự động thành công!\n💰 ${data.amount_withdrawn.toLocaleString()} Camlycoin đã được chuyển vào ví\n📬 TX: ${data.tx_hash}\n⛽ Gas: ${data.gas_fee_bnb.toFixed(8)} BNB`);
+      toast.success('🚀 Auto-Claim thành công!', {
+        description: `💰 ${data.amount_withdrawn.toLocaleString()} Camlycoin đã được chuyển\n⛽ Gas: ${data.gas_fee_bnb.toFixed(8)} BNB`,
+        duration: 5000,
+      });
     },
     onError: (error) => {
-      alert('❌ Lỗi: ' + error.message);
+      toast.error('❌ Auto-Claim thất bại', {
+        description: error.message,
+        duration: 5000,
+      });
     }
   });
 

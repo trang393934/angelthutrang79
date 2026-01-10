@@ -8,6 +8,7 @@ import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
 import AngelMascot from '@/components/AngelMascot';
 import SupportChatWidget from '@/components/SupportChatWidget';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

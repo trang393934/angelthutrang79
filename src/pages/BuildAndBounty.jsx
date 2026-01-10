@@ -10,6 +10,7 @@ import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import MultiWalletConnect from '@/components/wallet/MultiWalletConnect';
+import { toast } from 'sonner';
 
 export default function BuildAndBounty() {
   const [activeTab, setActiveTab] = useState('build');
@@ -129,6 +130,17 @@ Trả về JSON:`,
       setIdeaTitle('');
       setIdeaDescription('');
       queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
+      toast.success('✅ Đã gửi ý tưởng!', {
+        description: 'Admin sẽ xem xét và phê duyệt trong vòng 3-5 ngày.',
+        duration: 4000,
+      });
+    },
+    onError: (error) => {
+      setIsSubmitting(false);
+      toast.error('❌ Gửi ý tưởng thất bại', {
+        description: error.message,
+        duration: 4000,
+      });
     }
   });
 
@@ -197,6 +209,10 @@ Trả về JSON:`,
       base44.entities.BuildIdea.update(ideaId, { status: 'rejected' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['build-ideas'] });
+      toast.info('ℹ️ Đã từ chối ý tưởng', {
+        description: 'Ý tưởng đã được đánh dấu là từ chối',
+        duration: 3000,
+      });
     },
   });
 
@@ -244,7 +260,16 @@ Trả về JSON:`,
       setTaskDescription('');
     },
     onSuccess: () => {
-      // Success feedback
+      toast.success('✅ Đã gửi bằng chứng!', {
+        description: 'Team sẽ xem xét trong vòng 3-5 ngày',
+        duration: 4000,
+      });
+    },
+    onError: (error) => {
+      toast.error('❌ Gửi thất bại', {
+        description: error.message,
+        duration: 4000,
+      });
     }
   });
 
