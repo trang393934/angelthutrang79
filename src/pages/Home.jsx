@@ -466,6 +466,38 @@ export default function Home() {
           </motion.div>
         </div>
 
+        {/* System Stats Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl border-2 border-white mb-4"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
+              <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
+              <p className="text-white text-2xl font-bold">
+                {allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
+              </p>
+              <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
+              <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
+              <p className="text-white text-2xl font-bold">{allBalances.length}</p>
+              <p className="text-white/80 text-xs mt-1">Active Users</p>
+            </div>
+            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
+              <p className="text-white/90 text-xs font-medium mb-1">Trung Bình/Người</p>
+              <p className="text-white text-2xl font-bold">
+                {allBalances.length > 0 
+                  ? Math.floor(allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0) / allBalances.length).toLocaleString()
+                  : 0}
+              </p>
+              <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+            </div>
+          </div>
+        </motion.div>
+
         {/* Quick Actions */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
