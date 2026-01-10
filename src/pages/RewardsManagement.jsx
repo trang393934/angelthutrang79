@@ -840,19 +840,19 @@ export default function RewardsManagement() {
                 </Button>
                 <Button
                   onClick={async () => {
-                    if (!confirm('🚨 CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ số liệu hiện tại và tính lại từ đầu!\n\n⚠️ Bạn chắc chắn muốn RESET TẤT CẢ?')) {
+                    if (!confirm('🚨 CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ số liệu hiện tại và tính lại từ đầu!\n\nLogic mới: Chỉ tính 10 câu đầu tiên/ngày + tasks khác. Câu 11+ -> đóng băng.\n\n⚠️ Bạn chắc chắn muốn RESET TẤT CẢ?')) {
                       return;
                     }
 
                     setIsRecalculating(true);
                     setRecalculateResults(null);
                     try {
-                      const response = await base44.functions.invoke('resetAndRecalculateAll', {});
+                      const response = await base44.functions.invoke('resetAndRecalculateWithNewLogic', {});
                       
                       setRecalculateResults(response.data);
                       queryClient.invalidateQueries({ queryKey: ['all-balances'] });
                       
-                      alert(`✅ Reset & Tính lại hoàn tất!\n\n📊 Tổng: ${response.data.summary.total_users} users\n🔄 Reset: ${response.data.summary.reset_count}\n✅ Thành công: ${response.data.summary.success_count}\n❌ Lỗi: ${response.data.summary.error_count}`);
+                      alert(`✅ Reset & Tính lại hoàn tất!\n\n📊 Tổng: ${response.data.summary.total} users\n✅ Thành công: ${response.data.summary.success}\n❌ Lỗi: ${response.data.summary.failed}`);
                     } catch (error) {
                       alert('❌ Lỗi: ' + error.message);
                     } finally {
@@ -867,7 +867,7 @@ export default function RewardsManagement() {
                   ) : (
                     <AlertCircle className="w-4 h-4 mr-2" />
                   )}
-                  Reset Tất Cả
+                  Reset & Tính Lại (Logic Mới)
                 </Button>
               </div>
 
