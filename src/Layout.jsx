@@ -360,7 +360,6 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
   const connectWallet = async () => {
     if (typeof window.ethereum === 'undefined') {
-      console.warn('MetaMask not installed');
       window.open('https://metamask.io/download/', '_blank');
       return;
     }
@@ -370,13 +369,15 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
       const accounts = await window.ethereum.request({ 
         method: 'eth_requestAccounts' 
       });
-      
+
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
       }
     } catch (error) {
-      // Silently handle all MetaMask errors - no alerts
-      console.log('MetaMask connection:', error.code === 4001 ? 'User rejected' : error.code === -32002 ? 'Already pending' : error.message);
+      // Silently handle all MetaMask errors
+      if (error.code !== 4001 && error.code !== -32002) {
+        console.error('Wallet connection error:', error.message);
+      }
     } finally {
       setIsConnecting(false);
     }
