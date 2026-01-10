@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Search, Filter, TrendingUp, Users, Coins, Calendar, Download, CheckCircle2, XCircle, Clock, Eye, RefreshCw, BarChart3, PieChart, Activity, Wallet, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Search, Filter, TrendingUp, Users, Coins, Calendar, Download, CheckCircle2, XCircle, Clock, Eye, RefreshCw, BarChart3, PieChart, Activity, Wallet, AlertCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LineChart, Line, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AdminAlertPanel from '@/components/AdminAlertPanel';
+import { AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 
 export default function AdminDashboard() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -19,6 +21,9 @@ export default function AdminDashboard() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [dateRange, setDateRange] = useState('7days');
   const [selectedTab, setSelectedTab] = useState('overview');
+  const [withdrawalSearch, setWithdrawalSearch] = useState('');
+  const [transactionSearch, setTransactionSearch] = useState('');
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -226,6 +231,64 @@ export default function AdminDashboard() {
 
     return data;
   }, [allTransactions]);
+
+  // Balance trends - Available and Frozen over time
+  const balanceTrendsData = useMemo(() => {
+    const now = new Date();
+    const days = dateRange === '7days' ? 7 : dateRange === '30days' ? 30 : 90;
+    const data = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Calculate total available and frozen at this date
+      const totalAvailable = allBalances.reduce((sum, b) => {
+        if (new Date(b.created_date) <= date) {
+          return sum + (b.available_balance || 0);
+        }
+        return sum;
+      }, 0);
+
+      const totalFrozen = allBalances.reduce((sum, b) => {
+        if (new Date(b.created_date) <= date) {
+          return sum + (b.frozen_balance || 0);
+        }
+        return sum;
+      }, 0);
+
+      data.push({
+        date: dateStr.substring(5),
+        available: totalAvailable,
+        frozen: totalFrozen,
+      });
+    }
+
+    return data;
+  }, [allBalances, dateRange]);
+
+  // Filter withdrawals and transactions
+  const filteredWithdrawals = useMemo(() => {
+    return allWithdrawals.filter(w => {
+      if (!withdrawalSearch) return true;
+      const search = withdrawalSearch.toLowerCase();
+      return w.user_email?.toLowerCase().includes(search) ||
+             w.withdrawal_address?.toLowerCase().includes(search) ||
+             w.tx_hash?.toLowerCase().includes(search) ||
+             w.status?.toLowerCase().includes(search);
+    });
+  }, [allWithdrawals, withdrawalSearch]);
+
+  const filteredTransactions = useMemo(() => {
+    return allTransactions.filter(tx => {
+      if (!transactionSearch) return true;
+      const search = transactionSearch.toLowerCase();
+      return tx.user_email?.toLowerCase().includes(search) ||
+             tx.description?.toLowerCase().includes(search) ||
+             tx.type?.toLowerCase().includes(search);
+    });
+  }, [allTransactions, transactionSearch]);
 
   // Pending actions
   const pendingActions = useMemo(() => {
@@ -577,6 +640,184 @@ export default function AdminDashboard() {
                   <Bar dataKey="spent" fill="#ef4444" name="Chi Tiêu" />
                 </BarChart>
               </ResponsiveContainer>
+            </motion.div>
+
+            {/* Balance Trends Chart */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-slate-900 font-bold text-lg">Xu Hướng Số Dư</h3>
+                <Select value={dateRange} onValueChange={setDateRange}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7days">7 ngày</SelectItem>
+                    <SelectItem value="30days">30 ngày</SelectItem>
+                    <SelectItem value="90days">90 ngày</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={balanceTrendsData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(255,255,255,0.95)', 
+                      border: '2px solid #a855f7',
+                      borderRadius: '12px'
+                    }}
+                    formatter={(value) => value.toLocaleString()}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="available" stroke="#10b981" strokeWidth={3} name="Sẵn Sàng TT" dot={{ fill: '#10b981', r: 4 }} />
+                  <Line type="monotone" dataKey="frozen" stroke="#ef4444" strokeWidth={3} name="Đóng Băng" dot={{ fill: '#ef4444', r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </motion.div>
+
+            {/* Processed Withdrawals with Details */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-xl"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-slate-900 font-bold text-lg flex items-center gap-2">
+                  <CheckCircle2 className="w-6 h-6 text-green-500" />
+                  Withdrawals Đã Xử Lý
+                </h3>
+                <Badge className="bg-green-100 text-green-800">
+                  {allWithdrawals.filter(w => w.status === 'completed').length} hoàn thành
+                </Badge>
+              </div>
+
+              {/* Search */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Tìm theo email, địa chỉ ví, tx hash..."
+                  value={withdrawalSearch}
+                  onChange={(e) => setWithdrawalSearch(e.target.value)}
+                  className="pl-10 bg-white border-2 border-green-200 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredWithdrawals
+                  .filter(w => w.status === 'completed')
+                  .slice(0, 20)
+                  .map((withdrawal, idx) => (
+                    <motion.div
+                      key={withdrawal.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="bg-green-50 border-2 border-green-300 rounded-2xl p-4 cursor-pointer hover:shadow-lg transition-all"
+                      onClick={() => setSelectedWithdrawal(withdrawal)}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(withdrawal.user_email)}`;
+                            }}
+                            className="text-purple-600 hover:text-purple-800 font-bold hover:underline text-left break-all"
+                          >
+                            {withdrawal.user_email}
+                          </button>
+                          <div className="flex items-center gap-2 mt-2 flex-wrap">
+                            <Badge className="bg-green-200 text-green-900">
+                              ✅ {withdrawal.status}
+                            </Badge>
+                            <Badge className="bg-amber-100 text-amber-800">
+                              💰 {(withdrawal.amount || 0).toLocaleString()}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-slate-600 mt-2">
+                            {format(new Date(withdrawal.processed_date || withdrawal.created_date), 'dd/MM/yyyy HH:mm')}
+                          </p>
+                        </div>
+                        <Button size="sm" variant="outline" className="border-green-300 text-green-700">
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </motion.div>
+                  ))}
+              </div>
+            </motion.div>
+
+            {/* Advanced Transaction Search */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-6 shadow-xl"
+            >
+              <h3 className="text-slate-900 font-bold text-lg mb-4 flex items-center gap-2">
+                <Activity className="w-6 h-6 text-purple-500" />
+                Tìm Kiếm Giao Dịch Nâng Cao
+              </h3>
+
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Tìm theo email, mô tả, loại giao dịch..."
+                  value={transactionSearch}
+                  onChange={(e) => setTransactionSearch(e.target.value)}
+                  className="pl-10 bg-white border-2 border-purple-200 rounded-xl"
+                />
+              </div>
+
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredTransactions.slice(0, 30).map((tx, idx) => (
+                  <motion.div
+                    key={tx.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.02 }}
+                    className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <button
+                          onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(tx.user_email)}`}
+                          className="text-purple-600 hover:text-purple-800 font-semibold hover:underline text-left break-all text-sm"
+                        >
+                          {tx.user_email}
+                        </button>
+                        <p className="text-slate-900 font-medium mt-1 text-sm break-words">{tx.description}</p>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                          <Badge className="bg-indigo-100 text-indigo-800 text-xs">
+                            {tx.type}
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {format(new Date(tx.created_date), 'dd/MM/yyyy HH:mm')}
+                          </span>
+                          {tx.processed_by && (
+                            <Badge className="bg-purple-100 text-purple-800 text-xs">
+                              👤 {tx.processed_by}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <p className={`text-xl font-bold ${tx.amount > 0 ? 'text-green-600' : tx.amount < 0 ? 'text-red-600' : 'text-slate-600'}`}>
+                          {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
             </motion.div>
           </TabsContent>
 
@@ -1019,6 +1260,176 @@ export default function AdminDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Withdrawal Detail Modal */}
+      <AnimatePresence>
+        {selectedWithdrawal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedWithdrawal(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl p-8 max-w-3xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-slate-900 text-2xl font-bold">Chi Tiết Withdrawal</h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setSelectedWithdrawal(null)}
+                  className="text-slate-600 hover:text-slate-900"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* User Info */}
+              <div className="bg-purple-50 border-2 border-purple-300 rounded-2xl p-4 mb-4">
+                <button
+                  onClick={() => {
+                    setSelectedWithdrawal(null);
+                    window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(selectedWithdrawal.user_email)}`;
+                  }}
+                  className="text-purple-600 hover:text-purple-800 font-bold hover:underline text-lg break-all"
+                >
+                  {selectedWithdrawal.user_email}
+                </button>
+              </div>
+
+              {/* Amount */}
+              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 mb-4 text-white">
+                <p className="text-white/90 text-sm mb-1">Số Tiền Rút</p>
+                <p className="text-white text-4xl font-bold">{(selectedWithdrawal.amount || 0).toLocaleString()}</p>
+                <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+              </div>
+
+              {/* Wallet Address */}
+              <div className="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 mb-4">
+                <p className="text-slate-700 font-semibold mb-2 text-sm">Địa Chỉ Ví (BEP-20)</p>
+                <p className="text-slate-900 font-mono text-sm break-all bg-white border border-slate-300 rounded-lg p-3">
+                  {selectedWithdrawal.withdrawal_address}
+                </p>
+              </div>
+
+              {/* Status & Dates */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-blue-50 border border-blue-300 rounded-xl p-3">
+                  <p className="text-slate-700 font-semibold mb-1 text-xs">Trạng Thái</p>
+                  <Badge className={
+                    selectedWithdrawal.status === 'completed' ? 'bg-green-100 text-green-800 border-green-300' :
+                    selectedWithdrawal.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
+                    'bg-red-100 text-red-800 border-red-300'
+                  }>
+                    {selectedWithdrawal.status}
+                  </Badge>
+                </div>
+                <div className="bg-slate-50 border border-slate-300 rounded-xl p-3">
+                  <p className="text-slate-700 font-semibold mb-1 text-xs">Ngày Tạo</p>
+                  <p className="text-slate-900 text-sm font-medium">
+                    {format(new Date(selectedWithdrawal.created_date), 'dd/MM/yyyy HH:mm')}
+                  </p>
+                </div>
+              </div>
+
+              {/* TX Hash */}
+              {selectedWithdrawal.tx_hash && (
+                <div className="bg-indigo-50 border-2 border-indigo-300 rounded-2xl p-4 mb-4">
+                  <p className="text-indigo-900 font-semibold mb-2 text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" />
+                    Transaction Hash
+                  </p>
+                  <div className="bg-white border border-indigo-200 rounded-lg p-3 mb-3">
+                    <p className="text-slate-900 font-mono text-xs break-all">
+                      {selectedWithdrawal.tx_hash}
+                    </p>
+                  </div>
+                  <a
+                    href={`https://bscscan.com/tx/${selectedWithdrawal.tx_hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-indigo-600 hover:text-indigo-800 font-semibold text-sm hover:underline flex items-center gap-1"
+                  >
+                    <Activity className="w-4 h-4" />
+                    Xem trên BscScan →
+                  </a>
+                </div>
+              )}
+
+              {/* Gas Fee */}
+              {selectedWithdrawal.gas_fee_bnb && (
+                <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 mb-4">
+                  <p className="text-amber-900 font-semibold mb-1 text-sm">⛽ Phí Gas</p>
+                  <p className="text-amber-700 text-lg font-bold">
+                    {selectedWithdrawal.gas_fee_bnb.toFixed(8)} BNB
+                  </p>
+                  <p className="text-amber-600 text-xs mt-1">
+                    ~ ${(selectedWithdrawal.gas_fee_bnb * 600).toFixed(4)} USD (ước tính)
+                  </p>
+                </div>
+              )}
+
+              {/* Processed By */}
+              {selectedWithdrawal.processed_by && (
+                <div className="bg-purple-50 border border-purple-300 rounded-xl p-4 mb-4">
+                  <p className="text-purple-900 font-semibold mb-1 text-sm">👤 Xử Lý Bởi</p>
+                  <p className="text-purple-700 text-sm font-medium">{selectedWithdrawal.processed_by}</p>
+                  {selectedWithdrawal.processed_date && (
+                    <p className="text-purple-600 text-xs mt-1">
+                      {format(new Date(selectedWithdrawal.processed_date), 'dd/MM/yyyy HH:mm:ss')}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Rejection Reason */}
+              {selectedWithdrawal.rejection_reason && (
+                <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4 mb-4">
+                  <p className="text-red-900 font-semibold mb-2 text-sm">❌ Lý Do Từ Chối</p>
+                  <p className="text-red-800 text-sm">{selectedWithdrawal.rejection_reason}</p>
+                </div>
+              )}
+
+              {/* Additional Info */}
+              <div className="grid grid-cols-2 gap-3">
+                {selectedWithdrawal.risk_level && (
+                  <div className="bg-slate-50 border border-slate-300 rounded-xl p-3">
+                    <p className="text-slate-700 font-semibold mb-1 text-xs">Mức Rủi Ro</p>
+                    <Badge className={
+                      selectedWithdrawal.risk_level === 'low' ? 'bg-green-100 text-green-800' :
+                      selectedWithdrawal.risk_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }>
+                      {selectedWithdrawal.risk_level}
+                    </Badge>
+                  </div>
+                )}
+                {selectedWithdrawal.verification_status && (
+                  <div className="bg-slate-50 border border-slate-300 rounded-xl p-3">
+                    <p className="text-slate-700 font-semibold mb-1 text-xs">Xác Thực</p>
+                    <Badge className="bg-blue-100 text-blue-800">
+                      {selectedWithdrawal.verification_status}
+                    </Badge>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                onClick={() => setSelectedWithdrawal(null)}
+                className="w-full mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl py-6 font-bold"
+              >
+                Đóng
+              </Button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
