@@ -80,12 +80,27 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fix strategy: Add discrepancy to available_balance
-    // This assumes the discrepancy is legitimate earnings that weren't properly allocated
-    console.log(`🔧 Fixing discrepancy by adding ${discrepancy} to available_balance`);
+    // Fix strategy: Recalculate from transactions
+    // Set total_earned = sum of positive transactions
+    // Then adjust available_balance to make sum match
+    console.log(`🔧 Fixing balance based on actual transactions`);
+
+    // The correct total_earned should be from transactions
+    const correctTotalEarned = totalEarnedFromTransactions;
+    
+    // Calculate what available_balance should be
+    // Formula: total_earned = available + pending + frozen + paid
+    // So: available = total_earned - pending - frozen - paid
+    const correctAvailable = correctTotalEarned - currentPending - currentFrozen - currentPaid;
+
+    console.log(`📝 Updating:
+    - total_earned: ${currentTotalEarned} → ${correctTotalEarned}
+    - available_balance: ${currentAvailable} → ${correctAvailable}
+    `);
 
     await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-      available_balance: currentAvailable + discrepancy
+      total_earned: correctTotalEarned,
+      available_balance: Math.max(0, correctAvailable) // Cannot be negative
     });
 
     // Verify fix
