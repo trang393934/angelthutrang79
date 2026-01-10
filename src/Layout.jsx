@@ -265,7 +265,12 @@ export default function Layout({ children, currentPageName }) {
             setWalletAddress(accounts[0]);
           }
         })
-        .catch(console.error);
+        .catch(error => {
+          // Silently ignore wallet check errors - not critical
+          if (error.code !== 4001 && error.code !== -32002) {
+            console.debug('Wallet check skipped');
+          }
+        });
 
       // Listen for account changes
       window.ethereum.on('accountsChanged', (accounts) => {
