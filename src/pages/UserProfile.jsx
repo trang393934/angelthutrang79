@@ -236,25 +236,7 @@ export default function UserProfile() {
       .slice(-30); // Last 30 days
   }, [transactions]);
 
-  // Fetch user level
-  const { data: userLevel } = useQuery({
-    queryKey: ['user-level', targetEmail],
-    queryFn: async () => {
-      if (!targetEmail) return null;
-      const levels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
-      if (levels.length > 0) return levels[0];
-      
-      // Auto-create if not exists (admin only)
-      if (isAdmin) {
-        await base44.functions.invoke('updateUserLevel', { userEmail: targetEmail });
-        const newLevels = await base44.entities.UserLevel.filter({ user_email: targetEmail });
-        return newLevels[0] || null;
-      }
-      
-      return null;
-    },
-    enabled: !!targetEmail,
-  });
+
 
   // Fetch wallet address from multiple sources
   const { data: submissions = [] } = useQuery({
@@ -904,10 +886,7 @@ Trả về JSON:`;
         {/* My Rank Card */}
         <MyRankCard targetEmail={targetEmail} />
 
-        {/* Level Progress */}
-        {userLevel && (
-          <LevelProgressCard userLevel={userLevel} />
-        )}
+
 
         {/* Balance Overview - CHÍNH XÁC TUYỆT ĐỐI */}
         <motion.div
@@ -928,28 +907,16 @@ Trả về JSON:`;
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          {/* Sẵn Sàng Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
+          {/* Sẵn Sàng Rút - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-300 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-amber-500" />
-              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Thanh Toán</span>
+              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.available_balance || 0).toLocaleString()}
+              {(userBalance?.available_for_withdrawal || 0).toLocaleString()}
             </p>
-            <p className="text-amber-600 text-xs mt-1">⏳ Admin sẽ thanh toán ngày 1/10/20</p>
-          </div>
-
-          {/* Chờ Duyệt Thanh Toán - TỔNG CỦA AVAILABLE + ADMIN_REVIEW */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-300 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="w-6 h-6 text-orange-500" />
-              <span className="text-slate-700 text-xs font-medium">Chờ Duyệt Thanh Toán</span>
-            </div>
-            <p className="text-slate-900 text-3xl font-bold break-words">
-              {((userBalance?.available_balance || 0) + (userBalance?.admin_review_pending || 0)).toLocaleString()}
-            </p>
-            <p className="text-orange-600 text-xs mt-1">💡 = Sẵn Sàng + Chờ Admin Review</p>
+            <p className="text-amber-600 text-xs mt-1">⏳ = net_valid_coins - paid_amount</p>
           </div>
 
           {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
@@ -964,27 +931,16 @@ Trả về JSON:`;
             <p className="text-green-600 text-xs mt-1">✅ Admin đã chuyển</p>
           </div>
 
-          {/* Chờ Admin Review - TRỰC TIẾP TỪ DATABASE */}
+          {/* Net Valid Coins - TRỰC TIẾP TỪ DATABASE */}
           <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-3xl p-6 shadow-lg">
             <div className="flex items-center gap-3 mb-2">
               <Eye className="w-6 h-6 text-blue-500" />
-              <span className="text-slate-700 text-xs font-medium">Chờ Admin Review</span>
+              <span className="text-slate-700 text-xs font-medium">Tổng Điểm Hợp Lệ</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.admin_review_pending || 0).toLocaleString()}
+              {(userBalance?.net_valid_coins || 0).toLocaleString()}
             </p>
-            <p className="text-blue-600 text-xs mt-1">🔍 Câu 11+ mỗi ngày</p>
-
-            {/* Button Xem Danh Sách - ADMIN ONLY */}
-            {isAdmin && (userBalance?.admin_review_pending || 0) > 0 && (
-              <Button
-                onClick={() => setShowPendingReviewModal(true)}
-                size="sm"
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
-              >
-                Xem Danh Sách ({pendingReviewLogs.length} câu)
-              </Button>
-            )}
+            <p className="text-blue-600 text-xs mt-1">💎 10 câu đầu/ngày + hoạt động khác</p>
           </div>
 
           {/* Tổng Bị Đóng Băng - TRỰC TIẾP TỪ DATABASE */}
@@ -1019,73 +975,7 @@ Trả về JSON:`;
 
 
 
-        {/* Sync Level Points - Admin Only */}
-        {isAdmin && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
-          >
-            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
-              <RefreshCw className="w-6 h-6" />
-              Sync Level Points = Tổng Đã Kiếm - Tổng Bị Đóng Băng
-            </h3>
-            <p className="text-white/90 text-sm mb-4">
-              Cập nhật total_points = total_earned - frozen_balance cho tất cả users
-            </p>
-            <Button
-              onClick={async () => {
-                if (!confirm('Xác nhận sync Level Points cho TẤT CẢ users?')) return;
-                try {
-                  const result = await base44.functions.invoke('syncLevelPoints', {});
-                  alert(`✅ ${result.data.message}\nĐã cập nhật: ${result.data.updated} users`);
-                  queryClient.invalidateQueries({ queryKey: ['user-balance'] });
-                } catch (error) {
-                  alert('❌ Lỗi: ' + error.message);
-                }
-              }}
-              className="w-full bg-white text-indigo-600 rounded-2xl font-bold py-6 text-lg hover:bg-indigo-50 shadow-lg hover:shadow-xl transition-all"
-            >
-              <RefreshCw className="w-5 h-5 mr-2" />
-              Sync Toàn Hệ Thống
-            </Button>
-          </motion.div>
-        )}
 
-        {/* Chờ Admin Review - Duyệt Phần Trăm */}
-        {isAdmin && userBalance && (userBalance.admin_review_pending || 0) > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
-          >
-            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
-              <Eye className="w-6 h-6" />
-              Duyệt Điểm Chờ Admin Review
-            </h3>
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
-              <p className="text-white/90 text-sm mb-2">Tổng Chờ Admin Review:</p>
-              <p className="text-white text-3xl font-bold">
-                {(userBalance.admin_review_pending || 0).toLocaleString()} Camlycoin
-              </p>
-            </div>
-            <p className="text-white/90 text-sm mb-4">Chọn phần trăm muốn duyệt chuyển sang "Sẵn Sàng Thanh Toán":</p>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-              {[10, 20, 30, 50, 70, 100].map(percentage => (
-                <Button
-                  key={percentage}
-                  onClick={() => approvePercentageMutation.mutate(percentage)}
-                  disabled={approvePercentageMutation.isPending}
-                  className="bg-white text-blue-600 rounded-2xl font-bold py-4 hover:bg-blue-50 shadow-lg hover:shadow-xl transition-all"
-                >
-                  {percentage}%
-                </Button>
-              ))}
-            </div>
-          </motion.div>
-        )}
 
         {/* Admin Payment Section */}
         <motion.div
@@ -1129,26 +1019,26 @@ Trả về JSON:`;
           <div className="flex items-start gap-3">
             <Eye className="w-6 h-6 text-purple-600 mt-1 flex-shrink-0" />
             <div>
-              <h4 className="text-purple-900 font-bold mb-3">Giải Thích Phân Loại Camlycoin</h4>
+              <h4 className="text-purple-900 font-bold mb-3">Giải Thích Công Thức Camlycoin Mới</h4>
               <div className="space-y-2 text-sm text-purple-800">
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Sẵn Sàng Thanh Toán:</strong> Coins đã được admin duyệt, sẽ chuyển khoản ngày 1/10/20 hàng tháng</p>
+                  <p><strong>Tổng Kiếm Được:</strong> net_valid_coins + frozen_balance</p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Clock className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Chờ Duyệt Thanh Toán:</strong> Tổng của Sẵn Sàng Thanh Toán + Chờ Admin Review</p>
-                </div>
-                <div className="flex items-start gap-2">
-                  <Eye className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Chờ Admin Review:</strong> Điểm từ câu 11+ mỗi ngày, khi được duyệt sẽ chuyển sang Sẵn Sàng Thanh Toán</p>
+                  <Coins className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Tổng Điểm Hợp Lệ:</strong> 10 câu đầu tiên/ngày (không tính câu trùng, chào) + hoạt động khác (bounty, build)</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Lock className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
-                  <p><strong>Đóng Băng:</strong> Coins từ câu hỏi trùng lặp, chào hỏi, spam (không được thanh toán)</p>
+                  <p><strong>Đóng Băng:</strong> Coins từ câu trùng lặp, chào hỏi, spam (không được thanh toán)</p>
                 </div>
                 <div className="flex items-start gap-2">
                   <DollarSign className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                  <p><strong>Sẵn Sàng Rút:</strong> net_valid_coins - paid_amount (số tiền có thể rút ngay)</p>
+                </div>
+                <div className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
                   <p><strong>Đã Thanh Toán:</strong> Coins đã được chuyển khoản thành công cho user</p>
                 </div>
               </div>
@@ -1157,7 +1047,7 @@ Trả về JSON:`;
         </motion.div>
 
         {/* Payment Action - Only for Admin */}
-        {isAdmin && userBalance && (userBalance.available_balance || 0) > 0 && (
+        {isAdmin && userBalance && (userBalance.available_for_withdrawal || 0) > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1169,9 +1059,9 @@ Trả về JSON:`;
               Đánh Dấu Thanh Toán
             </h3>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
-              <p className="text-white/90 text-sm mb-2">Tổng Sẵn Sàng Thanh Toán:</p>
+              <p className="text-white/90 text-sm mb-2">Tổng Sẵn Sàng Rút:</p>
               <p className="text-white text-3xl font-bold">
-                {(userBalance.available_balance || 0).toLocaleString()} Camlycoin
+                {(userBalance.available_for_withdrawal || 0).toLocaleString()} Camlycoin
               </p>
             </div>
             <Button
