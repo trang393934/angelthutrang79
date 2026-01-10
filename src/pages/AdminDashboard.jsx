@@ -74,13 +74,12 @@ export default function AdminDashboard() {
     if (!allBalances.length) return null;
 
     const totalUsers = allBalances.length;
-    const totalBalance = allBalances.reduce((sum, b) => sum + (b.balance || 0), 0);
     const totalAvailable = allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0);
     const totalFrozen = allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
-    const totalPending = allBalances.reduce((sum, b) => sum + (b.pending_review_balance || 0), 0);
-    const totalUnpaid = allBalances.reduce((sum, b) => sum + (b.unpaid_amount || 0), 0);
+    const totalAdminReview = allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0);
     const totalPaid = allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0);
     const totalEarned = allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0);
+    const totalBalance = totalAvailable + totalAdminReview + totalPaid + totalFrozen;
 
     // Withdrawal stats
     const totalWithdrawalRequests = allWithdrawals.length;
@@ -125,8 +124,7 @@ export default function AdminDashboard() {
       totalBalance,
       totalAvailable,
       totalFrozen,
-      totalPending,
-      totalUnpaid,
+      totalAdminReview,
       totalPaid,
       totalEarned,
       totalWithdrawalRequests,
@@ -152,8 +150,7 @@ export default function AdminDashboard() {
         balance.user_email.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesFilter = filterStatus === 'all' || 
-        (filterStatus === 'unpaid' && (balance.unpaid_amount || 0) > 0) ||
-        (filterStatus === 'pending' && (balance.pending_review_balance || 0) > 0) ||
+        (filterStatus === 'pending' && (balance.admin_review_pending || 0) > 0) ||
         (filterStatus === 'frozen' && (balance.frozen_balance || 0) > 0) ||
         (filterStatus === 'available' && (balance.available_balance || 0) > 0);
 
@@ -192,8 +189,8 @@ export default function AdminDashboard() {
     
     return [
       { name: 'Sẵn Sàng TT', value: stats.totalAvailable, color: '#10b981' },
-      { name: 'Chờ Duyệt', value: stats.totalUnpaid, color: '#f59e0b' },
-      { name: 'Pending Review', value: stats.totalPending, color: '#3b82f6' },
+      { name: 'Chờ Review', value: stats.totalAdminReview, color: '#3b82f6' },
+      { name: 'Đã TT', value: stats.totalPaid, color: '#f59e0b' },
       { name: 'Đóng Băng', value: stats.totalFrozen, color: '#ef4444' },
     ].filter(item => item.value > 0);
   }, [stats]);
@@ -292,67 +289,17 @@ export default function AdminDashboard() {
 
   // Pending actions
   const pendingActions = useMemo(() => {
-    const unpaidCount = allBalances.filter(b => (b.unpaid_amount || 0) > 0).length;
     const pendingWithdrawals = allWithdrawals.filter(w => w.status === 'pending').length;
-    const pendingReview = allBalances.filter(b => (b.pending_review_balance || 0) > 0).length;
+    const adminReviewCount = allBalances.filter(b => (b.admin_review_pending || 0) > 0).length;
 
     return {
-      unpaidCount,
       pendingWithdrawals,
-      pendingReview,
-      total: unpaidCount + pendingWithdrawals + pendingReview,
+      adminReviewCount,
+      total: pendingWithdrawals + adminReviewCount,
     };
   }, [allBalances, allWithdrawals]);
 
-  // Quick approve unpaid mutation
-  const quickApproveUnpaidMutation = useMutation({
-    mutationFn: async (balance) => {
-      const unpaidAmount = balance.unpaid_amount || 0;
-      if (unpaidAmount <= 0) return;
 
-      await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-        unpaid_amount: 0,
-        available_balance: (balance.available_balance || 0) + unpaidAmount
-      });
-
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
-        user_email: balance.user_email,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `✅ Admin duyệt ${unpaidAmount.toLocaleString()} Camlycoin từ 1/1/2026 → Sẵn Sàng Thanh Toán`,
-        processed_by: currentUser.email
-      });
-    },
-    onSuccess: () => {
-      refetchBalances();
-      queryClient.invalidateQueries({ queryKey: ['admin-all-transactions'] });
-    }
-  });
-
-  // Quick reject unpaid mutation
-  const quickRejectUnpaidMutation = useMutation({
-    mutationFn: async (balance) => {
-      const unpaidAmount = balance.unpaid_amount || 0;
-      if (unpaidAmount <= 0) return;
-
-      await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-        unpaid_amount: 0,
-        frozen_balance: (balance.frozen_balance || 0) + unpaidAmount
-      });
-
-      await base44.asServiceRole.entities.CamlycoinTransaction.create({
-        user_email: balance.user_email,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `❌ Admin từ chối ${unpaidAmount.toLocaleString()} Camlycoin từ 1/1/2026 → Đóng Băng`,
-        processed_by: currentUser.email
-      });
-    },
-    onSuccess: () => {
-      refetchBalances();
-      queryClient.invalidateQueries({ queryKey: ['admin-all-transactions'] });
-    }
-  });
 
   if (!isAdmin) {
     return (
@@ -438,12 +385,8 @@ export default function AdminDashboard() {
               <p className="text-white text-xl font-bold">{(stats?.totalAvailable || 0).toLocaleString()}</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
-              <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt TT</p>
-              <p className="text-white text-xl font-bold">{(stats?.totalUnpaid || 0).toLocaleString()}</p>
-            </div>
-            <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
               <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
-              <p className="text-white text-xl font-bold">{(stats?.totalPending || 0).toLocaleString()}</p>
+              <p className="text-white text-xl font-bold">{(stats?.totalAdminReview || 0).toLocaleString()}</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 border border-white/30">
               <p className="text-white/90 text-xs font-medium mb-1">Đã TT</p>
@@ -462,21 +405,20 @@ export default function AdminDashboard() {
               <strong>Tổng Kiếm:</strong> {(stats?.totalEarned || 0).toLocaleString()}<br/>
               <strong>Tổng Chi Tiết:</strong> {(
                 (stats?.totalAvailable || 0) +
-                (stats?.totalUnpaid || 0) +
-                (stats?.totalPending || 0) +
+                (stats?.totalAdminReview || 0) +
                 (stats?.totalPaid || 0) +
                 (stats?.totalFrozen || 0)
               ).toLocaleString()}<br/>
               <strong className={
                 (stats?.totalEarned || 0) === 
-                ((stats?.totalAvailable || 0) + (stats?.totalUnpaid || 0) + (stats?.totalPending || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
+                ((stats?.totalAvailable || 0) + (stats?.totalAdminReview || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
                 ? 'text-green-300' : 'text-red-300'
               }>
                 {(stats?.totalEarned || 0) === 
-                 ((stats?.totalAvailable || 0) + (stats?.totalUnpaid || 0) + (stats?.totalPending || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
+                 ((stats?.totalAvailable || 0) + (stats?.totalAdminReview || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
                  ? '✅ CHÍNH XÁC' : `❌ SAI LỆCH: ${(
                   (stats?.totalEarned || 0) -
-                  ((stats?.totalAvailable || 0) + (stats?.totalUnpaid || 0) + (stats?.totalPending || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
+                  ((stats?.totalAvailable || 0) + (stats?.totalAdminReview || 0) + (stats?.totalPaid || 0) + (stats?.totalFrozen || 0))
                  ).toLocaleString()}`}
               </strong>
             </p>
@@ -503,11 +445,11 @@ export default function AdminDashboard() {
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-400 to-red-500 border-2 border-white rounded-2xl p-4 shadow-xl">
+          <div className="bg-gradient-to-br from-blue-400 to-indigo-500 border-2 border-white rounded-2xl p-4 shadow-xl">
             <Clock className="w-8 h-8 text-white mb-2" />
-            <p className="text-white/90 text-xs font-medium">Chờ Duyệt TT</p>
-            <p className="text-white text-2xl font-bold">{(stats?.totalUnpaid || 0).toLocaleString()}</p>
-            <p className="text-white/80 text-xs mt-1">⏳ {pendingActions.unpaidCount} users</p>
+            <p className="text-white/90 text-xs font-medium">Chờ Review</p>
+            <p className="text-white text-2xl font-bold">{(stats?.totalAdminReview || 0).toLocaleString()}</p>
+            <p className="text-white/80 text-xs mt-1">⏳ {pendingActions.adminReviewCount} users</p>
           </div>
 
           <div className="bg-gradient-to-br from-green-400 to-emerald-500 border-2 border-white rounded-2xl p-4 shadow-xl">
@@ -842,8 +784,7 @@ export default function AdminDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tất Cả</SelectItem>
-                    <SelectItem value="unpaid">Có Chờ Duyệt TT</SelectItem>
-                    <SelectItem value="pending">Có Pending Review</SelectItem>
+                    <SelectItem value="pending">Có Chờ Review</SelectItem>
                     <SelectItem value="frozen">Có Đóng Băng</SelectItem>
                     <SelectItem value="available">Có Sẵn Sàng TT</SelectItem>
                   </SelectContent>
@@ -889,14 +830,14 @@ export default function AdminDashboard() {
                               ✅ {(balance.available_balance || 0).toLocaleString()} Sẵn Sàng
                             </Badge>
                           )}
-                          {(balance.unpaid_amount || 0) > 0 && (
-                            <Badge className="bg-orange-100 text-orange-800">
-                              ⏳ {(balance.unpaid_amount || 0).toLocaleString()} Chờ Duyệt
+                          {(balance.admin_review_pending || 0) > 0 && (
+                            <Badge className="bg-blue-100 text-blue-800">
+                              🔍 {(balance.admin_review_pending || 0).toLocaleString()} Chờ Review
                             </Badge>
                           )}
-                          {(balance.pending_review_balance || 0) > 0 && (
-                            <Badge className="bg-blue-100 text-blue-800">
-                              🔍 {(balance.pending_review_balance || 0).toLocaleString()} Pending
+                          {(balance.paid_amount || 0) > 0 && (
+                            <Badge className="bg-purple-100 text-purple-800">
+                              ✅ {(balance.paid_amount || 0).toLocaleString()} Đã TT
                             </Badge>
                           )}
                           {(balance.frozen_balance || 0) > 0 && (
@@ -923,25 +864,25 @@ export default function AdminDashboard() {
 
           {/* Pending Tab - Quick Actions */}
           <TabsContent value="pending" className="space-y-6">
-            <div className="bg-white/80 backdrop-blur-xl border-2 border-orange-200 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-slate-900 font-bold text-lg mb-4">Chờ Duyệt Thanh Toán (Từ 1/1/2026)</h3>
+            <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-2xl p-6 shadow-xl">
+              <h3 className="text-slate-900 font-bold text-lg mb-4">Chờ Admin Review</h3>
               
-              {allBalances.filter(b => (b.unpaid_amount || 0) > 0).length === 0 ? (
+              {allBalances.filter(b => (b.admin_review_pending || 0) > 0).length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-12 h-12 text-green-300 mx-auto mb-4" />
-                  <p className="text-slate-700 font-medium">Không có chờ duyệt thanh toán</p>
+                  <p className="text-slate-700 font-medium">Không có chờ admin review</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {allBalances
-                    .filter(b => (b.unpaid_amount || 0) > 0)
+                    .filter(b => (b.admin_review_pending || 0) > 0)
                     .map((balance, idx) => (
                       <motion.div
                         key={balance.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.03 }}
-                        className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4"
+                        className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4"
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex-1">
@@ -951,29 +892,16 @@ export default function AdminDashboard() {
                             >
                               {balance.user_email}
                             </button>
-                            <Badge className="bg-orange-200 text-orange-900 mt-2">
-                              💰 {(balance.unpaid_amount || 0).toLocaleString()} Camlycoin
+                            <Badge className="bg-blue-200 text-blue-900 mt-2">
+                              💰 {(balance.admin_review_pending || 0).toLocaleString()} Camlycoin
                             </Badge>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => quickApproveUnpaidMutation.mutate(balance)}
-                            disabled={quickApproveUnpaidMutation.isPending}
-                            className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
-                          >
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            Duyệt
+                        <Link to={createPageUrl('ReviewPendingActions')}>
+                          <Button className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl">
+                            Xem Chi Tiết & Duyệt
                           </Button>
-                          <Button
-                            onClick={() => quickRejectUnpaidMutation.mutate(balance)}
-                            disabled={quickRejectUnpaidMutation.isPending}
-                            className="flex-1 bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl"
-                          >
-                            <XCircle className="w-4 h-4 mr-2" />
-                            Từ Chối
-                          </Button>
-                        </div>
+                        </Link>
                       </motion.div>
                     ))}
                 </div>
@@ -1181,13 +1109,9 @@ export default function AdminDashboard() {
                     <span className="text-slate-700 font-medium text-sm">✅ Sẵn Sàng TT</span>
                     <span className="text-green-600 font-bold text-lg">{(stats?.totalAvailable || 0).toLocaleString()}</span>
                   </div>
-                  <div className="flex items-center justify-between pb-2 border-b border-orange-100">
-                    <span className="text-slate-700 font-medium text-sm">⏳ Chờ Duyệt TT</span>
-                    <span className="text-orange-600 font-bold text-lg">{(stats?.totalUnpaid || 0).toLocaleString()}</span>
-                  </div>
                   <div className="flex items-center justify-between pb-2 border-b border-blue-100">
                     <span className="text-slate-700 font-medium text-sm">🔍 Chờ Review</span>
-                    <span className="text-blue-600 font-bold text-lg">{(stats?.totalPending || 0).toLocaleString()}</span>
+                    <span className="text-blue-600 font-bold text-lg">{(stats?.totalAdminReview || 0).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center justify-between pb-2 border-b border-green-100">
                     <span className="text-slate-700 font-medium text-sm">✅ Đã Thanh Toán</span>
