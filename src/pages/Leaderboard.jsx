@@ -13,6 +13,7 @@ export default function Leaderboard() {
   const [currentUser, setCurrentUser] = useState(null);
   const [timeFilter, setTimeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('total_earned');
+  const queryClient = useQueryClient();
 
   React.useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
