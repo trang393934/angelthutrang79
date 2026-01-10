@@ -19,9 +19,11 @@ export default function Leaderboard() {
   }, []);
 
   // Fetch all users with balances
-  const { data: allBalances = [], isLoading } = useQuery({
+  const { data: allBalances = [], isLoading, refetch } = useQuery({
     queryKey: ['leaderboard-balances'],
     queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
+    staleTime: 0,
+    cacheTime: 0,
   });
 
   // Fetch all transactions for time filtering
