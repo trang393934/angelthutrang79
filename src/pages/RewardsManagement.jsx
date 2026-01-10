@@ -78,7 +78,7 @@ export default function RewardsManagement() {
   // Admin: Fetch all balances
   const { data: allBalances = [] } = useQuery({
     queryKey: ['all-balances'],
-    queryFn: () => base44.entities.CamlycoinBalance.list('-balance', 10000),
+    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
     enabled: isAdmin,
     refetchInterval: 5000, // Auto-refresh every 5 seconds
   });
