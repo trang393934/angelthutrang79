@@ -20,94 +20,50 @@ export default function Leaderboard() {
   }, []);
 
   // Fetch all users with balances
-  const { data: allBalances = [], isLoading, refetch } = useQuery({
-    queryKey: ['leaderboard-balances'],
-    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
-    staleTime: 0,
-    cacheTime: 0,
-  });
-
-  // Fetch all transactions for time filtering
-  const { data: allTransactions = [] } = useQuery({
-    queryKey: ['leaderboard-transactions'],
-    queryFn: () => base44.entities.CamlycoinTransaction.list('-created_date', 10000),
-    enabled: timeFilter !== 'all',
-  });
-
-  // Filter and sort users
-  const rankedUsers = React.useMemo(() => {
-    let users = allBalances.map(balance => {
-      let earned = balance.total_earned || 0;
-      let questionsCount = 0;
-
-      // Apply time filter
-      if (timeFilter !== 'all' && allTransactions.length > 0) {
-        let startDate;
-        const now = new Date();
-
-        switch (timeFilter) {
-          case 'daily':
-            startDate = startOfDay(now);
-            break;
-          case 'weekly':
-            startDate = startOfDay(subDays(now, 7));
-            break;
-          case 'monthly':
-            startDate = startOfDay(subDays(now, 30));
-            break;
-        }
-
-        if (startDate) {
-          const userTx = allTransactions.filter(tx => 
-            tx.user_email === balance.user_email &&
-            tx.amount > 0 &&
-            new Date(tx.created_date) >= startDate
-          );
-          earned = userTx.reduce((sum, tx) => sum + tx.amount, 0);
-          // Count questions in time period
-          questionsCount = userTx.filter(tx => tx.type === 'manual_add').length;
-        }
-      } else {
-        // All time - count all questions
-        questionsCount = allTransactions.filter(tx => 
-          tx.user_email === balance.user_email && 
-          tx.amount > 0 &&
-          tx.type === 'manual_add'
-        ).length;
-      }
-
-      return {
-        ...balance,
-        displayed_earned: earned,
-        questions_count: questionsCount
-      };
+    const { data: allBalances = [], isLoading, refetch } = useQuery({
+      queryKey: ['leaderboard-balances'],
+      queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
+      staleTime: 0,
+      cacheTime: 0,
     });
 
-    // Sort by selected metric
-    users.sort((a, b) => {
-      switch (sortBy) {
-        case 'total_earned':
-          return b.displayed_earned - a.displayed_earned;
-        case 'available':
-          return (b.available_balance || 0) - (a.available_balance || 0);
-        case 'paid':
-          return (b.paid_amount || 0) - (a.paid_amount || 0);
-        case 'questions':
-          return b.questions_count - a.questions_count;
-        default:
-          return b.displayed_earned - a.displayed_earned;
-      }
-    });
+    // Filter and sort users
+    const rankedUsers = React.useMemo(() => {
+      let users = allBalances.map(balance => {
+        let displayValue = 0;
 
-    // Add rank
-    return users.map((user, index) => ({
-      ...user,
-      rank: index + 1
-    })).filter(user => user.displayed_earned > 0);
-  }, [allBalances, allTransactions, timeFilter, sortBy]);
+        switch (sortBy) {
+          case 'total_earned':
+            displayValue = balance.total_earned || 0;
+            break;
+          case 'available':
+            displayValue = balance.available_for_withdrawal || 0;
+            break;
+          case 'paid':
+            displayValue = balance.paid_amount || 0;
+            break;
+          default:
+            displayValue = balance.total_earned || 0;
+        }
+
+        return {
+          ...balance,
+          display_value: displayValue
+        };
+      });
+
+      // Sort by selected metric
+      users.sort((a, b) => b.display_value - a.display_value);
+
+      // Add rank
+      return users.map((user, index) => ({
+        ...user,
+        rank: index + 1
+      })).filter(user => user.display_value > 0);
+    }, [allBalances, sortBy]);
 
   const myRank = rankedUsers.findIndex(user => user.user_email === currentUser?.email);
-  const myData = myRank >= 0 ? rankedUsers[myRank] : null;
+  const myData = myRank >= 0 ? { ...rankedUsers[myRank], rank: myRank + 1 } : null;
 
   const getRankIcon = (rank) => {
     if (rank === 1) return <Crown className="w-6 h-6 text-yellow-500" />;
@@ -278,7 +234,6 @@ export default function Leaderboard() {
               <Button
                 onClick={() => {
                   queryClient.invalidateQueries({ queryKey: ['leaderboard-balances'] });
-                  queryClient.invalidateQueries({ queryKey: ['leaderboard-transactions'] });
                 }}
                 size="sm"
                 className="bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg font-bold hover:shadow-lg"
@@ -383,23 +338,10 @@ export default function Leaderboard() {
                             user.rank === 3 ? 'text-amber-600' :
                             'text-slate-900'
                           }`}>
-                            {(() => {
-                              switch (sortBy) {
-                                case 'available':
-                                  return (user.available_balance || 0).toLocaleString();
-                                case 'paid':
-                                  return (user.paid_amount || 0).toLocaleString();
-                                case 'questions':
-                                  return user.questions_count;
-                                default:
-                                  return user.displayed_earned.toLocaleString();
-                              }
-                            })()}
+                            {user.display_value.toLocaleString()}
                           </p>
                         </div>
-                        <p className="text-xs text-slate-600 mt-1">
-                          {sortBy === 'questions' ? 'câu hỏi' : 'Camlycoin'}
-                        </p>
+                        <p className="text-xs text-slate-600 mt-1">Camlycoin</p>
                       </div>
                     </div>
                     </motion.div>
