@@ -143,7 +143,7 @@ export default function Leaderboard() {
               </div>
               <div className="text-right">
                 <p className="text-white/80 text-sm mb-1">Tổng Kiếm Được</p>
-                <p className="text-white text-3xl font-bold">{myData.displayed_earned.toLocaleString()}</p>
+                <p className="text-white text-3xl font-bold">{myData.total_earned.toLocaleString()}</p>
                 <p className="text-white/90 text-xs mt-1">Camlycoin</p>
               </div>
             </div>
@@ -307,23 +307,11 @@ export default function Leaderboard() {
                           <div className="flex flex-wrap gap-2 mt-1">
                             <Badge className="bg-amber-100 text-amber-800 text-xs">
                               <Coins className="w-3 h-3 mr-1" />
-                              {user.displayed_earned.toLocaleString()} earned
+                              {user.total_earned.toLocaleString()} earned
                             </Badge>
-                            {sortBy === 'questions' && (
-                              <Badge className="bg-blue-100 text-blue-800 text-xs">
-                                {user.questions_count} questions
-                              </Badge>
-                            )}
-                            {sortBy === 'available' && (
-                              <Badge className="bg-green-100 text-green-800 text-xs">
-                                {(user.available_balance || 0).toLocaleString()} available
-                              </Badge>
-                            )}
-                            {sortBy === 'paid' && (
-                              <Badge className="bg-purple-100 text-purple-800 text-xs">
-                                {(user.paid_amount || 0).toLocaleString()} paid
-                              </Badge>
-                            )}
+                            <Badge className="bg-green-100 text-green-800 text-xs">
+                              {(user.available_for_withdrawal || 0).toLocaleString()} available
+                            </Badge>
                           </div>
                         </div>
                       </div>
