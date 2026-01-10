@@ -199,6 +199,12 @@ export default function Layout({ children, currentPageName }) {
         gradient: 'from-indigo-400 to-purple-500'
       },
       { 
+        name: 'User Management', 
+        icon: Users, 
+        path: 'UserManagement',
+        gradient: 'from-purple-400 to-pink-500'
+      },
+      { 
         name: 'Monitoring', 
         icon: Activity, 
         path: 'MonitoringDashboard',

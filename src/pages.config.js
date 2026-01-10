@@ -40,6 +40,7 @@ import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
 import AppRoot from './pages/AppRoot';
+import UserManagement from './pages/UserManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -86,6 +87,7 @@ export const PAGES = {
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
     "AppRoot": AppRoot,
+    "UserManagement": UserManagement,
 }
 
 export const pagesConfig = {
