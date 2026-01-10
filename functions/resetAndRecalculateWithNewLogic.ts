@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
           earned: totalEarned,
           frozen: frozenBalance,
           available: newAvailableBalance,
-          paid: originalPaidAmount,
+          paid: 0,
         });
 
         await sleep(300);
