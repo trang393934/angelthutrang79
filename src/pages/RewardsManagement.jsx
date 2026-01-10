@@ -751,6 +751,118 @@ export default function RewardsManagement() {
               </p>
             </div>
           </motion.div>
+
+          {/* Recalculate Balances Tool */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-8 border-2 border-white"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h3 className="text-white text-xl font-bold mb-2 flex items-center gap-2">
+                  <Activity className="w-6 h-6" />
+                  Tính Toán Lại Số Dư
+                </h3>
+                <p className="text-white/90 text-sm mb-4">
+                  Chức năng này sẽ tính toán lại số dư Camlycoin chính xác từ transactions và audit logs thực tế. 
+                  Admin có thể tính toán cho 1 user cụ thể hoặc tất cả users.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex gap-3">
+                <Input
+                  type="email"
+                  placeholder="Nhập email người dùng (để trống cho tất cả)"
+                  value={recalculateEmail}
+                  onChange={(e) => setRecalculateEmail(e.target.value)}
+                  className="flex-1 bg-white/90 backdrop-blur-sm border-2 border-white/30 rounded-xl"
+                  disabled={isRecalculating}
+                />
+                <Button
+                  onClick={async () => {
+                    if (!confirm(`⚠️ Xác nhận tính toán lại số dư${recalculateEmail ? ` cho ${recalculateEmail}` : ' cho TẤT CẢ USERS'}?`)) {
+                      return;
+                    }
+
+                    setIsRecalculating(true);
+                    setRecalculateResults(null);
+                    try {
+                      const payload = recalculateEmail ? { user_email: recalculateEmail } : {};
+                      const response = await base44.functions.invoke('recalculateUserBalances', payload);
+                      
+                      setRecalculateResults(response.data);
+                      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                      
+                      alert(`✅ Hoàn tất!\n\n📊 Tổng: ${response.data.summary.total_users} users\n✅ Thành công: ${response.data.summary.success_count}\n❌ Lỗi: ${response.data.summary.error_count}`);
+                    } catch (error) {
+                      alert('❌ Lỗi: ' + error.message);
+                    } finally {
+                      setIsRecalculating(false);
+                    }
+                  }}
+                  disabled={isRecalculating}
+                  className="bg-white text-purple-600 rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
+                >
+                  {isRecalculating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Activity className="w-4 h-4 mr-2" />
+                  )}
+                  Tính Toán Lại
+                </Button>
+              </div>
+
+              {recalculateResults && (
+                <div className="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-4">
+                  <h4 className="text-white font-bold mb-3">📊 Kết Quả:</h4>
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="bg-white/30 rounded-lg p-3 text-center">
+                      <p className="text-white/80 text-xs mb-1">Tổng Users</p>
+                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.total_users}</p>
+                    </div>
+                    <div className="bg-green-500/30 rounded-lg p-3 text-center">
+                      <p className="text-white/80 text-xs mb-1">Thành Công</p>
+                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.success_count}</p>
+                    </div>
+                    <div className="bg-red-500/30 rounded-lg p-3 text-center">
+                      <p className="text-white/80 text-xs mb-1">Lỗi</p>
+                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.error_count}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto space-y-2">
+                    {recalculateResults.results.slice(0, 10).map((result, idx) => (
+                      <div 
+                        key={idx}
+                        className={`bg-white/20 rounded-lg p-2 text-xs ${
+                          result.success ? 'border-l-4 border-green-400' : 'border-l-4 border-red-400'
+                        }`}
+                      >
+                        <p className="text-white font-semibold">{result.user_email}</p>
+                        {result.success ? (
+                          <div className="text-white/80 text-[10px] mt-1">
+                            Total: {result.old.total_earned.toLocaleString()} → {result.new.total_earned.toLocaleString()} 
+                            ({result.changes.total_earned >= 0 ? '+' : ''}{result.changes.total_earned.toLocaleString()})
+                          </div>
+                        ) : (
+                          <p className="text-red-300 text-[10px] mt-1">❌ {result.error}</p>
+                        )}
+                      </div>
+                    ))}
+                    {recalculateResults.results.length > 10 && (
+                      <p className="text-white/60 text-xs text-center">
+                        ... và {recalculateResults.results.length - 10} users khác
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
           </>
         )}
 
