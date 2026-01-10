@@ -196,10 +196,13 @@ Deno.serve(async (req) => {
 
       } catch (error) {
         console.error(`  ❌ Error processing ${userEmail}:`, error.message);
+        console.error(`  📋 Error stack:`, error.stack);
         results.push({
           user_email: userEmail,
           success: false,
           error: error.message,
+          error_type: error.name || 'Unknown',
+          error_details: error.stack?.split('\n')[0] || error.toString(),
         });
         errorCount++;
       }
