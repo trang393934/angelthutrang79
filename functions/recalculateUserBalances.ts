@@ -131,15 +131,7 @@ Deno.serve(async (req) => {
         console.log(`  💰 Total from Audit Logs: ${totalFromAuditLogs}`);
         console.log(`  💰 Total Earned (Combined): ${newTotalEarned}`);
 
-        // 2. Calculate pending and frozen from QuestionAuditLog
-        const auditLogs = await retryWithBackoff(async () => {
-          return await base44.asServiceRole.entities.QuestionAuditLog.filter(
-            { user_email: userEmail },
-            '-created_date',
-            10000
-          );
-        });
-
+        // 2. Calculate pending and frozen from QuestionAuditLog (already fetched above)
         for (const log of auditLogs) {
           try {
             if (log.coin_category === 'pending_review') {
