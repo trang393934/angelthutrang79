@@ -16,9 +16,7 @@ export default function Leaderboard() {
 
   React.useEffect(() => {
     base44.auth.me().then(setCurrentUser).catch(() => setCurrentUser(null));
-    // Force refetch on mount to get latest data
-    refetch();
-  }, [refetch]);
+  }, []);
 
   // Fetch all users with balances
   const { data: allBalances = [], isLoading, refetch } = useQuery({
