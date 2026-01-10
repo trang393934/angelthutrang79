@@ -66,34 +66,54 @@ Deno.serve(async (req) => {
         let newPaidAmount = 0;
 
         // 1. Calculate total_earned from CamlycoinTransaction
-        const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
-          { user_email: userEmail },
-          '-created_date',
-          10000
-        );
+        let transactions = [];
+        try {
+          transactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
+            { user_email: userEmail },
+            '-created_date',
+            10000
+          );
+        } catch (txError) {
+          console.log(`  ⚠️ Failed to fetch transactions: ${txError.message}`);
+          transactions = [];
+        }
 
         // Sum all positive transactions (income types)
         const incomeTypes = ['bounty_reward', 'build_reward', 'admin_adjustment', 'manual_add', 'purchase'];
         for (const tx of transactions) {
-          if (tx.amount > 0 && incomeTypes.includes(tx.type)) {
-            newTotalEarned += tx.amount;
+          try {
+            if (tx.amount && tx.amount > 0 && incomeTypes.includes(tx.type)) {
+              newTotalEarned += parseFloat(tx.amount);
+            }
+          } catch (txParseError) {
+            console.log(`  ⚠️ Failed to parse transaction amount: ${txParseError.message}`);
           }
         }
 
         console.log(`  💰 Total Earned from Transactions: ${newTotalEarned}`);
 
         // 2. Calculate pending and frozen from QuestionAuditLog
-        const auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter(
-          { user_email: userEmail },
-          '-created_date',
-          10000
-        );
+        let auditLogs = [];
+        try {
+          auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter(
+            { user_email: userEmail },
+            '-created_date',
+            10000
+          );
+        } catch (auditError) {
+          console.log(`  ⚠️ Failed to fetch audit logs: ${auditError.message}`);
+          auditLogs = [];
+        }
 
         for (const log of auditLogs) {
-          if (log.coin_category === 'pending_review') {
-            newAdminReviewPending += log.coins_earned || 0;
-          } else if (log.coin_category === 'frozen') {
-            newFrozenBalance += log.coins_earned || 0;
+          try {
+            if (log.coin_category === 'pending_review') {
+              newAdminReviewPending += parseFloat(log.coins_earned || 0);
+            } else if (log.coin_category === 'frozen') {
+              newFrozenBalance += parseFloat(log.coins_earned || 0);
+            }
+          } catch (logParseError) {
+            console.log(`  ⚠️ Failed to parse audit log: ${logParseError.message}`);
           }
         }
 
@@ -101,15 +121,25 @@ Deno.serve(async (req) => {
         console.log(`  ❄️ Frozen Balance: ${newFrozenBalance}`);
 
         // 3. Calculate paid_amount from WithdrawalRequest
-        const withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter(
-          { user_email: userEmail },
-          '-created_date',
-          1000
-        );
+        let withdrawals = [];
+        try {
+          withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter(
+            { user_email: userEmail },
+            '-created_date',
+            1000
+          );
+        } catch (withdrawalError) {
+          console.log(`  ⚠️ Failed to fetch withdrawals: ${withdrawalError.message}`);
+          withdrawals = [];
+        }
 
         for (const withdrawal of withdrawals) {
-          if (withdrawal.status === 'completed') {
-            newPaidAmount += withdrawal.amount || 0;
+          try {
+            if (withdrawal.status === 'completed' && withdrawal.amount) {
+              newPaidAmount += parseFloat(withdrawal.amount);
+            }
+          } catch (withdrawalParseError) {
+            console.log(`  ⚠️ Failed to parse withdrawal: ${withdrawalParseError.message}`);
           }
         }
 
