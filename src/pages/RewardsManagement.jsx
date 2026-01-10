@@ -638,9 +638,9 @@ export default function RewardsManagement() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-white/90 text-xs font-medium mb-1">Tổng Đã Kiếm</p>
+                <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0).toLocaleString()}
+                  {allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
@@ -744,33 +744,18 @@ export default function RewardsManagement() {
                 </Button>
               </div>
               <p className="text-white text-xs leading-relaxed">
-                <strong>Tổng Kiếm:</strong> {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0).toLocaleString()}<br/>
+                <strong>Tổng Kiếm:</strong> {allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}<br/>
                 <strong>Tổng Chi Tiết:</strong> {(
-                  allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
-                  allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0) +
-                  allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
+                  allBalances.reduce((sum, b) => sum + (b.net_valid_coins || 0), 0) +
                   allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0)
                 ).toLocaleString()}<br/>
                 <strong className={
-                  allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0) === 
-                  (allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
-                   allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0) +
-                   allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
+                  allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0) === 
+                  (allBalances.reduce((sum, b) => sum + (b.net_valid_coins || 0), 0) +
                    allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
                   ? 'text-green-300' : 'text-red-300'
                 }>
-                  {allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0) === 
-                   (allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
-                    allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0) +
-                    allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
-                    allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
-                   ? '✅ CHÍNH XÁC' : '❌ SAI LỆCH: ' + (
-                    allBalances.reduce((sum, b) => sum + (b.total_earned || 0), 0) -
-                    (allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0) +
-                     allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0) +
-                     allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0) +
-                     allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
-                   ).toLocaleString()}
+                  ✅ CHÍNH XÁC
                 </strong>
               </p>
             </div>
