@@ -46,8 +46,21 @@ Deno.serve(async (req) => {
       const originalPaidAmount = balance.paid_amount || 0; // KEEP this
 
       try {
-        console.log(`\n🔄 ${email} (keeping paid: ${originalPaidAmount})`);
+        console.log(`\n🔄 ${email}`);
+        
+        // STEP 1: Reset to 0
+        await retryWithBackoff(async () => {
+          await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+            total_earned: 0,
+            available_balance: 0,
+            admin_review_pending: 0,
+            frozen_balance: 0,
+            paid_amount: 0,
+          });
+        });
+        console.log(`  ✅ Reset to 0`);
 
+        // STEP 2: Recalculate from source
         let totalEarned = 0;
         let frozenBalance = 0;
 
