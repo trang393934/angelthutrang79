@@ -400,7 +400,7 @@ export default function Home() {
               <Coins className="w-8 h-8 text-white" />
               <div>
                 <p className="text-white/90 text-xs font-medium">Tổng Camlycoin</p>
-                <p className="text-white text-2xl font-bold">{(userBalance?.total_earned || 0).toLocaleString()}</p>
+                <p className="text-white text-2xl font-bold">{((userBalance?.net_valid_coins || 0) + (userBalance?.frozen_balance || 0)).toLocaleString()}</p>
               </div>
             </div>
             <Link to={createPageUrl('CamlycoinHistory')}>
