@@ -75,30 +75,51 @@ export default function RewardsManagement() {
     enabled: isAdmin,
   });
 
-  // Admin: Fetch all balances
+  // Admin: Fetch all balances (reduced limit to avoid 504)
   const { data: allBalances = [] } = useQuery({
     queryKey: ['all-balances'],
-    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 500),
+    queryFn: async () => {
+      try {
+        return await base44.entities.CamlycoinBalance.list('-total_earned', 200);
+      } catch (error) {
+        console.error('Failed to fetch balances:', error);
+        return [];
+      }
+    },
     enabled: isAdmin,
-    refetchInterval: 10000, // Auto-refresh every 10 seconds
-    staleTime: 5000,
+    refetchInterval: 30000,
+    staleTime: 15000,
   });
 
-  // Admin: Fetch all withdrawal requests
+  // Admin: Fetch all withdrawal requests (reduced limit to avoid 504)
   const { data: allWithdrawalRequests = [] } = useQuery({
     queryKey: ['all-withdrawal-requests'],
-    queryFn: () => base44.entities.WithdrawalRequest.list('-created_date', 300),
+    queryFn: async () => {
+      try {
+        return await base44.entities.WithdrawalRequest.list('-created_date', 100);
+      } catch (error) {
+        console.error('Failed to fetch withdrawals:', error);
+        return [];
+      }
+    },
     enabled: isAdmin,
-    refetchInterval: 10000,
-    staleTime: 5000,
+    refetchInterval: 30000,
+    staleTime: 15000,
   });
 
-  // Fetch all auto-claim configs for quick info
+  // Fetch all auto-claim configs for quick info (minimal data)
   const { data: allAutoClaimConfigs = [] } = useQuery({
     queryKey: ['all-auto-claim-configs'],
-    queryFn: () => base44.entities.AutoClaimConfig.list('-created_date', 200),
+    queryFn: async () => {
+      try {
+        return await base44.entities.AutoClaimConfig.list('-created_date', 100);
+      } catch (error) {
+        console.error('Failed to fetch auto-claim configs:', error);
+        return [];
+      }
+    },
     enabled: isAdmin,
-    staleTime: 30000,
+    staleTime: 60000,
   });
 
   // Fetch selected user transactions
