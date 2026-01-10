@@ -86,17 +86,13 @@ Deno.serve(async (req) => {
         let newPaidAmount = 0;
 
         // 1. Calculate total_earned from CamlycoinTransaction
-        let transactions = [];
-        try {
-          transactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
+        const transactions = await retryWithBackoff(async () => {
+          return await base44.asServiceRole.entities.CamlycoinTransaction.filter(
             { user_email: userEmail },
             '-created_date',
             10000
           );
-        } catch (txError) {
-          console.log(`  ⚠️ Failed to fetch transactions: ${txError.message}`);
-          transactions = [];
-        }
+        });
 
         // Sum all positive transactions (income types)
         const incomeTypes = ['bounty_reward', 'build_reward', 'admin_adjustment', 'manual_add', 'purchase'];
