@@ -286,7 +286,7 @@ export default function RewardsManagement() {
       }
     },
     onSuccess: (data) => {
-      alert(`✅ Đã duyệt và chuyển tiền thành công!\n🔗 TX Hash: ${data.tx_hash}\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin`);
+      alert(`✅ Đã duyệt và chuyển tiền thành công!\n🔗 TX Hash: ${data.tx_hash}\n💰 Số tiền: ${(data.amount ?? 0).toLocaleString()} Camlycoin`);
     },
     onError: (error) => {
       alert('❌ Lỗi khi chuyển tiền: ' + error.message);
