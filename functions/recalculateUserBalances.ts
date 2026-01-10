@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
         let newFrozenBalance = 0;
         let newPaidAmount = 0;
 
-        // 1. Calculate total_earned from CamlycoinTransaction
+        // 1. Calculate total_earned from BOTH CamlycoinTransaction AND QuestionAuditLog
         const transactions = await retryWithBackoff(async () => {
           return await base44.asServiceRole.entities.CamlycoinTransaction.filter(
             { user_email: userEmail },
@@ -107,6 +107,29 @@ Deno.serve(async (req) => {
         }
 
         console.log(`  💰 Total Earned from Transactions: ${newTotalEarned}`);
+
+        // Get audit logs FIRST (before calculating sub-balances)
+        const auditLogs = await retryWithBackoff(async () => {
+          return await base44.asServiceRole.entities.QuestionAuditLog.filter(
+            { user_email: userEmail },
+            '-created_date',
+            10000
+          );
+        });
+
+        // 1.5. Add coins from ALL audit logs to total_earned (this is the real source of question rewards)
+        let totalFromAuditLogs = 0;
+        for (const log of auditLogs) {
+          try {
+            totalFromAuditLogs += parseFloat(log.coins_earned || 0);
+          } catch (logParseError) {
+            console.log(`  ⚠️ Failed to parse audit log: ${logParseError.message}`);
+          }
+        }
+
+        newTotalEarned += totalFromAuditLogs;
+        console.log(`  💰 Total from Audit Logs: ${totalFromAuditLogs}`);
+        console.log(`  💰 Total Earned (Combined): ${newTotalEarned}`);
 
         // 2. Calculate pending and frozen from QuestionAuditLog
         const auditLogs = await retryWithBackoff(async () => {
