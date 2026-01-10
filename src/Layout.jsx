@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import AngelMascot from '@/components/AngelMascot';
 import SupportChatWidget from '@/components/SupportChatWidget';
 import ThemeToggle from '@/components/ThemeToggle';
+import ThemeProvider from '@/components/ThemeProvider';
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -395,6 +396,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
   };
 
   return (
+    <ThemeProvider>
     <div className="flex min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50">
       {/* Mobile Menu Button */}
       <Button
@@ -771,5 +773,6 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
       {/* Support Chat Widget */}
       {currentUser && currentUser.light_law_agreed && <SupportChatWidget />}
       </div>
+      </ThemeProvider>
       );
       }
