@@ -18,7 +18,35 @@ export default function SupportChatWidget() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [userContext, setUserContext] = useState(null);
   const messagesEndRef = useRef(null);
+
+  // Load user context when opened
+  useEffect(() => {
+    if (isOpen && !userContext) {
+      loadUserContext();
+    }
+  }, [isOpen]);
+
+  const loadUserContext = async () => {
+    try {
+      const user = await base44.auth.me();
+      const [activities, balance, prefs] = await Promise.all([
+        base44.entities.UserActivity.filter({ user_email: user.email }, '-created_date', 20).catch(() => []),
+        base44.entities.CamlycoinBalance.filter({ user_email: user.email }).catch(() => []),
+        base44.entities.UserPreferences.filter({ created_by: user.email }).catch(() => [])
+      ]);
+      
+      setUserContext({
+        user,
+        recentActivities: activities,
+        balance: balance[0] || null,
+        preferences: prefs[0] || null
+      });
+    } catch (error) {
+      console.log('Failed to load context:', error);
+    }
+  };
 
   // Initialize position to bottom-right
   useEffect(() => {
@@ -57,8 +85,28 @@ export default function SupportChatWidget() {
         `${doc.title}: ${doc.summary || doc.content.substring(0, 200)}`
       ).join('\n\n');
 
+      // Build user context
+      let userInfo = '';
+      if (userContext) {
+        const recentPageViews = userContext.recentActivities
+          .filter(a => a.activity_type === 'page_view')
+          .slice(0, 5)
+          .map(a => a.activity_details?.page)
+          .filter(Boolean);
+
+        userInfo = `
+**THÔNG TIN NGƯỜI DÙNG:**
+- Email: ${userContext.user.email}
+- Số dư: ${userContext.balance?.total_earned || 0} Camlycoin (${userContext.balance?.available_balance || 0} sẵn sàng rút)
+- Trang đã xem gần đây: ${recentPageViews.join(', ') || 'Chưa có'}
+- Phong cách giao tiếp ưa thích: ${userContext.preferences?.communication_style || 'Chưa thiết lập'}
+`;
+      }
+
       const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Bạn là trợ lý AI chuyên nghiệp của Angel AI - một ứng dụng tâm linh và phát triển bản thân.
+        prompt: `Bạn là Angel AI Support Bot - trợ lý hỗ trợ thông minh, thân thiện và cá nhân hóa.
+
+${userInfo}
 
 **KNOWLEDGE BASE:**
 ${kbContext}
@@ -72,12 +120,12 @@ ${messages.map(m => `${m.role === 'user' ? 'User' : 'AI'}: ${m.content}`).join('
 User: ${input}
 
 **YÊU CẦU:**
-1. Trả lời câu hỏi của người dùng một cách chính xác và hữu ích
-2. Sử dụng thông tin từ Knowledge Base và FAQs nếu có liên quan
-3. Nếu câu hỏi về tính năng, hướng dẫn chi tiết cách sử dụng
-4. Giọng điệu thân thiện, ấm áp, tích cực
-5. Ngắn gọn nhưng đầy đủ thông tin
-6. Nếu không biết câu trả lời, thành thật nói và gợi ý liên hệ admin
+1. Trả lời chính xác dựa trên thông tin người dùng và Knowledge Base
+2. Cá nhân hóa câu trả lời theo phong cách giao tiếp của user (nếu có)
+3. Gợi ý tính năng phù hợp với hành vi gần đây của user
+4. Giọng điệu thân thiện, ấm áp, hỗ trợ nhiệt tình
+5. Ngắn gọn, dễ hiểu, có emoji phù hợp
+6. Nếu không biết, thành thật nói và hướng dẫn cách liên hệ admin
 
 Trả lời bằng tiếng Việt:`,
       });
@@ -101,11 +149,18 @@ Trả lời bằng tiếng Việt:`,
   };
 
   const quickActions = [
-    { text: 'Hướng dẫn sử dụng', icon: '📖' },
-    { text: 'Tính năng AI', icon: '🤖' },
-    { text: 'Camlycoin là gì?', icon: '🪙' },
-    { text: 'Liên hệ hỗ trợ', icon: '💬' },
+    { text: 'Làm sao kiếm Camlycoin?', icon: '🪙' },
+    { text: 'Cách rút tiền?', icon: '💰' },
+    { text: 'Quest là gì?', icon: '🎯' },
+    { text: 'Tính năng nào dành cho tôi?', icon: '✨' },
   ];
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
 
   return (
     <>

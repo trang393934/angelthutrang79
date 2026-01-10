@@ -50,8 +50,19 @@ export default function PersonalizedRecommendations() {
     enabled: !!currentUser,
   });
 
-  // Generate personalized recommendations
-  const recommendations = React.useMemo(() => {
+  // Fetch AI-powered recommendations
+  const { data: aiRecommendations } = useQuery({
+    queryKey: ['ai-recommendations', currentUser?.email],
+    queryFn: async () => {
+      const result = await base44.functions.invoke('getUserRecommendations', {});
+      return result.data.recommendations || [];
+    },
+    enabled: !!currentUser && !!userBalance && !!userActivities,
+    staleTime: 300000, // 5 minutes
+  });
+
+  // Generate personalized recommendations (fallback)
+  const fallbackRecommendations = React.useMemo(() => {
     if (!currentUser || !userBalance || !userActivities) return [];
 
     const recs = [];
@@ -61,7 +72,7 @@ export default function PersonalizedRecommendations() {
       .map(a => a.activity_details?.page)
       .filter(Boolean);
 
-    // Recommendation 1: Encourage daily chat
+    // Chat recommendation
     const chatActivities = userActivities.filter(a => a.activity_type === 'chat_message');
     const todayChat = chatActivities.filter(a => {
       const actDate = new Date(a.timestamp);
@@ -82,7 +93,7 @@ export default function PersonalizedRecommendations() {
       });
     }
 
-    // Recommendation 2: Available balance ready to withdraw
+    // Withdraw recommendation
     if ((userBalance.available_balance || 0) >= 100000) {
       recs.push({
         id: 'withdraw-ready',
@@ -96,7 +107,7 @@ export default function PersonalizedRecommendations() {
       });
     }
 
-    // Recommendation 3: Uncompleted quests
+    // Quests recommendation
     if (completedQuests.length < 5 && !recentPages.includes('Quests')) {
       recs.push({
         id: 'complete-quests',
@@ -110,54 +121,22 @@ export default function PersonalizedRecommendations() {
       });
     }
 
-    // Recommendation 4: Level up opportunity
-    if (userLevel && userLevel.total_points) {
-      const progress = (userLevel.total_points / (userLevel.next_level_points || 1000)) * 100;
-      if (progress >= 70 && progress < 100) {
-        recs.push({
-          id: 'level-up',
-          icon: TrendingUp,
-          title: '⭐ Sắp Lên Level!',
-          description: `Bạn đã đạt ${progress.toFixed(0)}% để lên level ${userLevel.level_number + 1}`,
-          action: 'Xem Tiến Độ',
-          link: 'CamlycoinHistory',
-          gradient: 'from-purple-400 to-pink-500',
-          priority: 7
-        });
-      }
-    }
-
-    // Recommendation 5: Build & Bounty if interested in earning
-    if ((userBalance.total_earned || 0) > 50000 && !recentPages.includes('BuildAndBounty')) {
-      recs.push({
-        id: 'build-bounty',
-        icon: Gift,
-        title: '🎁 Đóng Góp & Nhận Bounty',
-        description: 'Gửi ý tưởng để xây dựng Angel AI và nhận thưởng lớn!',
-        action: 'Xem Bounty',
-        link: 'BuildAndBounty',
-        gradient: 'from-amber-400 to-orange-500',
-        priority: 6
-      });
-    }
-
-    // Recommendation 6: Personalize AI settings
-    if (!activityTypes.has('settings_update') && chatActivities.length > 10) {
-      recs.push({
-        id: 'personalize-ai',
-        icon: Sparkles,
-        title: '✨ Cá Nhân Hóa AI',
-        description: 'Tùy chỉnh cách Angel AI trả lời theo phong cách của bạn',
-        action: 'Cài Đặt',
-        link: 'Settings',
-        gradient: 'from-violet-400 to-purple-500',
-        priority: 5
-      });
-    }
-
-    // Sort by priority
     return recs.sort((a, b) => b.priority - a.priority).slice(0, 3);
-  }, [currentUser, userBalance, userActivities, userLevel, completedQuests]);
+  }, [currentUser, userBalance, userActivities, completedQuests]);
+
+  // Use AI recommendations if available, otherwise fallback
+  const recommendations = aiRecommendations && aiRecommendations.length > 0 
+    ? aiRecommendations.map(rec => ({
+        id: rec.title.replace(/\s+/g, '-').toLowerCase(),
+        icon: Sparkles,
+        title: rec.title,
+        description: rec.description,
+        action: rec.action_text,
+        link: rec.target_page,
+        gradient: 'from-purple-400 to-pink-500',
+        priority: rec.priority
+      }))
+    : fallbackRecommendations;
 
   if (!currentUser || recommendations.length === 0 || dismissed) {
     return null;
