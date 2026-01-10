@@ -571,6 +571,11 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                     )}
                   </div>
 
+                  {/* Theme Toggle */}
+                  <div className="mb-3 flex justify-center">
+                    <ThemeToggle />
+                  </div>
+
                   {/* Knowledge Base & Settings Links */}
                   <div className="space-y-1">
                     {currentUser && !currentUser.light_law_agreed ? (
