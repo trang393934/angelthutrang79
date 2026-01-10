@@ -814,6 +814,37 @@ export default function RewardsManagement() {
                   )}
                   Tính Toán Lại
                 </Button>
+                <Button
+                  onClick={async () => {
+                    if (!confirm('🚨 CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ số liệu hiện tại và tính lại từ đầu!\n\n⚠️ Bạn chắc chắn muốn RESET TẤT CẢ?')) {
+                      return;
+                    }
+
+                    setIsRecalculating(true);
+                    setRecalculateResults(null);
+                    try {
+                      const response = await base44.functions.invoke('resetAndRecalculateAll', {});
+                      
+                      setRecalculateResults(response.data);
+                      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                      
+                      alert(`✅ Reset & Tính lại hoàn tất!\n\n📊 Tổng: ${response.data.summary.total_users} users\n🔄 Reset: ${response.data.summary.reset_count}\n✅ Thành công: ${response.data.summary.success_count}\n❌ Lỗi: ${response.data.summary.error_count}`);
+                    } catch (error) {
+                      alert('❌ Lỗi: ' + error.message);
+                    } finally {
+                      setIsRecalculating(false);
+                    }
+                  }}
+                  disabled={isRecalculating}
+                  className="bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
+                >
+                  {isRecalculating ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <AlertCircle className="w-4 h-4 mr-2" />
+                  )}
+                  Reset Tất Cả
+                </Button>
               </div>
 
               {recalculateResults && (
