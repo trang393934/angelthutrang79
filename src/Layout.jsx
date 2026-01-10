@@ -89,6 +89,12 @@ export default function Layout({ children, currentPageName }) {
       gradient: 'from-green-400 to-emerald-400'
     },
     { 
+      name: 'Lịch Sử Rút Tiền', 
+      icon: Wallet, 
+      path: 'WithdrawalHistory',
+      gradient: 'from-teal-400 to-cyan-400'
+    },
+    { 
       name: 'Analytics', 
       icon: TrendingUp, 
       path: 'Analytics',
