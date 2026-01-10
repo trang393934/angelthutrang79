@@ -168,15 +168,17 @@ export default function UserProfile() {
     queryFn: async () => {
       if (!targetEmail) return [];
       
-      const allLogs = await base44.entities.QuestionAuditLog.list('-question_date', 10000);
-      const userLogs = allLogs.filter(log => log.user_email === targetEmail);
+      // FIX: Fetch logs directly for this user instead of fetching all then filtering
+      const userLogs = await base44.entities.QuestionAuditLog.filter({ user_email: targetEmail }, '-question_date', 50000);
       
-      console.log('Total audit logs for', targetEmail, ':', userLogs.length);
-      console.log('Breakdown:', {
+      console.log('🔍 Total audit logs for', targetEmail, ':', userLogs.length);
+      console.log('📊 Breakdown:', {
         valid: userLogs.filter(l => l.exclusion_reason === 'valid').length,
         duplicate: userLogs.filter(l => l.exclusion_reason === 'duplicate').length,
         greeting: userLogs.filter(l => l.exclusion_reason === 'greeting').length,
-        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length
+        exceeds_limit: userLogs.filter(l => l.exclusion_reason === 'exceeds_daily_limit').length,
+        frozen: userLogs.filter(l => l.coin_category === 'frozen').length,
+        pending_review: userLogs.filter(l => l.coin_category === 'pending_review').length
       });
       
       return userLogs;
