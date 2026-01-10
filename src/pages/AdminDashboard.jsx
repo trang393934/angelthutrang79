@@ -11,6 +11,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LineChart, Line, BarChart, Bar, PieChart as RePieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AdminAlertPanel from '@/components/AdminAlertPanel';
 
 export default function AdminDashboard() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -355,6 +356,9 @@ export default function AdminDashboard() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-7xl mx-auto">
+        {/* Admin Alerts Panel */}
+        <AdminAlertPanel />
+
         {/* System Summary */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
