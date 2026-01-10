@@ -373,17 +373,30 @@ export default function UserManagement() {
 
                       {/* Quick Actions */}
                       <div className="flex flex-wrap gap-2">
-                        <Button
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setShowDetailModal(true);
-                          }}
-                          size="sm"
-                          className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl"
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          Chi Tiết
-                        </Button>
+                       <Button
+                         onClick={() => {
+                           setSelectedUser(user);
+                           setShowDetailModal(true);
+                         }}
+                         size="sm"
+                         className="bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl"
+                       >
+                         <Eye className="w-4 h-4 mr-1" />
+                         Chi Tiết
+                       </Button>
+
+                       <Button
+                         onClick={async () => {
+                           const result = await base44.functions.invoke('investigateDiscrepancy', { user_email: user.email });
+                           console.log('Investigation:', result.data);
+                           alert(`📊 PHÂN TÍCH:\n\nTổng Kiếm: ${result.data.summary.total_earned_db.toLocaleString()}\nTổng Chi Tiết: ${result.data.summary.sum_of_sub_balances.toLocaleString()}\n❌ SAI LỆCH: ${result.data.summary.discrepancy.toLocaleString()}\n\nXem Console để biết chi tiết`);
+                         }}
+                         size="sm"
+                         variant="outline"
+                         className="border-orange-300 text-orange-700 hover:bg-orange-50 rounded-xl"
+                       >
+                         🔍 Kiểm Tra
+                       </Button>
 
                         <Button
                           onClick={() => changeRoleMutation.mutate({ 
