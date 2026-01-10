@@ -52,10 +52,7 @@ export default function WithdrawCamlycoin() {
     }
   }, [withdrawalRequests, withdrawalAddress]);
 
-  // Check for pending/approved withdrawals
-  const hasPendingWithdrawal = withdrawalRequests.some(
-    req => req.status === 'pending' || req.status === 'approved' || req.status === 'processing'
-  );
+
 
   // Calculate total withdrawn today (all successful withdrawals created today)
   const todayWithdrawnAmount = withdrawalRequests
@@ -70,172 +67,68 @@ export default function WithdrawCamlycoin() {
   const DAILY_LIMIT = 500000;
   const remainingDailyLimit = Math.max(0, DAILY_LIMIT - todayWithdrawnAmount);
 
-  // Submit withdrawal request
+  // Submit AUTO withdrawal request
   const submitWithdrawalMutation = useMutation({
     mutationFn: async ({ address, amount }) => {
       const requestAmount = parseFloat(amount);
-      
-      // Double check for pending withdrawals
-      const pendingCheck = await base44.entities.WithdrawalRequest.filter({ 
-        user_email: currentUser.email,
-        status: 'pending'
-      });
-      
-      if (pendingCheck.length > 0) {
-        throw new Error('Bạn đã có yêu cầu đang chờ xử lý. Vui lòng đợi admin duyệt trước khi tạo yêu cầu mới.');
+
+      // Validate min/max
+      if (requestAmount < 100000) {
+        throw new Error('Số tiền rút tối thiểu 100,000 Camlycoin');
       }
 
-      // Check daily limit
-      const allRequests = await base44.entities.WithdrawalRequest.filter({ user_email: currentUser.email });
-      const todayWithdrawn = allRequests
-        .filter(req => {
-          const reqDate = new Date(req.created_date);
-          const today = new Date();
-          return reqDate.toDateString() === today.toDateString() && 
-                 (req.status === 'pending' || req.status === 'approved' || req.status === 'processing' || req.status === 'completed');
-        })
-        .reduce((sum, req) => sum + req.amount, 0);
-
-      if (todayWithdrawn + requestAmount > DAILY_LIMIT) {
-        throw new Error(`Vượt quá giới hạn rút ${DAILY_LIMIT.toLocaleString()} Camlycoin/ngày!\nĐã rút hôm nay: ${todayWithdrawn.toLocaleString()}\nCòn lại: ${(DAILY_LIMIT - todayWithdrawn).toLocaleString()}`);
+      if (requestAmount > 500000) {
+        throw new Error('Số tiền rút tối đa 500,000 Camlycoin/ngày');
       }
 
-      // Get current balance
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
-      if (balances.length === 0) {
-        throw new Error('Không tìm thấy thông tin số dư!');
-      }
-
-      const balance = balances[0];
-      const currentAvailable = balance.available_balance || 0;
-
-      // CRITICAL CHECK: Đảm bảo available_balance đủ
-      if (requestAmount > currentAvailable) {
-        throw new Error(`Không đủ số dư! Available: ${currentAvailable.toLocaleString()}, Yêu cầu: ${requestAmount.toLocaleString()}`);
-      }
-
-      // TRỪ NGAY available_balance khi tạo request (để tránh spam requests)
-      await base44.entities.CamlycoinBalance.update(balance.id, {
-        available_balance: currentAvailable - requestAmount
-      });
-
-      // Create withdrawal request
-      await base44.entities.WithdrawalRequest.create({
-        user_email: currentUser.email,
+      // Call auto-process function
+      const response = await base44.functions.invoke('autoProcessWithdrawalRequest', {
         withdrawal_address: address,
-        amount: requestAmount,
-        status: 'pending',
-        verification_status: 'email_verified'
+        amount: requestAmount
       });
 
-      // Create transaction log
-      await base44.entities.CamlycoinTransaction.create({
-        user_email: currentUser.email,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `📤 Tạo yêu cầu rút ${requestAmount.toLocaleString()} Camlycoin\n💰 Available balance: ${currentAvailable.toLocaleString()} → ${(currentAvailable - requestAmount).toLocaleString()}`,
-        processed_by: currentUser.email
-      });
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       setWithdrawalAddress('');
       setWithdrawalAmount('');
-      alert('✅ Đã gửi yêu cầu rút tiền! Admin sẽ xem xét trong 24-48h.');
+      alert(`✅ Rút tiền tự động thành công!\n💰 ${data.amount_withdrawn.toLocaleString()} Camlycoin đã được chuyển vào ví\n📬 TX: ${data.tx_hash}\n⛽ Gas: ${data.gas_fee_bnb.toFixed(8)} BNB`);
     },
     onError: (error) => {
       alert('❌ Lỗi: ' + error.message);
     }
   });
 
-  // Custom auto-claim mutation
+  // Custom auto-claim mutation - Instant withdrawal
   const customAutoClaimMutation = useMutation({
     mutationFn: async ({ amount, address }) => {
       const requestAmount = parseFloat(amount);
-      
-      // Validate amount
-      if (!requestAmount || requestAmount < 100000) {
-        throw new Error('Số tiền tối thiểu 100,000 Camlycoin');
+
+      // Validate
+      if (requestAmount < 100000) {
+        throw new Error('Số tiền rút tối thiểu 100,000 Camlycoin');
       }
 
-      if (requestAmount > availableBalance) {
-        throw new Error('Số dư không đủ!');
+      if (requestAmount > 500000) {
+        throw new Error('Số tiền rút tối đa 500,000 Camlycoin/ngày');
       }
 
-      if (requestAmount > remainingDailyLimit) {
-        throw new Error(`Vượt giới hạn ${DAILY_LIMIT.toLocaleString()} Camlycoin/ngày!`);
-      }
-
-      // Check for pending withdrawals
-      const pendingCheck = await base44.entities.WithdrawalRequest.filter({ 
-        user_email: currentUser.email,
-        status: 'pending'
-      });
-      
-      if (pendingCheck.length > 0) {
-        throw new Error('Bạn đã có yêu cầu đang chờ xử lý!');
-      }
-
-      // Validate address
-      if (!address || !address.startsWith('0x') || address.length !== 42) {
-        throw new Error('Địa chỉ ví BEP-20 không hợp lệ!');
-      }
-
-      // Check daily limit
-      const allRequests = await base44.entities.WithdrawalRequest.filter({ user_email: currentUser.email });
-      const todayWithdrawn = allRequests
-        .filter(req => {
-          const reqDate = new Date(req.created_date);
-          const today = new Date();
-          return reqDate.toDateString() === today.toDateString() && 
-                 (req.status === 'pending' || req.status === 'approved' || req.status === 'processing' || req.status === 'completed');
-        })
-        .reduce((sum, req) => sum + req.amount, 0);
-
-      if (todayWithdrawn + requestAmount > DAILY_LIMIT) {
-        throw new Error(`Vượt giới hạn rút ${DAILY_LIMIT.toLocaleString()} Camlycoin/ngày!`);
-      }
-
-      // Deduct available_balance
-      const balances = await base44.entities.CamlycoinBalance.filter({ user_email: currentUser.email });
-      if (balances.length === 0) {
-        throw new Error('Không tìm thấy thông tin số dư!');
-      }
-
-      const balance = balances[0];
-      const currentAvailable = balance.available_balance || 0;
-
-      await base44.entities.CamlycoinBalance.update(balance.id, {
-        available_balance: currentAvailable - requestAmount
-      });
-
-      // Create withdrawal request
-      await base44.entities.WithdrawalRequest.create({
-        user_email: currentUser.email,
+      // Call auto-process function
+      const response = await base44.functions.invoke('autoProcessWithdrawalRequest', {
         withdrawal_address: address,
-        amount: requestAmount,
-        status: 'pending',
-        verification_status: 'email_verified'
+        amount: requestAmount
       });
 
-      // Create transaction log
-      await base44.entities.CamlycoinTransaction.create({
-        user_email: currentUser.email,
-        amount: 0,
-        type: 'admin_adjustment',
-        description: `🚀 Auto-Claim: Tạo yêu cầu rút ${requestAmount.toLocaleString()} Camlycoin`,
-        processed_by: currentUser.email
-      });
-
-      return { amount: requestAmount, address };
+      return response.data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['withdrawal-requests'] });
       queryClient.invalidateQueries({ queryKey: ['user-balance'] });
       setShowAutoClaimModal(false);
       setAutoClaimAmount('');
-      alert(`✅ Auto-Claim thành công!\n💰 Số tiền: ${data.amount.toLocaleString()} Camlycoin\n📬 Địa chỉ: ${data.address}`);
+      alert(`✅ Rút tiền tự động thành công!\n💰 ${data.amount_withdrawn.toLocaleString()} Camlycoin đã được chuyển vào ví\n📬 TX: ${data.tx_hash}\n⛽ Gas: ${data.gas_fee_bnb.toFixed(8)} BNB`);
     },
     onError: (error) => {
       alert('❌ Lỗi: ' + error.message);
@@ -444,21 +337,7 @@ export default function WithdrawCamlycoin() {
                 </div>
               </div>
 
-              {hasPendingWithdrawal && (
-                <div className="bg-orange-100 border-2 border-orange-300 rounded-xl p-4 mb-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-orange-900 font-bold text-sm mb-1">
-                        ⚠️ Bạn đã có yêu cầu đang chờ xử lý
-                      </p>
-                      <p className="text-orange-800 text-xs">
-                        Vui lòng đợi admin duyệt yêu cầu hiện tại trước khi tạo yêu cầu mới.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
+
 
               {remainingDailyLimit <= 0 && (
                 <div className="bg-red-100 border-2 border-red-300 rounded-xl p-4 mb-4">
@@ -477,38 +356,33 @@ export default function WithdrawCamlycoin() {
               )}
 
               <Button
-                onClick={() => submitWithdrawalMutation.mutate({ 
-                  address: withdrawalAddress, 
-                  amount: withdrawalAmount 
-                })}
-                disabled={
-                  !withdrawalAddress || 
-                  !withdrawalAmount || 
-                  parseFloat(withdrawalAmount) < 100000 || 
-                  parseFloat(withdrawalAmount) > availableBalance ||
-                  parseFloat(withdrawalAmount) > remainingDailyLimit ||
-                  submitWithdrawalMutation.isPending ||
-                  hasPendingWithdrawal ||
-                  remainingDailyLimit <= 0
-                }
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-6 font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
+              onClick={() => submitWithdrawalMutation.mutate({ 
+                address: withdrawalAddress, 
+                amount: withdrawalAmount 
+              })}
+              disabled={
+                !withdrawalAddress || 
+                !withdrawalAmount || 
+                parseFloat(withdrawalAmount) < 100000 || 
+                parseFloat(withdrawalAmount) > 500000 ||
+                parseFloat(withdrawalAmount) > availableBalance ||
+                parseFloat(withdrawalAmount) > remainingDailyLimit ||
+                submitWithdrawalMutation.isPending ||
+                remainingDailyLimit <= 0
+              }
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-6 font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
               >
-                {submitWithdrawalMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    Đang gửi...
-                  </>
-                ) : hasPendingWithdrawal ? (
-                  <>
-                    <Clock className="w-5 h-5 mr-2" />
-                    Đang Có Yêu Cầu Chờ Duyệt
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5 mr-2" />
-                    Gửi Yêu Cầu Rút Tiền
-                  </>
-                )}
+              {submitWithdrawalMutation.isPending ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Đang xử lý...
+                </>
+              ) : (
+                <>
+                  <Send className="w-5 h-5 mr-2" />
+                  ⚡ Rút Tự Động Ngay
+                </>
+              )}
               </Button>
             </div>
           </motion.div>
@@ -576,12 +450,12 @@ export default function WithdrawCamlycoin() {
                   <span>Địa chỉ ví phải là <strong>BEP-20 (BSC)</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold mt-0.5">•</span>
-                  <span>Bạn sẽ nhận email thông báo khi yêu cầu được xử lý</span>
+                  <span className="text-green-600 font-bold mt-0.5">⚡</span>
+                  <span><strong>RÚT TỰ ĐỘNG:</strong> Tiền sẽ được chuyển ngay lập tức vào ví của bạn (không cần admin duyệt)</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-green-600 font-bold mt-0.5">🚀</span>
-                  <span><strong>Auto-Claim:</strong> Tự động tạo yêu cầu rút toàn bộ số dư về ví đã lưu (cần rút thủ công lần đầu)</span>
+                  <span className="text-orange-600 font-bold mt-0.5">📊</span>
+                  <span>Giới hạn: <strong>100,000 - 500,000 Camlycoin/ngày</strong></span>
                 </li>
               </ul>
             </div>
@@ -804,10 +678,10 @@ export default function WithdrawCamlycoin() {
                     </p>
                   </div>
 
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
-                    <p className="text-blue-900 text-xs leading-relaxed">
-                      <strong>💡 Lưu ý:</strong> Auto-Claim sẽ tạo yêu cầu rút tiền tức thì với số lượng và địa chỉ bạn chọn. 
-                      Admin sẽ xử lý trong 24-48h.
+                  <div className="bg-green-50 border-2 border-green-200 rounded-xl p-3">
+                    <p className="text-green-900 text-xs leading-relaxed">
+                      <strong>⚡ Rút Tự Động:</strong> Tiền sẽ được chuyển <strong>NGAY LẬP TỨC</strong> vào ví của bạn mà không cần admin duyệt. 
+                      Bạn sẽ nhận email xác nhận với transaction hash.
                     </p>
                   </div>
                 </div>
