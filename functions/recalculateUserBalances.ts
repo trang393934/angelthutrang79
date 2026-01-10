@@ -109,17 +109,13 @@ Deno.serve(async (req) => {
         console.log(`  💰 Total Earned from Transactions: ${newTotalEarned}`);
 
         // 2. Calculate pending and frozen from QuestionAuditLog
-        let auditLogs = [];
-        try {
-          auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter(
+        const auditLogs = await retryWithBackoff(async () => {
+          return await base44.asServiceRole.entities.QuestionAuditLog.filter(
             { user_email: userEmail },
             '-created_date',
             10000
           );
-        } catch (auditError) {
-          console.log(`  ⚠️ Failed to fetch audit logs: ${auditError.message}`);
-          auditLogs = [];
-        }
+        });
 
         for (const log of auditLogs) {
           try {
