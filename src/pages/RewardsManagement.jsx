@@ -667,11 +667,11 @@ export default function RewardsManagement() {
                 <p className="text-white/80 text-xs mt-1">✅ Đã duyệt</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
-                <p className="text-white/90 text-xs font-medium mb-1">Chờ Duyệt TT</p>
+                <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.available_balance || 0) + (b.admin_review_pending || 0), 0).toLocaleString()}
+                  {allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0).toLocaleString()}
                 </p>
-                <p className="text-white/80 text-xs mt-1">⏳ Cần duyệt</p>
+                <p className="text-white/80 text-xs mt-1">⏳ Câu 11+</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
