@@ -115,8 +115,8 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Update balance: only reset, keep paid_amount
-        const newAvailableBalance = Math.max(0, totalEarned - frozenBalance - originalPaidAmount);
+        // Update balance with recalculated values (paid_amount remains 0 after reset)
+        const newAvailableBalance = Math.max(0, totalEarned - frozenBalance);
 
         await retryWithBackoff(async () => {
           await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
             available_balance: newAvailableBalance,
             admin_review_pending: 0,
             frozen_balance: frozenBalance,
-            paid_amount: originalPaidAmount, // PRESERVE
+            paid_amount: 0, // Reset to 0
           });
         });
 
