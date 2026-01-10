@@ -49,6 +49,20 @@ export default function Home() {
     enabled: !!currentUser?.email,
   });
 
+  // Fetch all balances for system stats
+  const { data: allBalances = [] } = useQuery({
+    queryKey: ['all-balances-stats'],
+    queryFn: async () => {
+      try {
+        return await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
+      } catch (error) {
+        console.error('Failed to fetch all balances:', error);
+        return [];
+      }
+    },
+    staleTime: 60000,
+  });
+
   useEffect(() => {
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
       id: i,
