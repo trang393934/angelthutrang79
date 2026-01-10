@@ -94,11 +94,10 @@ Deno.serve(async (req) => {
           );
         });
 
-        // Sum all positive transactions (income types)
-        const incomeTypes = ['bounty_reward', 'build_reward', 'admin_adjustment', 'manual_add', 'purchase'];
+        // Sum ALL positive transactions (any amount > 0)
         for (const tx of transactions) {
           try {
-            if (tx.amount && tx.amount > 0 && incomeTypes.includes(tx.type)) {
+            if (tx.amount && tx.amount > 0) {
               newTotalEarned += parseFloat(tx.amount);
             }
           } catch (txParseError) {
