@@ -23,12 +23,22 @@ Deno.serve(async (req) => {
     // Get list of users to process
     let usersToProcess = [];
     if (user_email) {
-      // Single user
+      // Single user - create balance if doesn't exist
       const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email });
       if (balances.length > 0) {
         usersToProcess = [{ email: user_email, balance: balances[0] }];
       } else {
-        return Response.json({ error: 'User balance not found' }, { status: 404 });
+        // Create new balance record for this user
+        const newBalance = await base44.asServiceRole.entities.CamlycoinBalance.create({
+          user_email: user_email,
+          total_earned: 0,
+          available_balance: 0,
+          admin_review_pending: 0,
+          frozen_balance: 0,
+          paid_amount: 0
+        });
+        usersToProcess = [{ email: user_email, balance: newBalance }];
+        console.log(`✨ Created new balance record for ${user_email}`);
       }
     } else {
       // All users with balances
