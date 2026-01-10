@@ -379,9 +379,16 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
         setWalletAddress(accounts[0]);
       }
     } catch (error) {
-      // Silently handle all MetaMask errors
-      if (error.code !== 4001 && error.code !== -32002) {
-        console.error('Wallet connection error:', error.message);
+      // Handle specific error codes
+      if (error.code === 4001) {
+        // User rejected the connection
+        console.log('User rejected MetaMask connection');
+      } else if (error.code === -32002) {
+        // Connection request already pending
+        console.log('MetaMask connection already pending');
+      } else {
+        // Log other errors for debugging
+        console.error('Wallet connection error:', error.code, error.message);
       }
     } finally {
       setIsConnecting(false);
