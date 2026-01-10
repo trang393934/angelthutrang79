@@ -273,9 +273,19 @@ export default function Leaderboard() {
               <Trophy className="w-6 h-6 text-amber-500" />
               Top Người Dùng
             </h3>
-            <Badge className="bg-amber-100 text-amber-800">
-              {rankedUsers.length} users
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => refetch()}
+                size="sm"
+                className="bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg font-bold hover:shadow-lg"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Làm Mới
+              </Button>
+              <Badge className="bg-amber-100 text-amber-800">
+                {rankedUsers.length} users
+              </Badge>
+            </div>
           </div>
 
           {isLoading ? (
