@@ -276,7 +276,10 @@ export default function Leaderboard() {
             </h3>
             <div className="flex items-center gap-2">
               <Button
-                onClick={() => refetch()}
+                onClick={() => {
+                  queryClient.invalidateQueries({ queryKey: ['leaderboard-balances'] });
+                  queryClient.invalidateQueries({ queryKey: ['leaderboard-transactions'] });
+                }}
                 size="sm"
                 className="bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg font-bold hover:shadow-lg"
               >
