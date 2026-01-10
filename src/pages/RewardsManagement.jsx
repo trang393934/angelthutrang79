@@ -78,24 +78,27 @@ export default function RewardsManagement() {
   // Admin: Fetch all balances
   const { data: allBalances = [] } = useQuery({
     queryKey: ['all-balances'],
-    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
+    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 500),
     enabled: isAdmin,
-    refetchInterval: 5000, // Auto-refresh every 5 seconds
+    refetchInterval: 10000, // Auto-refresh every 10 seconds
+    staleTime: 5000,
   });
 
   // Admin: Fetch all withdrawal requests
   const { data: allWithdrawalRequests = [] } = useQuery({
     queryKey: ['all-withdrawal-requests'],
-    queryFn: () => base44.entities.WithdrawalRequest.list('-created_date', 1000),
+    queryFn: () => base44.entities.WithdrawalRequest.list('-created_date', 300),
     enabled: isAdmin,
-    refetchInterval: 5000,
+    refetchInterval: 10000,
+    staleTime: 5000,
   });
 
   // Fetch all auto-claim configs for quick info
   const { data: allAutoClaimConfigs = [] } = useQuery({
     queryKey: ['all-auto-claim-configs'],
-    queryFn: () => base44.entities.AutoClaimConfig.list('-created_date', 1000),
+    queryFn: () => base44.entities.AutoClaimConfig.list('-created_date', 200),
     enabled: isAdmin,
+    staleTime: 30000,
   });
 
   // Fetch selected user transactions
