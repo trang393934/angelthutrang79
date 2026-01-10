@@ -9,10 +9,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log(`🔍 Checking balance discrepancy for ${user.email}`);
+    // Get payload
+    const { user_email } = await req.json().catch(() => ({}));
+
+    // Check permissions
+    let targetEmail = user.email;
+    if (user_email && user_email !== user.email) {
+      if (user.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin only' }, { status: 403 });
+      }
+      targetEmail = user_email;
+    }
+
+    console.log(`🔍 Checking balance discrepancy for ${targetEmail}`);
 
     // Get user balance
-    const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: user.email });
+    const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
     if (balances.length === 0) {
       return Response.json({ error: 'Balance not found' }, { status: 404 });
     }
@@ -21,7 +33,7 @@ Deno.serve(async (req) => {
 
     // Get all transactions for this user
     const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
-      { user_email: user.email },
+      { user_email: targetEmail },
       '-created_date',
       10000
     );
@@ -77,7 +89,7 @@ Deno.serve(async (req) => {
     });
 
     // Verify fix
-    const updatedBalances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: user.email });
+    const updatedBalances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
     const updatedBalance = updatedBalances[0];
     const newSumOfSubBalances = 
       (updatedBalance.available_balance || 0) +

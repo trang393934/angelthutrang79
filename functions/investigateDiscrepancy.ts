@@ -9,10 +9,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log(`🔍 Investigating discrepancy for ${user.email}`);
+    // Get payload
+    const { user_email } = await req.json().catch(() => ({}));
+
+    // Check permissions
+    let targetEmail = user.email;
+    if (user_email && user_email !== user.email) {
+      if (user.role !== 'admin') {
+        return Response.json({ error: 'Forbidden: Admin only' }, { status: 403 });
+      }
+      targetEmail = user_email;
+    }
+
+    console.log(`🔍 Investigating discrepancy for ${targetEmail}`);
 
     // Get balance
-    const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: user.email });
+    const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: targetEmail });
     if (balances.length === 0) {
       return Response.json({ error: 'Balance not found' }, { status: 404 });
     }
@@ -21,7 +33,7 @@ Deno.serve(async (req) => {
 
     // Get ALL transactions (income only)
     const allTransactions = await base44.asServiceRole.entities.CamlycoinTransaction.filter(
-      { user_email: user.email },
+      { user_email: targetEmail },
       '-created_date',
       10000
     );
@@ -33,7 +45,7 @@ Deno.serve(async (req) => {
 
     // Get audit logs
     const auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter(
-      { user_email: user.email },
+      { user_email: targetEmail },
       '-created_date',
       10000
     );
