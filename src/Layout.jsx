@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp, Heart, Award, Activity, Shield, Target } from 'lucide-react';
+import { Search, MessageSquare, Mic, Image, FolderKanban, History, Menu, X, Loader2, Globe, Sparkles, Gift, Wallet, TrendingUp, Heart, Award, Activity, Shield, Target, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
