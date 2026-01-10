@@ -36,6 +36,9 @@ export default function RewardsManagement() {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduleDate, setScheduleDate] = useState('');
   const [scheduleTime, setScheduleTime] = useState('09:00');
+  const [recalculateEmail, setRecalculateEmail] = useState('');
+  const [isRecalculating, setIsRecalculating] = useState(false);
+  const [recalculateResults, setRecalculateResults] = useState(null);
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
