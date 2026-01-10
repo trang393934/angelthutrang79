@@ -25,10 +25,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Admin only' }, { status: 403 });
     }
 
+    const { user_email } = await req.json().catch(() => ({}));
+
     console.log('🚨 RESET WITH NEW LOGIC: Only first 10 questions/day + tasks');
 
-    const allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-created_date', 50);
-    console.log(`📊 Processing ${allBalances.length} users`);
+    let allBalances = [];
+    if (user_email) {
+      const found = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email });
+      allBalances = found;
+      console.log(`📊 Processing 1 user: ${user_email}`);
+    } else {
+      allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-created_date', 50);
+      console.log(`📊 Processing ${allBalances.length} users`);
+    }
 
     const results = [];
 
