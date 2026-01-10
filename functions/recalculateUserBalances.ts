@@ -133,17 +133,13 @@ Deno.serve(async (req) => {
         console.log(`  ❄️ Frozen Balance: ${newFrozenBalance}`);
 
         // 3. Calculate paid_amount from WithdrawalRequest
-        let withdrawals = [];
-        try {
-          withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter(
+        const withdrawals = await retryWithBackoff(async () => {
+          return await base44.asServiceRole.entities.WithdrawalRequest.filter(
             { user_email: userEmail },
             '-created_date',
             1000
           );
-        } catch (withdrawalError) {
-          console.log(`  ⚠️ Failed to fetch withdrawals: ${withdrawalError.message}`);
-          withdrawals = [];
-        }
+        });
 
         for (const withdrawal of withdrawals) {
           try {
