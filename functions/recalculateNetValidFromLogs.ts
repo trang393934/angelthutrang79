@@ -89,8 +89,8 @@ Deno.serve(async (req) => {
       net_valid_coins: totalValidCoins,
       total_earned: newTotal,
       available_for_withdrawal: newAvailable,
-      valid_logs_count: validLogs.length,
-      duplicates_ignored: allLogs.length - validLogs.length
+      valid_logs_count: validCount,
+      duplicates_ignored: allLogs.length - validCount
     });
 
   } catch (error) {
