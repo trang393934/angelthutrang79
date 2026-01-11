@@ -864,10 +864,78 @@ export default function AdminDashboard() {
 
           {/* Pending Tab - Quick Actions */}
           <TabsContent value="pending" className="space-y-6">
-            <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-2xl p-6 shadow-xl">
-              <h3 className="text-slate-900 font-bold text-lg mb-4">Chờ Admin Review</h3>
-              
-              {allBalances.filter(b => (b.admin_review_pending || 0) > 0).length === 0 ? (
+           {/* Frozen Questions Approval */}
+           <div className="bg-white/80 backdrop-blur-xl border-2 border-red-200 rounded-2xl p-6 shadow-xl">
+             <h3 className="text-slate-900 font-bold text-lg mb-4">❄️ Duyệt Câu Hỏi Đóng Băng</h3>
+
+             {allBalances.filter(b => (b.frozen_balance || 0) > 0).length === 0 ? (
+               <div className="text-center py-8">
+                 <CheckCircle2 className="w-12 h-12 text-green-300 mx-auto mb-4" />
+                 <p className="text-slate-700 font-medium">Không có câu hỏi bị đóng băng</p>
+               </div>
+             ) : (
+               <div className="space-y-3">
+                 {allBalances
+                   .filter(b => (b.frozen_balance || 0) > 0)
+                   .sort((a, b) => (b.frozen_balance || 0) - (a.frozen_balance || 0))
+                   .slice(0, 15)
+                   .map((balance, idx) => {
+                     const handleApproveFrozen = async () => {
+                       try {
+                         const result = await base44.functions.invoke('approveFrozenBatch', {
+                           target_user_email: balance.user_email,
+                           batch_size: 20
+                         });
+                         alert(`✅ Duyệt thành công ${result.data.approved} câu\n💰 +${result.data.coins_moved.toLocaleString()} Camlycoin\n🎯 Sẵn Sàng Rút: ${result.data.new_available.toLocaleString()}\n⏳ Còn ${result.data.remaining} câu`);
+                         refetchBalances();
+                       } catch (err) {
+                         alert(`❌ Lỗi: ${err.message}`);
+                       }
+                     };
+
+                     return (
+                       <motion.div
+                         key={balance.id}
+                         initial={{ opacity: 0, y: 20 }}
+                         animate={{ opacity: 1, y: 0 }}
+                         transition={{ delay: idx * 0.03 }}
+                         className="bg-red-50 border-2 border-red-300 rounded-xl p-4"
+                       >
+                         <div className="flex items-center justify-between mb-3">
+                           <div className="flex-1">
+                             <button
+                               onClick={() => window.location.href = `${createPageUrl('UserProfile')}?email=${encodeURIComponent(balance.user_email)}`}
+                               className="text-purple-600 hover:text-purple-800 font-bold break-all hover:underline text-left"
+                             >
+                               {balance.user_email}
+                             </button>
+                             <div className="flex gap-2 mt-2 flex-wrap">
+                               <Badge className="bg-red-200 text-red-900">
+                                 ❄️ {(balance.frozen_balance || 0).toLocaleString()} Đóng Băng
+                               </Badge>
+                               <Badge className="bg-green-100 text-green-800">
+                                 🎯 {(balance.available_for_withdrawal || 0).toLocaleString()} Sẵn Sàng
+                               </Badge>
+                             </div>
+                           </div>
+                         </div>
+                         <Button 
+                           onClick={handleApproveFrozen}
+                           className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-lg font-bold hover:shadow-lg"
+                         >
+                           ✅ Duyệt Batch (20 câu)
+                         </Button>
+                       </motion.div>
+                     );
+                   })}
+               </div>
+             )}
+           </div>
+
+           <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-2xl p-6 shadow-xl">
+             <h3 className="text-slate-900 font-bold text-lg mb-4">Chờ Admin Review</h3>
+
+             {allBalances.filter(b => (b.admin_review_pending || 0) > 0).length === 0 ? (
                 <div className="text-center py-8">
                   <CheckCircle2 className="w-12 h-12 text-green-300 mx-auto mb-4" />
                   <p className="text-slate-700 font-medium">Không có chờ admin review</p>
