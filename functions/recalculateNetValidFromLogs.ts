@@ -22,9 +22,11 @@ Deno.serve(async (req) => {
     // Filter chỉ lấy logs của target user
     const userLogs = allLogs.filter(l => l.user_email === target_user_email);
 
+    console.log(`📊 Total user logs: ${userLogs.length}`);
+
     // Group by transaction_id để tìm unique transactions
     const byTx = new Map();
-    allLogs.forEach(log => {
+    userLogs.forEach(log => {
       const txId = log.transaction_id || log.id;
       if (!byTx.has(txId)) byTx.set(txId, []);
       byTx.get(txId).push(log);
