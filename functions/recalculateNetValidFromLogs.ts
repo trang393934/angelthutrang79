@@ -16,12 +16,28 @@ Deno.serve(async (req) => {
 
     console.log(`🔧 Recalculate net_valid_coins cho: ${target_user_email}`);
 
-    // Fetch ALL logs
-    const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter(
-      { user_email: target_user_email },
-      '-created_date',
-      10000
-    );
+    // Fetch ALL logs (no limit, get everything)
+    let allLogs = [];
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const batch = await base44.asServiceRole.entities.QuestionAuditLog.filter(
+        { user_email: target_user_email },
+        '-created_date',
+        1000
+      );
+
+      if (batch.length === 0) {
+        hasMore = false;
+      } else {
+        allLogs = allLogs.concat(batch);
+        if (batch.length < 1000) {
+          hasMore = false;
+        }
+      }
+      offset += 1000;
+    }
 
     // Group by transaction_id để tìm unique transactions
     const byTx = new Map();
