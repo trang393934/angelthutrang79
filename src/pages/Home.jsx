@@ -478,21 +478,23 @@ export default function Home() {
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
               <p className="text-white text-2xl font-bold">
-                {allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
+                {allBalances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
               </p>
               <p className="text-white/80 text-xs mt-1">Camlycoin</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
-              <p className="text-white text-2xl font-bold">{allBalances.length}</p>
+              <p className="text-white text-2xl font-bold">{allBalances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0).length}</p>
               <p className="text-white/80 text-xs mt-1">Active Users</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               <p className="text-white/90 text-xs font-medium mb-1">Trung Bình/Người</p>
               <p className="text-white text-2xl font-bold">
-                {allBalances.length > 0 
-                  ? Math.floor(allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0) / allBalances.length).toLocaleString()
-                  : 0}
+                {(() => {
+                  const activeUsers = allBalances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0);
+                  const totalCoins = activeUsers.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0);
+                  return activeUsers.length > 0 ? Math.floor(totalCoins / activeUsers.length).toLocaleString() : 0;
+                })()}
               </p>
               <p className="text-white/80 text-xs mt-1">Camlycoin</p>
             </div>
