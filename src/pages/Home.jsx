@@ -54,13 +54,14 @@ export default function Home() {
     queryKey: ['all-balances-stats'],
     queryFn: async () => {
       try {
-        return await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
+        return await base44.entities.CamlycoinBalance.list('-total_earned', 50000);
       } catch (error) {
         console.error('Failed to fetch all balances:', error);
         return [];
       }
     },
-    staleTime: 60000,
+    refetchInterval: 30000,
+    staleTime: 0,
   });
 
   useEffect(() => {

@@ -75,12 +75,12 @@ export default function RewardsManagement() {
     enabled: isAdmin,
   });
 
-  // Admin: Fetch all balances (reduced limit to avoid 504)
+  // Admin: Fetch all balances (NO LIMIT - fetch ALL users)
   const { data: allBalances = [] } = useQuery({
     queryKey: ['all-balances'],
     queryFn: async () => {
       try {
-        return await base44.entities.CamlycoinBalance.list('-total_earned', 200);
+        return await base44.entities.CamlycoinBalance.list('-total_earned', 50000);
       } catch (error) {
         console.error('Failed to fetch balances:', error);
         return [];
@@ -88,7 +88,7 @@ export default function RewardsManagement() {
     },
     enabled: isAdmin,
     refetchInterval: 30000,
-    staleTime: 15000,
+    staleTime: 0,
   });
 
   // Admin: Fetch all withdrawal requests (reduced limit to avoid 504)

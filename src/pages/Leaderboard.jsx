@@ -20,12 +20,13 @@ export default function Leaderboard() {
   }, []);
 
   // Fetch all users with balances
-    const { data: allBalances = [], isLoading, refetch } = useQuery({
-      queryKey: ['leaderboard-balances'],
-      queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 10000),
-      staleTime: 0,
-      cacheTime: 0,
-    });
+  const { data: allBalances = [], isLoading, refetch } = useQuery({
+    queryKey: ['leaderboard-balances'],
+    queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 50000),
+    refetchInterval: 30000,
+    staleTime: 0,
+    cacheTime: 0,
+  });
 
     // Filter and sort users
     const rankedUsers = React.useMemo(() => {
