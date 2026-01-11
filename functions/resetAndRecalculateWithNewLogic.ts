@@ -43,26 +43,28 @@ Deno.serve(async (req) => {
 
     for (const balance of allBalances) {
       const email = balance.user_email;
-      const originalPaidAmount = balance.paid_amount || 0; // KEEP this
+      const originalPaidAmount = balance.paid_amount || 0; // ⚠️ PRESERVE THIS - KHÔNG XÓA!
 
       try {
-        console.log(`\n🔄 ${email}`);
+        console.log(`\n🔄 ${email} - Paid Amount hiện tại: ${originalPaidAmount}`);
         
-        // STEP 1: Reset to 0
+        // STEP 1: Reset NHƯNG GIỮ NGUYÊN paid_amount
         await retryWithBackoff(async () => {
           await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
             total_earned: 0,
             available_balance: 0,
             admin_review_pending: 0,
             frozen_balance: 0,
-            paid_amount: 0,
+            net_valid_coins: 0,
+            available_for_withdrawal: 0,
+            // ⚠️ KHÔNG RESET paid_amount - giữ nguyên giá trị cũ
           });
         });
-        console.log(`  ✅ Reset to 0`);
+        console.log(`  ✅ Reset (giữ paid_amount = ${originalPaidAmount})`);
 
         // STEP 2: Recalculate from source
-        let totalEarned = 0;
-        let frozenBalance = 0;
+        let netValidCoins = 0; // Điểm hợp lệ (10 câu đầu/ngày + tasks)
+        let frozenBalance = 0; // Câu 11+ + spam
 
         // Get audit logs
         const auditLogs = await retryWithBackoff(async () => {
@@ -89,11 +91,11 @@ Deno.serve(async (req) => {
           
           for (let i = 0; i < sortedLogs.length; i++) {
             const log = sortedLogs[i];
-            if (i < 10) {
-              // First 10 -> count
-              totalEarned += log.coins_earned || 0;
+            if (i < 10 && log.exclusion_reason === 'valid') {
+              // First 10 valid -> net_valid_coins
+              netValidCoins += log.coins_earned || 0;
             } else {
-              // Beyond 10 -> frozen
+              // Beyond 10 OR invalid -> frozen
               frozenBalance += log.coins_earned || 0;
             }
           }
@@ -108,35 +110,41 @@ Deno.serve(async (req) => {
           );
         });
 
-        // Count bounty_reward, build_reward (not manual or question-related)
+        // Count bounty_reward, build_reward
         for (const tx of transactions) {
           if (tx.amount > 0 && (tx.type === 'bounty_reward' || tx.type === 'build_reward')) {
-            totalEarned += tx.amount;
+            netValidCoins += tx.amount;
           }
         }
 
-        // Update balance with recalculated values (paid_amount remains 0 after reset)
-        const newAvailableBalance = Math.max(0, totalEarned - frozenBalance);
+        // CÔNG THỨC CHÍNH XÁC:
+        // total_earned = net_valid_coins + frozen_balance (TỔNG TÍCH LŨY - KHÔNG BAO GIỜ GIẢM)
+        // available_for_withdrawal = net_valid_coins - paid_amount
+        const totalEarned = netValidCoins + frozenBalance;
+        const availableForWithdrawal = Math.max(0, netValidCoins - originalPaidAmount);
 
         await retryWithBackoff(async () => {
           await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-            total_earned: totalEarned,
-            available_balance: newAvailableBalance,
-            admin_review_pending: 0,
+            net_valid_coins: netValidCoins,
             frozen_balance: frozenBalance,
-            paid_amount: 0, // Reset to 0
+            total_earned: totalEarned,
+            available_for_withdrawal: availableForWithdrawal,
+            paid_amount: originalPaidAmount, // ⚠️ GIỮ NGUYÊN - KHÔNG RESET
+            admin_review_pending: 0,
+            available_balance: 0, // Deprecated field
           });
         });
 
-        console.log(`  ✅ Earned: ${totalEarned} | Frozen: ${frozenBalance} | Paid: ${originalPaidAmount}`);
+        console.log(`  ✅ Net Valid: ${netValidCoins} | Frozen: ${frozenBalance} | Total: ${totalEarned} | Paid: ${originalPaidAmount} | Available: ${availableForWithdrawal}`);
 
         results.push({
           email,
           success: true,
-          earned: totalEarned,
+          net_valid_coins: netValidCoins,
           frozen: frozenBalance,
-          available: newAvailableBalance,
-          paid: 0,
+          total_earned: totalEarned,
+          paid: originalPaidAmount,
+          available_for_withdrawal: availableForWithdrawal,
         });
 
         await sleep(300);
