@@ -87,11 +87,12 @@ Deno.serve(async (req) => {
       });
 
       // Log transaction
+      const sourceType = isFrozen ? '(Từ Đóng Băng)' : '(Từ Chờ Duyệt)';
       await base44.asServiceRole.entities.CamlycoinTransaction.create({
         user_email: log.user_email,
-        amount: 0,
+        amount: coinsToMove,
         type: 'admin_adjustment',
-        description: `✅ Admin duyệt câu #${log.question_number_in_day}: "${log.question_text.substring(0, 50)}..."\n💰 +${coinsToMove.toLocaleString()} → Sẵn Sàng Thanh Toán\n📝 ${reason}`,
+        description: `✅ Admin duyệt câu ${sourceType}: "${log.question_text.substring(0, 50)}..."\n💰 +${coinsToMove.toLocaleString()} → Sẵn Sàng Rút\n📝 ${reason}`,
         processed_by: user.email
       });
 
