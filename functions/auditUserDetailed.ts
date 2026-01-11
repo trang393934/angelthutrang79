@@ -103,7 +103,7 @@ Deno.serve(async (req) => {
       summary: {
         total_logs: allLogs.length,
         unique_transactions: Object.keys(groupedByTxId).length,
-        total_duplicates,
+        total_duplicates: totalDuplicates,
         duplicate_groups: duplicateGroups.length
       },
       by_status: {
