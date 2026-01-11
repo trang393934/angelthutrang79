@@ -71,9 +71,9 @@ export default function AdminDashboard() {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    if (!allBalances.length) return null;
+    if (!allUsers.length) return null;
 
-    const totalUsers = allBalances.length;
+    const totalUsers = allUsers.length;
     const totalAvailable = allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0);
     const totalFrozen = allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
     const totalAdminReview = allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0);
