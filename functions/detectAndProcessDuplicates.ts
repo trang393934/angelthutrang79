@@ -87,7 +87,9 @@ Giữ lại record có chất lượng tốt nhất (hợp lệ hoặc mới nh�
         console.log(`  Keep: ${aiResult.keep_index}`);
         console.log(`  Delete: ${aiResult.delete_indices.join(', ')}`);
 
-        const toDelete = aiResult.delete_indices.map(idx => groupRecords[idx].id);
+        const toDelete = aiResult.delete_indices
+          .map(idx => groupRecords[idx]?.id)
+          .filter(id => id);
         recordsToDelete.push(...toDelete);
 
         duplicateGroups.push({
