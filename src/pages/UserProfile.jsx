@@ -912,10 +912,21 @@ Trả về JSON:`;
               <Clock className="w-6 h-6 text-amber-500" />
               <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
             </div>
-            <p className="text-slate-900 text-3xl font-bold break-words">
+            <p className={`text-3xl font-bold break-words ${
+              (userBalance?.available_for_withdrawal || 0) < 0 ? 'text-red-600' : 'text-slate-900'
+            }`}>
               {(userBalance?.available_for_withdrawal || 0).toLocaleString()}
             </p>
             <p className="text-amber-600 text-xs mt-1">⏳ = net_valid_coins - paid_amount</p>
+
+            {(userBalance?.available_for_withdrawal || 0) < 0 && (
+              <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 mt-3">
+                <p className="text-red-900 text-xs font-bold mb-1">⚠️ Đã thanh toán thừa</p>
+                <p className="text-red-800 text-xs">
+                  User cần kiếm thêm <strong>{Math.abs(userBalance.available_for_withdrawal).toLocaleString()}</strong> coins mới rút được
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
