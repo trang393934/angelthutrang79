@@ -502,7 +502,7 @@ export default function Home() {
         </div>
 
         {/* System Stats Section */}
-        <motion.div
+         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -512,23 +512,19 @@ export default function Home() {
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
               <p className="text-white text-2xl font-bold">
-                {allBalances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
+                {(realSystemStats?.total_coins || 0).toLocaleString()}
               </p>
-              <p className="text-white/80 text-xs mt-1">Camlycoin</p>
+              <p className="text-white/80 text-xs mt-1">Camlycoin (từ audit logs)</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-              <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
-              <p className="text-white text-2xl font-bold">{totalUsersData?.total_users || 0}</p>
-              <p className="text-white/80 text-xs mt-1">Users</p>
+              <p className="text-white/90 text-xs font-medium mb-1">Người Dùng Hoạt Động</p>
+              <p className="text-white text-2xl font-bold">{realSystemStats?.users_with_earnings || 0}</p>
+              <p className="text-white/80 text-xs mt-1">Users (có kiếm được)</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               <p className="text-white/90 text-xs font-medium mb-1">Trung Bình/Người</p>
               <p className="text-white text-2xl font-bold">
-                {(() => {
-                  const activeUsers = allBalances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0);
-                  const totalCoins = activeUsers.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0);
-                  return activeUsers.length > 0 ? Math.floor(totalCoins / activeUsers.length).toLocaleString() : 0;
-                })()}
+                {(realSystemStats?.average_per_user || 0).toLocaleString()}
               </p>
               <p className="text-white/80 text-xs mt-1">Camlycoin</p>
             </div>
