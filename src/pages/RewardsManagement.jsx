@@ -665,7 +665,9 @@ export default function RewardsManagement() {
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
-                <p className="text-white text-xl md:text-2xl font-bold break-words">{allBalances.length}</p>
+                <p className="text-white text-xl md:text-2xl font-bold break-words">
+                  {allBalances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0).length}
+                </p>
                 <p className="text-white/80 text-xs mt-1">Users</p>
               </div>
             </div>
