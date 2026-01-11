@@ -23,13 +23,17 @@ Deno.serve(async (req) => {
       10000
     );
 
-    // Chỉ tính từ valid logs
+    // Tính valid logs (inclusion_reason === 'valid')
     const validLogs = allLogs.filter(log => log.exclusion_reason === 'valid');
     const totalValidCoins = validLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
 
+    // Tính frozen/invalid logs (exclusion_reason !== 'valid')
+    const invalidLogs = allLogs.filter(log => log.exclusion_reason !== 'valid');
+    const totalFrozenCoins = invalidLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+
     console.log(`📊 Total logs: ${allLogs.length}`);
-    console.log(`✅ Valid logs: ${validLogs.length}`);
-    console.log(`🪙 Total valid coins: ${totalValidCoins.toLocaleString()}`);
+    console.log(`✅ Valid logs: ${validLogs.length} = ${totalValidCoins.toLocaleString()}`);
+    console.log(`❌ Invalid logs: ${invalidLogs.length} = ${totalFrozenCoins.toLocaleString()}`);
 
     // Fetch balance
     const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({
@@ -41,17 +45,17 @@ Deno.serve(async (req) => {
     }
 
     const balance = balances[0];
-    const frozen = balance.frozen_balance || 0;
     const paid = balance.paid_amount || 0;
-    const newTotal = totalValidCoins + frozen;
+    const newTotal = totalValidCoins + totalFrozenCoins;
     const newAvailable = totalValidCoins - paid;
 
-    console.log(`\n📊 BEFORE: net=${(balance.net_valid_coins || 0).toLocaleString()}, total=${(balance.total_earned || 0).toLocaleString()}, avail=${(balance.available_for_withdrawal || 0).toLocaleString()}`);
-    console.log(`\n📊 AFTER: net=${totalValidCoins.toLocaleString()}, total=${newTotal.toLocaleString()}, avail=${newAvailable.toLocaleString()}`);
+    console.log(`\n📊 BEFORE: net=${(balance.net_valid_coins || 0).toLocaleString()}, frozen=${(balance.frozen_balance || 0).toLocaleString()}, total=${(balance.total_earned || 0).toLocaleString()}, avail=${(balance.available_for_withdrawal || 0).toLocaleString()}`);
+    console.log(`\n📊 AFTER: net=${totalValidCoins.toLocaleString()}, frozen=${totalFrozenCoins.toLocaleString()}, total=${newTotal.toLocaleString()}, avail=${newAvailable.toLocaleString()}`);
 
     // Update
     await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
       net_valid_coins: totalValidCoins,
+      frozen_balance: totalFrozenCoins,
       total_earned: newTotal,
       available_for_withdrawal: newAvailable
     });
