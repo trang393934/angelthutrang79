@@ -981,12 +981,16 @@ Trả về JSON:`;
                           target_user_email: targetEmail,
                           batch_size: 20
                         });
-                        alert(`✅ Duyệt thành công ${result.data.approved} câu\n💰 +${result.data.coins_moved.toLocaleString()} Camlycoin\n🎯 Sẵn Sàng Rút: ${result.data.new_available.toLocaleString()}\n⏳ Còn ${result.data.remaining} câu`);
+                        const approved = result.data?.approved || 0;
+                        const coins = result.data?.coins_moved || 0;
+                        const available = result.data?.new_available || 0;
+                        const remaining = result.data?.remaining || 0;
+                        alert(`✅ Duyệt thành công ${approved} câu\n💰 +${coins.toLocaleString()} Camlycoin\n🎯 Sẵn Sàng Rút: ${available.toLocaleString()}\n⏳ Còn ${remaining} câu`);
                         refetchBalance();
                         refetchLogs();
                         queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
                       } catch (err) {
-                        alert(`❌ Lỗi: ${err.message}`);
+                        alert(`❌ Lỗi: ${err.message || 'Có lỗi xảy ra'}`);
                       }
                     }}
                     size="sm"
