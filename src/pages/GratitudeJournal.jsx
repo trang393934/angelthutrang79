@@ -73,7 +73,8 @@ export default function GratitudeJournal() {
       alert(`✅ ${data.message}\n💰 +${data.coinsEarned} Camlycoin\n📝 ${data.wordCount} từ${bonusInfo}\n📊 Còn ${data.remainingPostsToday} bài trong ngày`);
     },
     onError: (error) => {
-      alert(`❌ ${error.message || 'Có lỗi xảy ra!'}`);
+      console.error('Submit error:', error);
+      alert(`❌ ${error?.response?.data?.error || error.message || 'Có lỗi xảy ra!'}`);
     }
   });
 
