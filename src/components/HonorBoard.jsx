@@ -16,7 +16,7 @@ export default function HonorBoard() {
     queryKey: ['all-earners'],
     queryFn: async () => {
       const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 50000);
-      return balances.filter(b => b.total_earned > 0);
+      return balances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0);
     },
     refetchInterval: 30000,
     staleTime: 0,
