@@ -41,15 +41,16 @@ Deno.serve(async (req) => {
     let frozenCount = 0;
 
     byTx.forEach((logs, txId) => {
-      // Chọn log thực tế (ưu tiên valid, rồi newest)
+      // Nếu group có valid log, cộng vào valid
       const validLog = logs.find(l => l.exclusion_reason === 'valid');
-      const chosenLog = validLog || logs.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
 
-      if (chosenLog.exclusion_reason === 'valid') {
-        totalValidCoins += chosenLog.coins_earned || 0;
+      if (validLog) {
+        totalValidCoins += validLog.coins_earned || 0;
         validCount++;
       } else {
-        totalFrozenCoins += chosenLog.coins_earned || 0;
+        // Nếu không có valid, chỉ cộng 1 invalid (lấy coins từ log có coins_earned cao nhất)
+        const invalidLog = logs.reduce((max, log) => (log.coins_earned || 0) > (max.coins_earned || 0) ? log : max);
+        totalFrozenCoins += invalidLog.coins_earned || 0;
         frozenCount++;
       }
     });
