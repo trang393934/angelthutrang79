@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
     console.log(`👥 Get total registered users stats...`);
 
     // Fetch all users
-    const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 50000);
+    const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 10000);
     
     console.log(`\n👤 Total users in system: ${allUsers.length}`);
 
@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     const notAgreed = allUsers.length - agreedToLightLaw;
 
     // Users with earnings
-    const allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 50000);
+    const allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 10000);
     const usersWithEarnings = allBalances.filter(b => (b.total_earned || 0) > 0).length;
 
     console.log(`\n📊 BREAKDOWN:`);
