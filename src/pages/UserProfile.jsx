@@ -142,7 +142,7 @@ export default function UserProfile() {
   const isAdmin = currentUser?.role === 'admin';
 
   // Fetch target user's balance
-  const { data: userBalance } = useQuery({
+  const { data: userBalance, refetch: refetchBalance } = useQuery({
     queryKey: ['user-balance', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return null;
