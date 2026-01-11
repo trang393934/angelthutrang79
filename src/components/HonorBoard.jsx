@@ -12,7 +12,7 @@ export default function HonorBoard() {
   const [showAllRankings, setShowAllRankings] = useState(false);
 
   // Fetch ALL registered users
-  const { data: allUsers = [] } = useQuery({
+  const { data: registeredUsers = [] } = useQuery({
     queryKey: ['all-registered-users'],
     queryFn: async () => {
       return await base44.entities.User.list('-created_date', 50000);
@@ -94,7 +94,7 @@ export default function HonorBoard() {
 
   // Calculate total stats using NEW FORMULA
   const totalCamlycoin = allEarners.reduce((sum, item) => sum + ((item.net_valid_coins || 0) + (item.frozen_balance || 0)), 0);
-  const totalUsers = allUsers.length;
+  const totalUsers = registeredUsers.length;
 
   return (
     <motion.div
