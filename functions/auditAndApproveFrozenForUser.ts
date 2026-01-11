@@ -81,25 +81,31 @@ Deno.serve(async (req) => {
     const validCoins = validLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
     console.log(`\n✅ Hợp Lệ: ${validLogs.length} câu = ${validCoins.toLocaleString()} coins`);
 
-    // APPROVE all frozen questions
+    // APPROVE all frozen questions in batches
     if (frozenLogs.length > 0) {
       console.log(`\n🔄 DUYỆT ${frozenLogs.length} CÂU TỪ FROZEN...`);
 
       const frozenIds = frozenLogs.map(log => log.id);
       const frozenCoins = frozenLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
 
-      // Update each frozen log
+      // Update each frozen log with delay to avoid rate limit
       let approvedCount = 0;
-      for (const logId of frozenIds) {
+      for (let i = 0; i < frozenIds.length; i++) {
+        const logId = frozenIds[i];
         try {
           await base44.asServiceRole.entities.QuestionAuditLog.update(logId, {
             exclusion_reason: 'valid',
             coin_category: 'pending_withdrawal'
           });
           approvedCount++;
+          if ((i + 1) % 50 === 0) {
+            console.log(`  ✅ ${i + 1}/${frozenIds.length}`);
+          }
         } catch (err) {
-          console.log(`⚠️  Failed to approve ${logId}: ${err.message}`);
+          console.log(`⚠️  Failed to approve ${logId}`);
         }
+        // Delay 30ms between updates
+        await new Promise(resolve => setTimeout(resolve, 30));
       }
 
       // Update balance: frozen → net_valid
