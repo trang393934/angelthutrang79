@@ -79,6 +79,25 @@ export default function Home() {
     refetchInterval: 60000,
   });
 
+  // Fetch real system stats from audit logs
+  const { data: realSystemStats = {} } = useQuery({
+    queryKey: ['real-system-stats'],
+    queryFn: async () => {
+      try {
+        const response = await base44.functions.invoke('calculateRealSystemStats', {});
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch real system stats:', error);
+        return {
+          total_coins: 0,
+          users_with_earnings: 0,
+          average_per_user: 0
+        };
+      }
+    },
+    refetchInterval: 60000,
+  });
+
   useEffect(() => {
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
       id: i,
