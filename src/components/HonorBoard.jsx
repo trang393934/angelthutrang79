@@ -11,11 +11,17 @@ export default function HonorBoard() {
   const [activeTab, setActiveTab] = useState('camlycoin'); // 'camlycoin' or 'visits'
   const [showAllRankings, setShowAllRankings] = useState(false);
 
-  // Fetch ALL registered users
-  const { data: registeredUsers = [] } = useQuery({
-    queryKey: ['all-registered-users'],
+  // Fetch total registered users from backend
+  const { data: totalUsersData } = useQuery({
+    queryKey: ['total-registered-users-honor'],
     queryFn: async () => {
-      return await base44.entities.User.list('-created_date', 50000);
+      try {
+        const response = await base44.functions.invoke('getTotalRegisteredUsers', {});
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch total users:', error);
+        return { total_users: 0 };
+      }
     },
     refetchInterval: 60000,
   });
@@ -94,7 +100,7 @@ export default function HonorBoard() {
 
   // Calculate total stats using NEW FORMULA
   const totalCamlycoin = allEarners.reduce((sum, item) => sum + ((item.net_valid_coins || 0) + (item.frozen_balance || 0)), 0);
-  const totalUsers = registeredUsers.length;
+  const totalUsers = totalUsersData?.total_users || 0;
 
   return (
     <motion.div

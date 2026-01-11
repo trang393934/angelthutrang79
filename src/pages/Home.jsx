@@ -64,15 +64,16 @@ export default function Home() {
     staleTime: 0,
   });
 
-  // Fetch all registered users for accurate user count
-  const { data: allRegisteredUsers = [] } = useQuery({
-    queryKey: ['all-registered-users-stats'],
+  // Fetch total registered users count from backend
+  const { data: totalUsersData } = useQuery({
+    queryKey: ['total-registered-users'],
     queryFn: async () => {
       try {
-        return await base44.entities.User.list('-created_date', 50000);
+        const response = await base44.functions.invoke('getTotalRegisteredUsers', {});
+        return response.data;
       } catch (error) {
-        console.error('Failed to fetch all users:', error);
-        return [];
+        console.error('Failed to fetch total users:', error);
+        return { total_users: 0 };
       }
     },
     refetchInterval: 60000,
@@ -498,7 +499,7 @@ export default function Home() {
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
               <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
-              <p className="text-white text-2xl font-bold">{allRegisteredUsers.length}</p>
+              <p className="text-white text-2xl font-bold">{totalUsersData?.total_users || 0}</p>
               <p className="text-white/80 text-xs mt-1">Users</p>
             </div>
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
