@@ -906,8 +906,10 @@ Trả về JSON:`;
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
 
-          {/* Sẵn Sàng Rút - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-300 rounded-3xl p-6 shadow-lg">
+          {/* Sẵn Sàng Rút - TRỰC TIẾP TỪ DATABASE - HIỂN THỊ SỐ ÂM ĐỂ XÉT DUYỆT */}
+          <div className={`bg-white/80 backdrop-blur-xl border-2 rounded-3xl p-6 shadow-lg ${
+            (userBalance?.available_for_withdrawal || 0) < 0 ? 'border-red-300' : 'border-amber-300'
+          }`}>
             <div className="flex items-center gap-3 mb-2">
               <Clock className="w-6 h-6 text-amber-500" />
               <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
@@ -921,9 +923,9 @@ Trả về JSON:`;
 
             {(userBalance?.available_for_withdrawal || 0) < 0 && (
               <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 mt-3">
-                <p className="text-red-900 text-xs font-bold mb-1">⚠️ Đã thanh toán thừa</p>
+                <p className="text-red-900 text-xs font-bold mb-1">⚠️ Chờ Xét Duyệt Thưởng</p>
                 <p className="text-red-800 text-xs">
-                  User cần kiếm thêm <strong>{Math.abs(userBalance.available_for_withdrawal).toLocaleString()}</strong> coins mới rút được
+                  User cần duyệt <strong>{Math.abs(userBalance.available_for_withdrawal).toLocaleString()}</strong> coins từ mục "Đóng Băng" để rút được
                 </p>
               </div>
             )}
