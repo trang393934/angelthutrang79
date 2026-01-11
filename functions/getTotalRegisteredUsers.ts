@@ -4,8 +4,8 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Fetch all registered users using service role
-    const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 50000);
+    // Fetch all registered users using service role (max limit is 10000)
+    const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 10000);
     
     return Response.json({ 
       total_users: allUsers.length,
