@@ -24,10 +24,11 @@ Deno.serve(async (req) => {
       10000
     );
 
-    const frozenLogs = allLogs.filter(log => 
-      (log.coin_category === 'frozen' || log.coin_category === 'pending_review') && 
-      log.exclusion_reason !== 'valid'
-    );
+    const frozenLogs = allLogs.filter(log => {
+      const isFrozen = log.coin_category === 'frozen' || log.coin_category === 'pending_review';
+      const notApproved = log.exclusion_reason !== 'valid' || !log.exclusion_reason;
+      return isFrozen && notApproved;
+    });
 
     console.log(`📊 Frozen logs: ${frozenLogs.length}`);
 
