@@ -47,14 +47,38 @@ Deno.serve(async (req) => {
       const balance = balances[0];
 
       const coinsToMove = log.coins_earned || 0;
-      const currentAdminReview = balance.admin_review_pending || 0;
-      const currentAvailable = balance.available_balance || 0;
+      
+      // Kiểm tra trạng thái hiện tại của log
+      const isFrozen = log.exclusion_reason !== 'valid' && log.coin_category === 'frozen';
+      
+      if (isFrozen) {
+        // CÔNG THỨC: Frozen → Valid
+        // Điểm từ frozen_balance được cộng ngay vào net_valid_coins
+        // → available_for_withdrawal tính ngay lập tức
+        const currentFrozen = balance.frozen_balance || 0;
+        const currentNetValid = balance.net_valid_coins || 0;
+        const paidAmount = balance.paid_amount || 0;
 
-      // Chuyển điểm: admin_review_pending → available_balance
-      await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-        admin_review_pending: Math.max(0, currentAdminReview - coinsToMove),
-        available_balance: currentAvailable + coinsToMove
-      });
+        // Chuyển: frozen_balance → net_valid_coins
+        const newNetValid = currentNetValid + coinsToMove;
+        const newFrozen = Math.max(0, currentFrozen - coinsToMove);
+        const newAvailable = newNetValid - paidAmount;
+
+        await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+          frozen_balance: newFrozen,
+          net_valid_coins: newNetValid,
+          available_for_withdrawal: newAvailable
+        });
+      } else {
+        // Trường hợp cũ: admin_review_pending → available_balance
+        const currentAdminReview = balance.admin_review_pending || 0;
+        const currentAvailable = balance.available_balance || 0;
+
+        await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+          admin_review_pending: Math.max(0, currentAdminReview - coinsToMove),
+          available_balance: currentAvailable + coinsToMove
+        });
+      }
 
       // Update audit log
       await base44.asServiceRole.entities.QuestionAuditLog.update(logId, {
