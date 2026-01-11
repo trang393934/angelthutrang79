@@ -23,17 +23,39 @@ Deno.serve(async (req) => {
       10000
     );
 
-    // Tính valid logs (inclusion_reason === 'valid')
-    const validLogs = allLogs.filter(log => log.exclusion_reason === 'valid');
-    const totalValidCoins = validLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
-
-    // Tính frozen/invalid logs (exclusion_reason !== 'valid')
-    const invalidLogs = allLogs.filter(log => log.exclusion_reason !== 'valid');
-    const totalFrozenCoins = invalidLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+    // Group by transaction_id để tìm unique transactions
+    const byTx = new Map();
+    allLogs.forEach(log => {
+      const txId = log.transaction_id || log.id;
+      if (!byTx.has(txId)) byTx.set(txId, []);
+      byTx.get(txId).push(log);
+    });
 
     console.log(`📊 Total logs: ${allLogs.length}`);
-    console.log(`✅ Valid logs: ${validLogs.length} = ${totalValidCoins.toLocaleString()}`);
-    console.log(`❌ Invalid logs: ${invalidLogs.length} = ${totalFrozenCoins.toLocaleString()}`);
+    console.log(`🔄 Duplicate groups: ${byTx.size} unique transactions`);
+
+    // Tính từ UNIQUE transactions
+    let totalValidCoins = 0;
+    let totalFrozenCoins = 0;
+    let validCount = 0;
+    let frozenCount = 0;
+
+    byTx.forEach((logs, txId) => {
+      // Chọn log thực tế (ưu tiên valid, rồi newest)
+      const validLog = logs.find(l => l.exclusion_reason === 'valid');
+      const chosenLog = validLog || logs.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+
+      if (chosenLog.exclusion_reason === 'valid') {
+        totalValidCoins += chosenLog.coins_earned || 0;
+        validCount++;
+      } else {
+        totalFrozenCoins += chosenLog.coins_earned || 0;
+        frozenCount++;
+      }
+    });
+
+    console.log(`✅ Valid (unique): ${validCount} = ${totalValidCoins.toLocaleString()}`);
+    console.log(`❌ Frozen (unique): ${frozenCount} = ${totalFrozenCoins.toLocaleString()}`);
 
     // Fetch balance
     const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({
