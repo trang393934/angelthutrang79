@@ -19,6 +19,9 @@ Deno.serve(async (req) => {
     // Fetch ALL logs từ database (không có limit query)
     const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 10000);
 
+    // Filter chỉ lấy logs của target user
+    const userLogs = allLogs.filter(l => l.user_email === target_user_email);
+
     // Group by transaction_id để tìm unique transactions
     const byTx = new Map();
     allLogs.forEach(log => {
