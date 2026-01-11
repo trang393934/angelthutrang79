@@ -15,9 +15,11 @@ export default function HonorBoard() {
   const { data: allEarners = [], isLoading: loadingEarners } = useQuery({
     queryKey: ['all-earners'],
     queryFn: async () => {
-      const balances = await base44.entities.CamlycoinBalance.list('-total_earned');
+      const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 50000);
       return balances.filter(b => b.total_earned > 0);
     },
+    refetchInterval: 30000,
+    staleTime: 0,
   });
 
   const topEarners = allEarners.slice(0, 10);
@@ -81,8 +83,8 @@ export default function HonorBoard() {
     : (activeTab === 'camlycoin' ? topEarners : topVisitors);
   const isLoading = activeTab === 'camlycoin' ? loadingEarners : loadingVisitors;
 
-  // Calculate total stats
-  const totalCamlycoin = allEarners.reduce((sum, item) => sum + (item.total_earned || 0), 0);
+  // Calculate total stats using NEW FORMULA
+  const totalCamlycoin = allEarners.reduce((sum, item) => sum + ((item.net_valid_coins || 0) + (item.frozen_balance || 0)), 0);
   const totalUsers = allEarners.length;
 
   return (
