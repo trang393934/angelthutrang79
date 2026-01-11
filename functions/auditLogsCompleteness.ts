@@ -27,14 +27,14 @@ Deno.serve(async (req) => {
     const byReason = {};
     userLogs.forEach(log => {
       const reason = log.exclusion_reason || 'unknown';
-      if (!byReason[reason]) byReason[reason] = [];
-      byReason[reason].push(log);
+      if (!byReason[reason]) byReason[reason] = { count: 0, coins: 0 };
+      byReason[reason].count++;
+      byReason[reason].coins += log.coins_earned || 0;
     });
 
     console.log(`\n  By exclusion_reason:`);
-    Object.entries(byReason).forEach(([reason, logs]) => {
-      const totalCoins = logs.reduce((sum, l) => sum + (l.coins_earned || 0), 0);
-      console.log(`    ${reason}: ${logs.length} logs = ${totalCoins.toLocaleString()} coins`);
+    Object.entries(byReason).forEach(([reason, data]) => {
+      console.log(`    ${reason}: ${data.count} logs = ${data.coins.toLocaleString()} coins`);
     });
 
     // Calculate what net_valid SHOULD be
