@@ -33,12 +33,36 @@ export default function HonorBoard() {
     refetchInterval: 60000,
   });
 
-  // Fetch ALL Camlycoin earners
+  // Fetch ALL users with their balances
   const { data: allEarners = [], isLoading: loadingEarners } = useQuery({
-    queryKey: ['all-earners'],
+    queryKey: ['all-users-with-balances'],
     queryFn: async () => {
-      const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 50000);
-      return balances.filter(b => ((b.net_valid_coins || 0) + (b.frozen_balance || 0)) > 0);
+      // Fetch ALL registered users
+      const allUsers = await base44.entities.User.list('-created_date', 10000);
+      // Fetch all balances
+      const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
+      
+      // Create balance lookup map
+      const balanceMap = new Map();
+      balances.forEach(b => {
+        balanceMap.set(b.user_email, b);
+      });
+      
+      // Merge users with their balances
+      const usersWithBalances = allUsers.map(user => {
+        const balance = balanceMap.get(user.email);
+        return {
+          user_email: user.email,
+          total_earned: balance ? ((balance.net_valid_coins || 0) + (balance.frozen_balance || 0)) : 0,
+          net_valid_coins: balance?.net_valid_coins || 0,
+          frozen_balance: balance?.frozen_balance || 0,
+          available_balance: balance?.available_balance || 0,
+          paid_amount: balance?.paid_amount || 0
+        };
+      });
+      
+      // Sort by total_earned
+      return usersWithBalances.sort((a, b) => b.total_earned - a.total_earned);
     },
     refetchInterval: 30000,
     staleTime: 0,
@@ -54,11 +78,14 @@ export default function HonorBoard() {
     },
   });
 
-  // Fetch ALL visitors (count activities per user)
+  // Fetch ALL users with their visit counts
   const { data: allVisitors = [], isLoading: loadingVisitors } = useQuery({
-    queryKey: ['all-visitors'],
+    queryKey: ['all-users-with-visits'],
     queryFn: async () => {
-      const activities = await base44.entities.UserActivity.list('-created_date', 5000);
+      // Fetch ALL registered users
+      const allUsers = await base44.entities.User.list('-created_date', 10000);
+      // Fetch all activities
+      const activities = await base44.entities.UserActivity.list('-created_date', 10000);
       
       // Count activities per user
       const userCounts = {};
@@ -69,13 +96,16 @@ export default function HonorBoard() {
         }
       });
 
-      // Convert to array and sort
-      const sorted = Object.entries(userCounts)
-        .map(([email, count]) => ({ user_email: email, visit_count: count }))
-        .sort((a, b) => b.visit_count - a.visit_count);
+      // Merge all users with their visit counts (0 if no visits)
+      const usersWithVisits = allUsers.map(user => ({
+        user_email: user.email,
+        visit_count: userCounts[user.email] || 0
+      }));
 
-      return sorted;
+      // Sort by visit count
+      return usersWithVisits.sort((a, b) => b.visit_count - a.visit_count);
     },
+    refetchInterval: 30000,
   });
 
   const topVisitors = allVisitors.slice(0, 10);
@@ -332,8 +362,8 @@ export default function HonorBoard() {
         )}
       </div>
 
-      {/* Show All Rankings Button */}
-      {!showAllRankings && displayData.length >= 10 && (
+      {/* Show All Rankings Button - Always show */}
+      {!showAllRankings && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -344,7 +374,7 @@ export default function HonorBoard() {
             onClick={() => setShowAllRankings(true)}
             className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl py-3 font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
-            📊 Xem Toàn Bộ Bảng Xếp Hạng
+            📊 Xem Toàn Bộ Bảng Xếp Hạng ({allEarners.length} users)
           </button>
         </motion.div>
       )}
@@ -357,7 +387,10 @@ export default function HonorBoard() {
           className="mt-4"
         >
           <button
-            onClick={() => setShowAllRankings(false)}
+            onClick={() => {
+              setShowAllRankings(false);
+              setSearchTerm('');
+            }}
             className="w-full bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-2xl py-3 font-bold text-sm shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
             🏆 Chỉ Xem Top 10
