@@ -965,15 +965,37 @@ Trả về JSON:`;
             <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
 
             {/* Button Xem Lịch Sử - ADMIN ONLY */}
-            {isAdmin && (
-              <Button
-                onClick={() => setShowEliminatedModal(true)}
-                size="sm"
-                className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs mt-3"
-              >
-                Xem Lịch Sử ({eliminatedLogs.length} câu)
-              </Button>
-            )}
+              {isAdmin && (
+                <div className="flex flex-col gap-2 mt-3">
+                  <Button
+                    onClick={() => setShowEliminatedModal(true)}
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
+                  >
+                    Xem Lịch Sử ({eliminatedLogs.length} câu)
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const result = await base44.functions.invoke('approveFrozenBatch', {
+                          target_user_email: targetEmail,
+                          batch_size: 20
+                        });
+                        alert(`✅ Duyệt thành công ${result.data.approved} câu\n💰 +${result.data.coins_moved.toLocaleString()} Camlycoin\n🎯 Sẵn Sàng Rút: ${result.data.new_available.toLocaleString()}\n⏳ Còn ${result.data.remaining} câu`);
+                        refetchBalance();
+                        refetchLogs();
+                        queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
+                      } catch (err) {
+                        alert(`❌ Lỗi: ${err.message}`);
+                      }
+                    }}
+                    size="sm"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
+                  >
+                    ✅ Duyệt Frozen (20 câu)
+                  </Button>
+                </div>
+              )}
           </div>
 
 
