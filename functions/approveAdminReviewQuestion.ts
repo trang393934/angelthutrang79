@@ -1,12 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * DUYỆT CÂU HỎI TỪ CHỜ ADMIN REVIEW
+ * DUYỆT CÂU HỎI TỪ CHỜ ADMIN REVIEW HOẶC FROZEN
  * 
- * Khi admin duyệt:
- * - Trừ điểm từ admin_review_pending
- * - Cộng điểm vào available_balance
- * - Cập nhật QuestionAuditLog
+ * Công thức:
+ * Khi admin duyệt câu từ frozen → điểm được cộng ngay lập tức vào available_for_withdrawal
+ * 
+ * - Nếu từ admin_review_pending: Trừ admin_review_pending → Cộng available_balance
+ * - Nếu từ frozen: Trừ frozen_balance → Cộng net_valid_coins
+ * - Cập nhật exclusion_reason thành 'valid'
+ * - Cập nhật coin_category thành 'pending_withdrawal'
+ * 
+ * Kết quả: available_for_withdrawal = net_valid_coins - paid_amount (tính ngay lập tức)
  */
 
 Deno.serve(async (req) => {
