@@ -31,8 +31,13 @@ export default function GratitudeJournal() {
     queryKey: ['gratitude-posts', currentUser?.email],
     queryFn: async () => {
       if (!currentUser) return [];
-      const allPosts = await base44.entities.GratitudeJournal.list('-post_date', 1000);
-      return allPosts.filter(post => post.user_email === currentUser.email);
+      try {
+        const allPosts = await base44.entities.GratitudeJournal.list('-post_date', 1000);
+        return allPosts.filter(post => post.user_email === currentUser.email);
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+        return [];
+      }
     },
     enabled: !!currentUser,
   });
