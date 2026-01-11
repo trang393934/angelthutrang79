@@ -261,7 +261,7 @@ export default function Leaderboard() {
             </div>
           ) : (
             <div className="space-y-3">
-              {rankedUsers.slice(0, 50).map((user, index) => {
+              {rankedUsers.map((user, index) => {
                 const isCurrentUser = user.user_email === currentUser?.email;
                 
                 return (
@@ -338,11 +338,9 @@ export default function Leaderboard() {
                 );
               })}
 
-              {rankedUsers.length > 50 && (
-                <p className="text-center text-sm text-slate-600 mt-4">
-                  Hiển thị top 50 / {rankedUsers.length} users
-                </p>
-              )}
+              <p className="text-center text-sm text-slate-600 mt-4">
+                Hiển thị tất cả {rankedUsers.length} users
+              </p>
             </div>
           )}
         </motion.div>
