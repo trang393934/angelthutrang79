@@ -74,11 +74,11 @@ Deno.serve(async (req) => {
 
     const balance = balances[0];
 
-    // Update balance: frozen → net_valid
+    // Update balance: frozen → net_valid + available (để bù số âm)
     const newNetValid = (balance.net_valid_coins || 0) + batchCoins;
     const newFrozen = Math.max(0, (balance.frozen_balance || 0) - batchCoins);
-    const paidAmount = balance.paid_amount || 0;
-    const newAvailable = newNetValid - paidAmount;
+    const currentAvailable = balance.available_for_withdrawal || 0;
+    const newAvailable = currentAvailable + batchCoins; // Cộng trực tiếp để bù số âm
 
     await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
       frozen_balance: newFrozen,
