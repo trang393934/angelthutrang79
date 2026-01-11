@@ -190,7 +190,7 @@ export default function UserProfile() {
 
   // Phân loại logs
   const eliminatedLogs = allUserLogs.filter(log => 
-    log.exclusion_reason !== 'valid' && log.coin_category === 'frozen'
+    log.exclusion_reason !== 'valid' && (log.coin_category === 'frozen' || log.coin_category === 'pending_review')
   );
   const validLogs = allUserLogs.filter(log => log.exclusion_reason === 'valid');
   const pendingReviewLogs = allUserLogs.filter(log => 
