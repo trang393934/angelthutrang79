@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
       byTx.get(txId).push(log);
     });
 
-    console.log(`📊 Total logs: ${allLogs.length}`);
+    // (removed - already logged above)
     console.log(`🔄 Duplicate groups: ${byTx.size} unique transactions`);
 
     // Tính từ UNIQUE transactions
