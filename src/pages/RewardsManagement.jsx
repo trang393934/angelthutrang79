@@ -80,7 +80,7 @@ export default function RewardsManagement() {
     queryKey: ['all-balances'],
     queryFn: async () => {
       try {
-        return await base44.entities.CamlycoinBalance.list('-total_earned', 50000);
+        return await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
       } catch (error) {
         console.error('Failed to fetch balances:', error);
         return [];
@@ -89,6 +89,22 @@ export default function RewardsManagement() {
     enabled: isAdmin,
     refetchInterval: 30000,
     staleTime: 0,
+  });
+
+  // Fetch total registered users count from backend
+  const { data: totalUsersData } = useQuery({
+    queryKey: ['total-registered-users-rewards'],
+    queryFn: async () => {
+      try {
+        const response = await base44.functions.invoke('getTotalRegisteredUsers', {});
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch total users:', error);
+        return { total_users: 0 };
+      }
+    },
+    enabled: isAdmin,
+    refetchInterval: 60000,
   });
 
   // Admin: Fetch all withdrawal requests (reduced limit to avoid 504)
@@ -666,7 +682,7 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Người Dùng</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.length}
+                  {totalUsersData?.total_users || 0}
                 </p>
                 <p className="text-white/80 text-xs mt-1">👥 Registered Users</p>
               </div>

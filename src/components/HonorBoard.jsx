@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, TrendingUp, Coins, Crown, Star, Zap, User } from 'lucide-react';
+import { Trophy, TrendingUp, Coins, Crown, Star, Zap, User, Search, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,13 @@ import { createPageUrl } from '@/utils';
 export default function HonorBoard() {
   const [activeTab, setActiveTab] = useState('camlycoin'); // 'camlycoin' or 'visits'
   const [showAllRankings, setShowAllRankings] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentUserEmail, setCurrentUserEmail] = useState(null);
+
+  // Get current user
+  React.useEffect(() => {
+    base44.auth.me().then(user => setCurrentUserEmail(user?.email)).catch(() => null);
+  }, []);
 
   // Fetch total registered users from backend
   const { data: totalUsersData } = useQuery({
@@ -93,8 +100,16 @@ export default function HonorBoard() {
     return 'from-purple-400 to-pink-400';
   };
 
+  // Filter data based on search term
+  const filteredEarners = allEarners.filter(item => 
+    !searchTerm || item.user_email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const filteredVisitors = allVisitors.filter(item => 
+    !searchTerm || item.user_email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const displayData = showAllRankings 
-    ? (activeTab === 'camlycoin' ? allEarners : allVisitors)
+    ? (activeTab === 'camlycoin' ? filteredEarners : filteredVisitors)
     : (activeTab === 'camlycoin' ? topEarners : topVisitors);
   const isLoading = activeTab === 'camlycoin' ? loadingEarners : loadingVisitors;
 
@@ -165,6 +180,34 @@ export default function HonorBoard() {
         </div>
       </div>
 
+      {/* Search Box - Only show when showing all rankings */}
+      {showAllRankings && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white/80 backdrop-blur-sm border-2 border-purple-200 rounded-2xl p-3 shadow-lg mb-4"
+        >
+          <div className="flex items-center gap-2">
+            <Search className="w-4 h-4 text-purple-400" />
+            <input
+              type="text"
+              placeholder="Tìm email của bạn..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 bg-transparent text-slate-900 placeholder:text-purple-400 outline-none text-sm"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-purple-400 hover:text-purple-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </motion.div>
+      )}
+
       {/* Leaderboard */}
       <div className="bg-white/80 backdrop-blur-sm border-2 border-purple-200 rounded-3xl p-4 shadow-xl">
         {isLoading ? (
@@ -206,7 +249,9 @@ export default function HonorBoard() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: idx * 0.05 }}
                       className={`relative rounded-2xl p-3 transition-all hover:scale-105 cursor-pointer ${
-                        rank <= 3
+                        item.user_email === currentUserEmail
+                          ? 'bg-gradient-to-r from-indigo-400 to-purple-500 border-2 border-white shadow-2xl'
+                          : rank <= 3
                           ? 'bg-gradient-to-r ' + getRankGradient(rank)
                           : 'bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200'
                       }`}
@@ -238,6 +283,7 @@ export default function HonorBoard() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className={`font-bold text-sm truncate ${
+                              item.user_email === currentUserEmail ? 'text-white' :
                               rank <= 3 ? 'text-white' : 'text-slate-900'
                             }`}>
                               {rank}. {name}
@@ -247,8 +293,14 @@ export default function HonorBoard() {
                                 👑 #1
                               </Badge>
                             )}
+                            {item.user_email === currentUserEmail && (
+                              <Badge className="bg-white text-indigo-600 text-xs px-2 py-0 font-bold">
+                                👤 BẠN
+                              </Badge>
+                            )}
                           </div>
                           <p className={`text-xs font-medium ${
+                            item.user_email === currentUserEmail ? 'text-white/90' :
                             rank <= 3 ? 'text-white/80' : 'text-purple-600'
                           }`}>
                             {activeTab === 'camlycoin' 
