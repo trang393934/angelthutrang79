@@ -901,7 +901,7 @@ Trả về JSON:`;
               <span className="text-white/90 text-xs font-medium">Tổng Đã Kiếm</span>
             </div>
             <p className="text-white text-3xl font-bold break-words">
-              {(userBalance?.total_earned || 0).toLocaleString()}
+              {((userBalance?.total_earned) || 0).toLocaleString('vi-VN')}
             </p>
             <p className="text-white/80 text-xs mt-1">Camlycoin</p>
           </div>
@@ -915,9 +915,9 @@ Trả về JSON:`;
               <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
             </div>
             <p className={`text-3xl font-bold break-words ${
-              (userBalance?.available_for_withdrawal || 0) < 0 ? 'text-red-600' : 'text-slate-900'
+              ((userBalance?.available_for_withdrawal) || 0) < 0 ? 'text-red-600' : 'text-slate-900'
             }`}>
-              {(userBalance?.available_for_withdrawal || 0).toLocaleString()}
+              {(((userBalance?.available_for_withdrawal) || 0) || 0).toLocaleString('vi-VN')}
             </p>
             <p className="text-amber-600 text-xs mt-1">⏳ = net_valid_coins - paid_amount</p>
 
@@ -925,7 +925,7 @@ Trả về JSON:`;
               <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 mt-3">
                 <p className="text-red-900 text-xs font-bold mb-1">⚠️ Chờ Xét Duyệt Thưởng</p>
                 <p className="text-red-800 text-xs">
-                  User cần duyệt <strong>{Math.abs(userBalance.available_for_withdrawal).toLocaleString()}</strong> coins từ mục "Đóng Băng" để rút được
+                  User cần duyệt <strong>{Math.abs((userBalance?.available_for_withdrawal) || 0).toLocaleString('vi-VN')}</strong> coins từ mục "Đóng Băng" để rút được
                 </p>
               </div>
             )}
@@ -938,7 +938,7 @@ Trả về JSON:`;
               <span className="text-slate-700 text-xs font-medium">Tổng Đã Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.paid_amount || 0).toLocaleString()}
+              {((userBalance?.paid_amount) || 0).toLocaleString('vi-VN')}
             </p>
             <p className="text-green-600 text-xs mt-1">✅ Admin đã chuyển</p>
           </div>
@@ -950,7 +950,7 @@ Trả về JSON:`;
               <span className="text-slate-700 text-xs font-medium">Tổng Điểm Hợp Lệ</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.net_valid_coins || 0).toLocaleString()}
+              {((userBalance?.net_valid_coins) || 0).toLocaleString('vi-VN')}
             </p>
             <p className="text-blue-600 text-xs mt-1">💎 10 câu đầu/ngày + hoạt động khác</p>
           </div>
@@ -962,7 +962,7 @@ Trả về JSON:`;
               <span className="text-slate-700 text-xs font-medium">Tổng Bị Đóng Băng</span>
             </div>
             <p className="text-slate-900 text-3xl font-bold break-words">
-              {(userBalance?.frozen_balance || 0).toLocaleString()}
+              {((userBalance?.frozen_balance) || 0).toLocaleString('vi-VN')}
             </p>
             <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
 
@@ -1031,7 +1031,7 @@ Trả về JSON:`;
               </div>
             </div>
             <p className="text-white text-4xl font-bold">
-              {(userBalance?.paid_amount || 0).toLocaleString()}
+              {((userBalance?.paid_amount) || 0).toLocaleString('vi-VN')}
             </p>
           </div>
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
@@ -1099,7 +1099,7 @@ Trả về JSON:`;
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 mb-4 border border-white/30">
               <p className="text-white/90 text-sm mb-2">Tổng Sẵn Sàng Rút:</p>
               <p className="text-white text-3xl font-bold">
-                {(userBalance.available_for_withdrawal || 0).toLocaleString()} Camlycoin
+                {((userBalance?.available_for_withdrawal) || 0).toLocaleString('vi-VN')} Camlycoin
               </p>
             </div>
             <Button
@@ -1627,7 +1627,7 @@ Trả về JSON:`;
                   }}
                   labelFormatter={(date) => format(new Date(date), 'dd/MM/yyyy')}
                   formatter={(value, name) => [
-                    name === 'total' ? `${value.toLocaleString()} Camlycoin` : `${value} giao dịch`,
+                    name === 'total' ? `${((value) || 0).toLocaleString('vi-VN')} Camlycoin` : `${value} giao dịch`,
                     name === 'total' ? 'Tổng kiếm' : 'Số giao dịch'
                   ]}
                 />
@@ -1815,7 +1815,7 @@ Trả về JSON:`;
                           </Badge>
                         )}
                         <Badge className="bg-amber-100 text-amber-800">
-                          🪙 {log.coins_earned?.toLocaleString()}
+                          🪙 {((log?.coins_earned) || 0).toLocaleString('vi-VN')}
                         </Badge>
                         <Badge className="bg-purple-100 text-purple-800">
                           #{log.question_number_in_day}
@@ -2043,7 +2043,7 @@ Trả về JSON:`;
                       </div>
                       <div className="text-right ml-4">
                         <p className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                          {isPositive ? '+' : ''}{tx.amount.toLocaleString()}
+                          {isPositive ? '+' : ''}{((tx?.amount) || 0).toLocaleString('vi-VN')}
                         </p>
                         <p className="text-xs text-slate-600">Camlycoin</p>
                       </div>
