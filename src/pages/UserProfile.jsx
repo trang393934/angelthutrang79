@@ -141,15 +141,21 @@ export default function UserProfile() {
 
   const isAdmin = currentUser?.role === 'admin';
 
-  // Fetch target user's balance
-  const { data: userBalance, refetch: refetchBalance } = useQuery({
+  // Fetch target user's balance - OPTIMIZED FOR MOBILE
+  const { data: userBalance, isLoading: isLoadingBalance, refetch: refetchBalance } = useQuery({
     queryKey: ['user-balance', targetEmail],
     queryFn: async () => {
       if (!targetEmail) return null;
+      console.log('🔍 Fetching balance for:', targetEmail);
       const balances = await base44.entities.CamlycoinBalance.filter({ user_email: targetEmail });
-      return balances[0] || { balance: 0, total_earned: 0, total_spent: 0 };
+      const balance = balances[0] || { balance: 0, total_earned: 0, total_spent: 0, available_for_withdrawal: 0, net_valid_coins: 0, frozen_balance: 0, paid_amount: 0 };
+      console.log('✅ Balance loaded:', balance);
+      return balance;
     },
     enabled: !!targetEmail,
+    staleTime: 0, // Always fresh
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Fetch target user's transactions
@@ -887,94 +893,140 @@ Trả về JSON:`;
 
 
 
-        {/* Balance Overview - CHÍNH XÁC TUYỆT ĐỐI */}
+        {/* Balance Overview - MOBILE OPTIMIZED */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
-          {/* Tổng Đã Kiếm - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-xl border-2 border-white">
-            <div className="flex items-center gap-3 mb-2">
-              <Coins className="w-6 h-6 text-white" />
-              <span className="text-white/90 text-xs font-medium">Tổng Đã Kiếm</span>
+          {/* Tổng Đã Kiếm - MOBILE OPTIMIZED */}
+          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border-2 border-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Coins className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
+              <span className="text-white/90 text-xs font-medium">Tổng Camlycoin</span>
             </div>
-            <p className="text-white text-3xl font-bold break-words">
-              {((userBalance?.total_earned) || 0).toLocaleString('vi-VN')}
-            </p>
-            <p className="text-white/80 text-xs mt-1">Camlycoin</p>
-          </div>
-
-          {/* Sẵn Sàng Rút - TRỰC TIẾP TỪ DATABASE - HIỂN THỊ SỐ ÂM ĐỂ XÉT DUYỆT */}
-          <div className={`bg-white/80 backdrop-blur-xl border-2 rounded-3xl p-6 shadow-lg ${
-            (userBalance?.available_for_withdrawal || 0) < 0 ? 'border-red-300' : 'border-amber-300'
-          }`}>
-            <div className="flex items-center gap-3 mb-2">
-              <Clock className="w-6 h-6 text-amber-500" />
-              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
-            </div>
-            <p className={`text-3xl font-bold break-words ${
-              ((userBalance?.available_for_withdrawal) || 0) < 0 ? 'text-red-600' : 'text-slate-900'
-            }`}>
-              {(((userBalance?.available_for_withdrawal) || 0) || 0).toLocaleString('vi-VN')}
-            </p>
-            <p className="text-amber-600 text-xs mt-1">⏳ = net_valid_coins - paid_amount</p>
-
-            {(userBalance?.available_for_withdrawal || 0) < 0 && (
-              <div className="bg-red-50 border-2 border-red-300 rounded-xl p-3 mt-3">
-                <p className="text-red-900 text-xs font-bold mb-1">⚠️ Chờ Xét Duyệt Thưởng</p>
-                <p className="text-red-800 text-xs">
-                  User cần duyệt <strong>{Math.abs((userBalance?.available_for_withdrawal) || 0).toLocaleString('vi-VN')}</strong> coins từ mục "Đóng Băng" để rút được
-                </p>
+            {isLoadingBalance ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 text-white animate-spin" />
+                <span className="text-white text-sm">Đang tải...</span>
               </div>
+            ) : (
+              <>
+                <p className="text-white text-2xl sm:text-3xl font-bold break-words">
+                  {((userBalance?.total_earned) || 0).toLocaleString('vi-VN')}
+                </p>
+                <p className="text-white/80 text-xs mt-1">Đã kiếm được</p>
+              </>
             )}
           </div>
 
-          {/* Tổng Đã Thanh Toán - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <CheckCircle2 className="w-6 h-6 text-green-500" />
-              <span className="text-slate-700 text-xs font-medium">Tổng Đã Thanh Toán</span>
+          {/* Sẵn Sàng Rút - MOBILE OPTIMIZED */}
+          <div className={`bg-white/80 backdrop-blur-xl border-2 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg ${
+            (userBalance?.available_for_withdrawal || 0) < 0 ? 'border-red-300' : 'border-amber-300'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 flex-shrink-0" />
+              <span className="text-slate-700 text-xs font-medium">Sẵn Sàng Rút</span>
             </div>
-            <p className="text-slate-900 text-3xl font-bold break-words">
-              {((userBalance?.paid_amount) || 0).toLocaleString('vi-VN')}
-            </p>
-            <p className="text-green-600 text-xs mt-1">✅ Admin đã chuyển</p>
+            {isLoadingBalance ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
+                <span className="text-slate-700 text-sm">Đang tải...</span>
+              </div>
+            ) : (
+              <>
+                <p className={`text-2xl sm:text-3xl font-bold break-words ${
+                  ((userBalance?.available_for_withdrawal) || 0) < 0 ? 'text-red-600' : 'text-slate-900'
+                }`}>
+                  {(((userBalance?.available_for_withdrawal) || 0) || 0).toLocaleString('vi-VN')}
+                </p>
+                <p className="text-amber-600 text-xs mt-1">⏳ = net_valid - paid</p>
+
+                {(userBalance?.available_for_withdrawal || 0) < 0 && (
+                  <div className="bg-red-50 border-2 border-red-300 rounded-xl p-2 sm:p-3 mt-2">
+                    <p className="text-red-900 text-xs font-bold mb-1">⚠️ Chờ Duyệt</p>
+                    <p className="text-red-800 text-xs">
+                      Cần duyệt <strong>{Math.abs((userBalance?.available_for_withdrawal) || 0).toLocaleString('vi-VN')}</strong> coins
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
-          {/* Net Valid Coins - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Eye className="w-6 h-6 text-blue-500" />
-              <span className="text-slate-700 text-xs font-medium">Tổng Điểm Hợp Lệ</span>
+          {/* Tổng Đã Thanh Toán - MOBILE OPTIMIZED */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-green-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 flex-shrink-0" />
+              <span className="text-slate-700 text-xs font-medium">Đã Thanh Toán</span>
             </div>
-            <p className="text-slate-900 text-3xl font-bold break-words">
-              {((userBalance?.net_valid_coins) || 0).toLocaleString('vi-VN')}
-            </p>
-            <p className="text-blue-600 text-xs mt-1">💎 10 câu đầu/ngày + hoạt động khác</p>
+            {isLoadingBalance ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 text-green-500 animate-spin" />
+                <span className="text-slate-700 text-sm">Đang tải...</span>
+              </div>
+            ) : (
+              <>
+                <p className="text-slate-900 text-2xl sm:text-3xl font-bold break-words">
+                  {((userBalance?.paid_amount) || 0).toLocaleString('vi-VN')}
+                </p>
+                <p className="text-green-600 text-xs mt-1">✅ Admin chuyển</p>
+              </>
+            )}
           </div>
 
-          {/* Tổng Bị Đóng Băng - TRỰC TIẾP TỪ DATABASE */}
-          <div className="bg-white/80 backdrop-blur-xl border-2 border-red-300 rounded-3xl p-6 shadow-lg">
-            <div className="flex items-center gap-3 mb-2">
-              <Activity className="w-6 h-6 text-red-500" />
-              <span className="text-slate-700 text-xs font-medium">Tổng Bị Đóng Băng</span>
+          {/* Net Valid Coins - MOBILE OPTIMIZED */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-blue-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Eye className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500 flex-shrink-0" />
+              <span className="text-slate-700 text-xs font-medium">Điểm Hợp Lệ</span>
             </div>
-            <p className="text-slate-900 text-3xl font-bold break-words">
-              {((userBalance?.frozen_balance) || 0).toLocaleString('vi-VN')}
-            </p>
-            <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/chào/spam</p>
+            {isLoadingBalance ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 text-blue-500 animate-spin" />
+                <span className="text-slate-700 text-sm">Đang tải...</span>
+              </div>
+            ) : (
+              <>
+                <p className="text-slate-900 text-2xl sm:text-3xl font-bold break-words">
+                  {((userBalance?.net_valid_coins) || 0).toLocaleString('vi-VN')}
+                </p>
+                <p className="text-blue-600 text-xs mt-1">💎 10 câu/ngày</p>
+              </>
+            )}
+          </div>
+
+          {/* Tổng Bị Đóng Băng - MOBILE OPTIMIZED */}
+          <div className="bg-white/80 backdrop-blur-xl border-2 border-red-300 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 flex-shrink-0" />
+              <span className="text-slate-700 text-xs font-medium">Đóng Băng</span>
+            </div>
+            {isLoadingBalance ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="w-6 h-6 text-red-500 animate-spin" />
+                <span className="text-slate-700 text-sm">Đang tải...</span>
+              </div>
+            ) : (
+              <>
+                <p className="text-slate-900 text-2xl sm:text-3xl font-bold break-words">
+                  {((userBalance?.frozen_balance) || 0).toLocaleString('vi-VN')}
+                </p>
+                <p className="text-red-600 text-xs mt-1">❄️ Câu trùng/spam</p>
+
+              </>
+            )}
 
             {/* Button Xem Lịch Sử - ADMIN ONLY */}
-              {isAdmin && (
-                <div className="flex flex-col gap-2 mt-3">
+              {isAdmin && !isLoadingBalance && (
+                <div className="flex flex-col gap-2 mt-2 sm:mt-3">
                   <Button
                     onClick={() => setShowEliminatedModal(true)}
                     size="sm"
                     className="w-full bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
                   >
-                    Xem Lịch Sử ({eliminatedLogs.length} câu)
+                    Xem ({eliminatedLogs.length})
                   </Button>
                   <Button
                     onClick={async () => {
@@ -987,7 +1039,7 @@ Trả về JSON:`;
                         const coins = result.data?.coins_moved || 0;
                         const available = result.data?.new_available || 0;
                         const remaining = result.data?.remaining || 0;
-                        alert(`✅ Duyệt thành công ${approved} câu\n💰 +${coins.toLocaleString()} Camlycoin\n🎯 Sẵn Sàng Rút: ${available.toLocaleString()}\n⏳ Còn ${remaining} câu`);
+                        alert(`✅ Duyệt ${approved} câu\n💰 +${coins.toLocaleString()}\n🎯 Rút: ${available.toLocaleString()}\n⏳ Còn ${remaining}`);
                         refetchBalance();
                         refetchLogs();
                         queryClient.invalidateQueries({ queryKey: ['user-transactions'] });
@@ -998,7 +1050,7 @@ Trả về JSON:`;
                     size="sm"
                     className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg shadow-md hover:shadow-lg font-bold text-xs"
                   >
-                    ✅ Duyệt Frozen (20 câu)
+                    ✅ Duyệt (20)
                   </Button>
                 </div>
               )}
