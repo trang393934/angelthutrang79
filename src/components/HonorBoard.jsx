@@ -63,6 +63,10 @@ export default function HonorBoard() {
         console.log(`✅ [HonorBoard] Found ${balances.length} balances`);
         console.log('📊 [HonorBoard] Sample balances:', balances.slice(0, 3));
         
+        if (balances.length === 0) {
+          console.warn('⚠️ [HonorBoard] NO BALANCES FOUND - Possible security rule issue!');
+        }
+        
         // Create balance lookup map
         const balanceMap = new Map();
         balances.forEach(b => {
