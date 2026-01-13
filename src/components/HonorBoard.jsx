@@ -33,14 +33,19 @@ export default function HonorBoard() {
     refetchInterval: 60000,
   });
 
-  // Fetch ALL users with their balances
+  // Fetch ALL users with their balances - OPTIMIZED FOR MOBILE
   const { data: allEarners = [], isLoading: loadingEarners } = useQuery({
     queryKey: ['all-users-with-balances'],
     queryFn: async () => {
+      console.log('🔍 [HonorBoard] Fetching user balances...');
+      
       // Fetch ALL registered users
       const allUsers = await base44.entities.User.list('-created_date', 10000);
+      console.log(`✅ [HonorBoard] Found ${allUsers.length} users`);
+      
       // Fetch all balances
       const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
+      console.log(`✅ [HonorBoard] Found ${balances.length} balances`);
       
       // Create balance lookup map
       const balanceMap = new Map();
@@ -53,7 +58,7 @@ export default function HonorBoard() {
         const balance = balanceMap.get(user.email);
         return {
           user_email: user.email,
-          total_earned: balance ? ((balance.net_valid_coins || 0) + (balance.frozen_balance || 0)) : 0,
+          total_earned: balance?.total_earned || 0,
           net_valid_coins: balance?.net_valid_coins || 0,
           frozen_balance: balance?.frozen_balance || 0,
           available_balance: balance?.available_balance || 0,
@@ -62,10 +67,15 @@ export default function HonorBoard() {
       });
       
       // Sort by total_earned
-      return usersWithBalances.sort((a, b) => b.total_earned - a.total_earned);
+      const sorted = usersWithBalances.sort((a, b) => b.total_earned - a.total_earned);
+      console.log(`✅ [HonorBoard] Sorted ${sorted.length} users, top earner: ${sorted[0]?.total_earned || 0}`);
+      
+      return sorted;
     },
     refetchInterval: 30000,
     staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   const topEarners = allEarners.slice(0, 10);
@@ -143,9 +153,11 @@ export default function HonorBoard() {
     : (activeTab === 'camlycoin' ? topEarners : topVisitors);
   const isLoading = activeTab === 'camlycoin' ? loadingEarners : loadingVisitors;
 
-  // Calculate total stats using NEW FORMULA
-  const totalCamlycoin = allEarners.reduce((sum, item) => sum + ((item.net_valid_coins || 0) + (item.frozen_balance || 0)), 0);
+  // Calculate total stats - USE TOTAL_EARNED FROM DATABASE
+  const totalCamlycoin = allEarners.reduce((sum, item) => sum + (item.total_earned || 0), 0);
   const totalUsers = totalUsersData?.total_users || 0;
+  
+  console.log(`📊 [HonorBoard Stats] Total Camlycoin: ${totalCamlycoin}, Total Users: ${totalUsers}`);
 
   return (
     <motion.div
