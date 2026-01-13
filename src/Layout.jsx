@@ -10,6 +10,7 @@ import AngelMascot from '@/components/AngelMascot';
 import SupportChatWidget from '@/components/SupportChatWidget';
 import ThemeToggle from '@/components/ThemeToggle';
 import ThemeProvider from '@/components/ThemeProvider';
+import { toast } from 'sonner';
 
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -365,6 +366,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
   const connectWallet = async () => {
     if (typeof window.ethereum === 'undefined') {
+      toast.error('Vui lòng cài đặt MetaMask để kết nối ví');
       window.open('https://metamask.io/download/', '_blank');
       return;
     }
@@ -377,17 +379,16 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
       if (accounts && accounts.length > 0) {
         setWalletAddress(accounts[0]);
+        toast.success('Đã kết nối ví thành công!');
       }
     } catch (error) {
       // Handle specific error codes
       if (error.code === 4001) {
-        // User rejected the connection
-        console.log('User rejected MetaMask connection');
+        toast.info('Bạn đã từ chối kết nối ví');
       } else if (error.code === -32002) {
-        // Connection request already pending
-        console.log('MetaMask connection already pending');
+        toast.warning('Đang có yêu cầu kết nối ví đang chờ xử lý');
       } else {
-        // Log other errors for debugging
+        toast.error('Không thể kết nối MetaMask. Vui lòng thử lại.');
         console.error('Wallet connection error:', error.code, error.message);
       }
     } finally {
