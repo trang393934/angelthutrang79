@@ -368,69 +368,75 @@ Trả về JSON:`,
 
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-xl border-b border-purple-200 shadow-lg">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2">
-          <Link to={createPageUrl('Home')}>
-            <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100 flex-shrink-0">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <motion.div
-              animate={{ 
-                boxShadow: [
-                  '0 0 20px rgba(168,85,247,0.4)',
-                  '0 0 40px rgba(236,72,153,0.4)',
-                  '0 0 20px rgba(168,85,247,0.4)',
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center flex-shrink-0"
-            >
-              <Gift className="w-5 h-5 text-white" />
-            </motion.div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg truncate">Build & Bounty</h1>
-              <p className="text-purple-600 text-xs font-medium truncate">Đóng Góp & Nhận Thưởng</p>
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Link to={createPageUrl('Home')}>
+              <Button variant="ghost" size="icon" className="text-purple-600 hover:text-purple-900 hover:bg-purple-100">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+            </Link>
+
+            <div className="flex items-center gap-2 flex-1 justify-center">
+              <motion.div
+                animate={{ 
+                  boxShadow: [
+                    '0 0 20px rgba(168,85,247,0.4)',
+                    '0 0 40px rgba(236,72,153,0.4)',
+                    '0 0 20px rgba(168,85,247,0.4)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center"
+              >
+                <Gift className="w-5 h-5 text-white" />
+              </motion.div>
+              <div className="text-center">
+                <h1 className="text-slate-900 font-semibold tracking-wide text-base lg:text-lg">Build & Bounty</h1>
+                <p className="text-purple-600 text-xs font-medium">Đóng Góp & Nhận Thưởng</p>
+              </div>
+            </div>
+
+            <div className="w-10">
+              {walletAddress ? (
+                <div className="flex items-center gap-2">
+                  <div className="bg-green-50 border border-green-300 rounded-full px-3 py-1 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <div className="text-xs">
+                      <p className="text-green-900 font-mono font-semibold">
+                        {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                      </p>
+                      {walletBalances.native && (
+                        <p className="text-green-700 font-bold">
+                          {walletBalances.native.balance} {walletBalances.native.symbol}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={disconnectWallet}
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  onClick={() => {
+                    setSelectedNetwork('Binance Smart Chain');
+                    setShowWalletModal(true);
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full text-xs px-3"
+                >
+                  <Wallet className="w-3 h-3 mr-1" />
+                  Kết nối ví
+                </Button>
+              )}
             </div>
           </div>
-          {walletAddress ? (
-            <div className="flex items-center gap-2">
-              <div className="bg-green-50 border border-green-300 rounded-full px-3 py-1 flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <div className="text-xs">
-                  <p className="text-green-900 font-mono font-semibold">
-                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-                  </p>
-                  {walletBalances.native && (
-                    <p className="text-green-700 font-bold">
-                      {walletBalances.native.balance} {walletBalances.native.symbol}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <Button
-                onClick={disconnectWallet}
-                variant="ghost"
-                size="icon"
-                className="text-red-600 hover:text-red-800 hover:bg-red-50 h-8 w-8"
-              >
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <Button
-              onClick={() => {
-                setSelectedNetwork('Binance Smart Chain');
-                setShowWalletModal(true);
-              }}
-              variant="outline"
-              size="sm"
-              className="border-purple-300 text-purple-700 hover:bg-purple-50 rounded-full flex-shrink-0 text-xs px-3"
-            >
-              <Wallet className="w-3 h-3 mr-1" />
-              Kết nối ví
-            </Button>
-          )}
         </div>
       </div>
 
