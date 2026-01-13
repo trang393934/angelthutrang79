@@ -304,16 +304,14 @@ export default function Leaderboard() {
 
                           {/* User Info */}
                           <div className="flex-1 min-w-0">
-                            <p className={`font-bold text-lg ${isCurrentUser ? 'text-purple-900' : 'text-slate-900'}`}>
+                            <p className={`font-bold text-lg break-words ${isCurrentUser ? 'text-purple-900' : 'text-slate-900'}`}>
                               {isCurrentUser ? (
                                 <>
-                                  {user.user_email}
+                                  {user.full_name}
                                   <Badge className="ml-2 bg-purple-100 text-purple-800">You</Badge>
                                 </>
-                              ) : currentUser?.role === 'admin' ? (
-                                user.user_email
                               ) : (
-                                `Người dùng #${user.rank}`
+                                user.full_name
                               )}
                             </p>
                           <div className="flex flex-wrap gap-2 mt-1">
