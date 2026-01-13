@@ -28,6 +28,13 @@ export default function Leaderboard() {
     cacheTime: 0,
   });
 
+  // Fetch all users to get full names
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['all-users-for-leaderboard'],
+    queryFn: () => base44.entities.User.list('-created_date', 50000),
+    staleTime: 30000,
+  });
+
     // Filter and sort users
     const rankedUsers = React.useMemo(() => {
       let users = allBalances.map(balance => {
