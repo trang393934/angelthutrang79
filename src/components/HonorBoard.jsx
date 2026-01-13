@@ -51,40 +51,50 @@ export default function HonorBoard() {
     queryKey: ['all-users-with-balances'],
     queryFn: async () => {
       console.log('🔍 [HonorBoard] Fetching user balances...');
+      console.log('🔍 [HonorBoard] Current user email:', currentUserEmail);
       
-      // Fetch ALL registered users
-      const allUsers = await base44.entities.User.list('-created_date', 10000);
-      console.log(`✅ [HonorBoard] Found ${allUsers.length} users`);
-      
-      // Fetch all balances
-      const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
-      console.log(`✅ [HonorBoard] Found ${balances.length} balances`);
-      
-      // Create balance lookup map
-      const balanceMap = new Map();
-      balances.forEach(b => {
-        balanceMap.set(b.user_email, b);
-      });
-      
-      // Merge users with their balances
-      const usersWithBalances = allUsers.map(user => {
-        const balance = balanceMap.get(user.email);
-        return {
-          user_email: user.email,
-          total_earned: balance?.total_earned || 0,
-          net_valid_coins: balance?.net_valid_coins || 0,
-          frozen_balance: balance?.frozen_balance || 0,
-          available_balance: balance?.available_balance || 0,
-          paid_amount: balance?.paid_amount || 0
-        };
-      });
-      
-      // Sort by total_earned
-      const sorted = usersWithBalances.sort((a, b) => b.total_earned - a.total_earned);
-      console.log(`✅ [HonorBoard] Sorted ${sorted.length} users, top earner: ${sorted[0]?.total_earned || 0}`);
-      
-      return sorted;
+      try {
+        // Fetch ALL registered users
+        const allUsers = await base44.entities.User.list('-created_date', 10000);
+        console.log(`✅ [HonorBoard] Found ${allUsers.length} users`);
+        
+        // Fetch all balances
+        const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
+        console.log(`✅ [HonorBoard] Found ${balances.length} balances`);
+        console.log('📊 [HonorBoard] Sample balances:', balances.slice(0, 3));
+        
+        // Create balance lookup map
+        const balanceMap = new Map();
+        balances.forEach(b => {
+          balanceMap.set(b.user_email, b);
+        });
+        
+        // Merge users with their balances
+        const usersWithBalances = allUsers.map(user => {
+          const balance = balanceMap.get(user.email);
+          return {
+            user_email: user.email,
+            total_earned: balance?.total_earned || 0,
+            net_valid_coins: balance?.net_valid_coins || 0,
+            frozen_balance: balance?.frozen_balance || 0,
+            available_balance: balance?.available_balance || 0,
+            paid_amount: balance?.paid_amount || 0
+          };
+        });
+        
+        // Sort by total_earned
+        const sorted = usersWithBalances.sort((a, b) => b.total_earned - a.total_earned);
+        console.log(`✅ [HonorBoard] Sorted ${sorted.length} users`);
+        console.log('🏆 [HonorBoard] Top 3 earners:', sorted.slice(0, 3));
+        
+        return sorted;
+      } catch (error) {
+        console.error('❌ [HonorBoard] Error in fetch:', error);
+        console.error('❌ [HonorBoard] Error details:', error?.message, error?.response);
+        throw error;
+      }
     },
+    enabled: true, // Always enabled, không cần đợi currentUser
     refetchInterval: 30000,
     staleTime: 0,
     refetchOnMount: true,
