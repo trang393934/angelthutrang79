@@ -657,7 +657,29 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
               className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#8b5cf6 #ede9fe'
+              }}
             >
+              <style>{`
+                .max-h-\\[90vh\\].overflow-y-auto::-webkit-scrollbar {
+                  width: 12px;
+                }
+                .max-h-\\[90vh\\].overflow-y-auto::-webkit-scrollbar-track {
+                  background: linear-gradient(to bottom, #ede9fe, #fae8ff);
+                  border-radius: 10px;
+                  margin: 8px 0;
+                }
+                .max-h-\\[90vh\\].overflow-y-auto::-webkit-scrollbar-thumb {
+                  background: linear-gradient(to bottom, #8b5cf6, #a855f7);
+                  border-radius: 10px;
+                  border: 3px solid #ede9fe;
+                }
+                .max-h-\\[90vh\\].overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                  background: linear-gradient(to bottom, #7c3aed, #9333ea);
+                }
+              `}</style>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
                   <Upload className="w-6 h-6 text-white" />
@@ -970,8 +992,29 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-lg w-full shadow-2xl"
+              className="bg-white backdrop-blur-xl border-2 border-indigo-300 rounded-3xl p-8 max-w-lg w-full shadow-2xl overflow-y-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#a855f7 #f3e8ff'
+              }}
             >
+              <style>{`
+                .bg-white.backdrop-blur-xl.border-2.border-indigo-300::-webkit-scrollbar {
+                  width: 10px;
+                }
+                .bg-white.backdrop-blur-xl.border-2.border-indigo-300::-webkit-scrollbar-track {
+                  background: linear-gradient(to bottom, #f3e8ff, #fae8ff);
+                  border-radius: 10px;
+                }
+                .bg-white.backdrop-blur-xl.border-2.border-indigo-300::-webkit-scrollbar-thumb {
+                  background: linear-gradient(to bottom, #a855f7, #d946ef);
+                  border-radius: 10px;
+                  border: 2px solid #f3e8ff;
+                }
+                .bg-white.backdrop-blur-xl.border-2.border-indigo-300::-webkit-scrollbar-thumb:hover {
+                  background: linear-gradient(to bottom, #9333ea, #c026d3);
+                }
+              `}</style>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center">
                   <FolderOpen className="w-6 h-6 text-white" />
@@ -989,7 +1032,30 @@ Hãy chọn 3-5 tài liệu liên quan nhất. Trả về JSON:
                 </Badge>
               </div>
 
-              <div className="space-y-2 mb-6 max-h-[300px] overflow-y-auto">
+              <div 
+                className="space-y-2 mb-6 max-h-[300px] overflow-y-auto pr-2"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#a855f7 #f3e8ff'
+                }}
+              >
+                <style>{`
+                  .max-h-\\[300px\\].overflow-y-auto::-webkit-scrollbar {
+                    width: 10px;
+                  }
+                  .max-h-\\[300px\\].overflow-y-auto::-webkit-scrollbar-track {
+                    background: #f3e8ff;
+                    border-radius: 10px;
+                  }
+                  .max-h-\\[300px\\].overflow-y-auto::-webkit-scrollbar-thumb {
+                    background: linear-gradient(to bottom, #a855f7, #d946ef);
+                    border-radius: 10px;
+                    border: 2px solid #f3e8ff;
+                  }
+                  .max-h-\\[300px\\].overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                    background: linear-gradient(to bottom, #9333ea, #c026d3);
+                  }
+                `}</style>
                 {categories.map((cat) => (
                   <motion.button
                     key={cat.id}
