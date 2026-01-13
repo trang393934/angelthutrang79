@@ -16,6 +16,10 @@ export default function GratitudeJournal() {
   const [postType, setPostType] = useState('both');
   const [isSelfWritten, setIsSelfWritten] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterType, setFilterType] = useState('all'); // 'all', 'repentance', 'gratitude', 'both'
+  const [filterDate, setFilterDate] = useState('all'); // 'all', 'today', 'week', 'month'
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 5;
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -52,6 +56,44 @@ export default function GratitudeJournal() {
   }, [userPosts]);
 
   const remainingPosts = 3 - todayPosts.length;
+
+  // Filter posts
+  const filteredPosts = React.useMemo(() => {
+    let filtered = [...userPosts];
+
+    // Filter by type
+    if (filterType !== 'all') {
+      filtered = filtered.filter(post => post.post_type === filterType);
+    }
+
+    // Filter by date
+    if (filterDate !== 'all') {
+      const now = new Date();
+      filtered = filtered.filter(post => {
+        const postDate = new Date(post.post_date);
+        const daysDiff = Math.floor((now - postDate) / (1000 * 60 * 60 * 24));
+        
+        if (filterDate === 'today') return daysDiff === 0;
+        if (filterDate === 'week') return daysDiff <= 7;
+        if (filterDate === 'month') return daysDiff <= 30;
+        return true;
+      });
+    }
+
+    return filtered;
+  }, [userPosts, filterType, filterDate]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  const paginatedPosts = filteredPosts.slice(
+    (currentPage - 1) * postsPerPage,
+    currentPage * postsPerPage
+  );
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [filterType, filterDate]);
 
   // Submit post mutation
   const submitMutation = useMutation({
@@ -175,58 +217,103 @@ export default function GratitudeJournal() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-4xl mx-auto">
-        {/* Time Banner */}
+        {/* Time Banner - Enhanced */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`rounded-3xl p-6 shadow-xl mb-6 border-2 ${
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 300 }}
+          className={`rounded-3xl p-6 shadow-2xl mb-6 border-2 relative overflow-hidden ${
             isAfter8PM 
-              ? 'bg-gradient-to-br from-indigo-500 to-purple-600 border-purple-300' 
-              : 'bg-gradient-to-br from-amber-400 to-orange-500 border-amber-300'
+              ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 border-purple-300' 
+              : 'bg-gradient-to-br from-amber-400 via-orange-400 to-rose-400 border-amber-300'
           }`}
         >
-          <div className="flex items-center gap-3">
-            {isAfter8PM ? (
-              <Moon className="w-10 h-10 text-white" />
-            ) : (
-              <Sun className="w-10 h-10 text-white" />
-            )}
+          {/* Animated background */}
+          <motion.div
+            animate={{ 
+              opacity: [0.3, 0.5, 0.3],
+              scale: [1, 1.1, 1]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"
+          />
+          
+          <div className="relative flex items-center gap-4">
+            <motion.div
+              animate={{ rotate: isAfter8PM ? [0, 10, -10, 0] : [0, 360] }}
+              transition={{ duration: isAfter8PM ? 2 : 20, repeat: Infinity }}
+            >
+              {isAfter8PM ? (
+                <Moon className="w-12 h-12 text-white drop-shadow-lg" />
+              ) : (
+                <Sun className="w-12 h-12 text-white drop-shadow-lg" />
+              )}
+            </motion.div>
             <div className="flex-1">
-              <h2 className="text-white font-bold text-xl mb-1">
+              <h2 className="text-white font-bold text-2xl mb-1 drop-shadow-md">
                 {isAfter8PM ? '🌙 Giờ Vàng Sau 20h' : '☀️ Ban Ngày'}
               </h2>
-              <p className="text-white/90 text-sm">
+              <p className="text-white/95 text-sm font-medium">
                 {isAfter8PM 
                   ? '✨ Bonus +50% khi TỰ VIẾT sau 20h tối!' 
                   : 'Tự viết sau 20h để nhận bonus +50%'}
               </p>
             </div>
             {isAfter8PM && (
-              <Badge className="bg-white/20 text-white border-white/50 text-lg px-4 py-2">
-                +50% 🎁
-              </Badge>
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <Badge className="bg-white/30 text-white border-white/50 text-xl px-6 py-3 shadow-lg backdrop-blur-sm">
+                  +50% 🎁
+                </Badge>
+              </motion.div>
             )}
           </div>
         </motion.div>
 
-        {/* Daily Limit */}
+        {/* Daily Limit - Enhanced */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="bg-white/80 backdrop-blur-xl border-2 border-pink-200 rounded-3xl p-6 shadow-xl mb-6"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1, type: "spring" }}
+          className="bg-white/90 backdrop-blur-xl border-2 border-pink-300 rounded-3xl p-6 shadow-xl mb-6 relative overflow-hidden"
         >
+          <motion.div
+            animate={{ 
+              x: ['-100%', '100%']
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-pink-400 to-transparent"
+          />
+          
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-6 h-6 text-pink-500" />
+            <div className="flex items-center gap-4">
+              <motion.div
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg"
+              >
+                <Calendar className="w-7 h-7 text-white" />
+              </motion.div>
               <div>
-                <p className="text-slate-900 font-bold">Hạn Mức Hôm Nay</p>
-                <p className="text-slate-600 text-sm">{todayPosts.length}/3 bài đã đăng</p>
+                <p className="text-slate-900 font-bold text-lg">Hạn Mức Hôm Nay</p>
+                <p className="text-slate-600 text-sm font-medium">{todayPosts.length}/3 bài đã đăng</p>
               </div>
             </div>
-            <Badge className={remainingPosts > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-              Còn {remainingPosts} bài
-            </Badge>
+            <motion.div
+              animate={{ scale: remainingPosts === 0 ? [1, 1.05, 1] : 1 }}
+              transition={{ duration: 0.5, repeat: remainingPosts === 0 ? Infinity : 0 }}
+            >
+              <Badge className={`text-lg px-4 py-2 ${
+                remainingPosts > 0 
+                  ? 'bg-green-100 text-green-800 border-2 border-green-300' 
+                  : 'bg-red-100 text-red-800 border-2 border-red-300'
+              }`}>
+                {remainingPosts > 0 ? `✅ Còn ${remainingPosts} bài` : '⏸️ Hết lượt'}
+              </Badge>
+            </motion.div>
           </div>
         </motion.div>
 
@@ -398,13 +485,78 @@ Ví dụ:
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          transition={{ delay: 0.3 }}
           className="mt-8"
         >
-          <h3 className="text-slate-900 font-bold text-xl mb-4 flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-purple-500" />
-            Bài Viết Gần Đây
-          </h3>
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-slate-900 font-bold text-2xl flex items-center gap-3">
+              <motion.div
+                animate={{ rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <TrendingUp className="w-7 h-7 text-purple-500" />
+              </motion.div>
+              Bài Viết Gần Đây
+            </h3>
+            <Badge className="bg-purple-100 text-purple-800 text-sm px-3 py-1">
+              {filteredPosts.length} bài
+            </Badge>
+          </div>
+
+          {/* Filters */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Type Filter */}
+            <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-2xl p-4">
+              <p className="text-slate-700 font-semibold mb-3 text-sm">Lọc theo loại:</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { value: 'all', label: 'Tất Cả', icon: '📝' },
+                  { value: 'repentance', label: 'Sám Hối', icon: '🙏' },
+                  { value: 'gratitude', label: 'Biết Ơn', icon: '❤️' },
+                  { value: 'both', label: 'Cả Hai', icon: '✨' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setFilterType(option.value)}
+                    className={`rounded-xl p-3 border-2 transition-all ${
+                      filterType === option.value
+                        ? 'bg-gradient-to-br from-purple-100 to-pink-100 border-purple-400 shadow-md scale-105'
+                        : 'bg-white border-purple-200 hover:border-purple-300 hover:scale-105'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{option.icon}</div>
+                    <p className="font-semibold text-slate-900 text-xs">{option.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Date Filter */}
+            <div className="bg-white/80 backdrop-blur-xl border-2 border-amber-200 rounded-2xl p-4">
+              <p className="text-slate-700 font-semibold mb-3 text-sm">Lọc theo ngày:</p>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { value: 'all', label: 'Tất Cả', icon: '📅' },
+                  { value: 'today', label: 'Hôm Nay', icon: '📌' },
+                  { value: 'week', label: '7 Ngày', icon: '📆' },
+                  { value: 'month', label: '30 Ngày', icon: '🗓️' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setFilterDate(option.value)}
+                    className={`rounded-xl p-3 border-2 transition-all ${
+                      filterDate === option.value
+                        ? 'bg-gradient-to-br from-amber-100 to-orange-100 border-amber-400 shadow-md scale-105'
+                        : 'bg-white border-amber-200 hover:border-amber-300 hover:scale-105'
+                    }`}
+                  >
+                    <div className="text-2xl mb-1">{option.icon}</div>
+                    <p className="font-semibold text-slate-900 text-xs">{option.label}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
           
           {isLoading ? (
             <div className="text-center py-12">
@@ -417,9 +569,16 @@ Ví dụ:
               <p className="text-slate-700 font-medium">Chưa có bài viết nào</p>
               <p className="text-slate-600 text-sm mt-2">Hãy bắt đầu viết bài đầu tiên của bạn!</p>
             </div>
+          ) : filteredPosts.length === 0 ? (
+            <div className="bg-white/80 backdrop-blur-xl border-2 border-purple-200 rounded-3xl p-12 text-center">
+              <Heart className="w-16 h-16 text-purple-300 mx-auto mb-4" />
+              <p className="text-slate-700 font-medium">Không tìm thấy bài viết</p>
+              <p className="text-slate-600 text-sm mt-2">Thử thay đổi bộ lọc hoặc viết bài mới!</p>
+            </div>
           ) : (
-            <div className="space-y-4">
-              {userPosts.slice(0, 10).map((post, idx) => (
+            <>
+              <div className="space-y-4">
+                {paginatedPosts.map((post, idx) => (
                 <motion.div
                   key={post.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -473,6 +632,50 @@ Ví dụ:
                 </motion.div>
               ))}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-8 flex items-center justify-center gap-2"
+              >
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  variant="outline"
+                  className="border-2 border-purple-300 text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+                >
+                  ← Trước
+                </Button>
+                
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                        currentPage === page
+                          ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg scale-110'
+                          : 'bg-white border-2 border-purple-200 text-purple-700 hover:border-purple-400 hover:scale-105'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+
+                <Button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  variant="outline"
+                  className="border-2 border-purple-300 text-purple-700 hover:bg-purple-50 disabled:opacity-50"
+                >
+                  Sau →
+                </Button>
+              </motion.div>
+            )}
+          </>
           )}
         </motion.div>
       </div>
