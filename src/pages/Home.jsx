@@ -974,7 +974,7 @@ export default function Home() {
               { name: 'FUN Farm', url: 'https://funfarm.life', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/bb825fdcb_image.png', color: 'from-lime-400 to-green-400' },
               { name: 'FUN Academy', url: '#', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/0d1d178bc_image.png', color: 'from-indigo-400 to-blue-400' },
               { name: 'FUN Legal', url: '#', icon: '⚖️', color: 'from-slate-400 to-gray-400' },
-              { name: 'FUN Earth', url: '#', icon: '🌏', color: 'from-teal-400 to-cyan-400' },
+              { name: 'FUN Earth', url: '#', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/b21d82333_image.png', color: 'from-teal-400 to-cyan-400' },
               { name: 'FUN Trading', url: '#', icon: '📈', color: 'from-amber-400 to-orange-400' },
               { name: 'FUN Invest', url: '#', icon: '💰', color: 'from-yellow-400 to-amber-400' },
               { name: 'FUN Market', url: '#', icon: '🛍️', color: 'from-fuchsia-400 to-purple-400' },
