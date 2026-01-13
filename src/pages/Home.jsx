@@ -398,15 +398,14 @@ export default function Home() {
             </div>
           )}
 
-          {/* Right Side - Honor Board (only show when user agreed to light law) */}
-          {currentUser && currentUser.light_law_agreed && (
-            <div className="flex flex-col gap-6">
-              {/* CoinMarketCap Widget */}
-              <CamlyCoinWidget />
+          {/* Right Side - Honor Board */}
+          <div className="flex flex-col gap-6">
+            {/* CoinMarketCap Widget */}
+            <CamlyCoinWidget />
 
-              <HonorBoard />
-            </div>
-          )}
+            {/* Honor Board - Always show, even for non-logged in users */}
+            <HonorBoard />
+          </div>
         </div>
 
         {/* Scroll Indicator */}
