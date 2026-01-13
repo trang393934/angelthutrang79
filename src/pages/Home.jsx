@@ -1016,6 +1016,51 @@ export default function Home() {
           >
             Angel AI - Nhạc trưởng dẫn dắt dòng năng lượng của FUN Ecosystem
           </motion.p>
+
+          {/* FUN Ecosystem Diagram */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.7, duration: 1 }}
+            className="mt-12"
+          >
+            <div className="relative">
+              <motion.div
+                animate={{ 
+                  boxShadow: [
+                    '0 0 40px rgba(168,85,247,0.3)',
+                    '0 0 60px rgba(168,85,247,0.5)',
+                    '0 0 40px rgba(168,85,247,0.3)',
+                  ]
+                }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="absolute inset-0 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-3xl blur-2xl"
+              />
+              <div className="relative bg-white/80 backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-6 shadow-2xl">
+                <motion.img
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  whileInView={{ scale: 1, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1 }}
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/a236d78ce_photo_2026-01-13_21-42-02.jpg"
+                  alt="FUN Ecosystem - 5D Light Economy"
+                  className="w-full h-auto rounded-2xl shadow-lg"
+                />
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 1.2 }}
+                  className="mt-4 text-center"
+                >
+                  <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm px-4 py-2">
+                    🌟 FUN Ecosystem - 5D Light Economy
+                  </Badge>
+                </motion.div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
