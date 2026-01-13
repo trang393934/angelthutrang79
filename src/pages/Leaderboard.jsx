@@ -54,9 +54,13 @@ export default function Leaderboard() {
             displayValue = balance.total_earned || 0;
         }
 
+        // Get user info for name
+        const userInfo = allUsers.find(u => u.email === balance.user_email);
+
         return {
           ...balance,
-          display_value: displayValue
+          display_value: displayValue,
+          full_name: userInfo?.full_name || balance.user_email?.split('@')[0] || 'Unknown'
         };
       });
 
@@ -68,7 +72,7 @@ export default function Leaderboard() {
         ...user,
         rank: index + 1
       })).filter(user => user.display_value > 0);
-    }, [allBalances, sortBy]);
+    }, [allBalances, sortBy, allUsers]);
 
   const myRank = rankedUsers.findIndex(user => user.user_email === currentUser?.email);
   const myData = myRank >= 0 ? { ...rankedUsers[myRank], rank: myRank + 1 } : null;
