@@ -973,7 +973,7 @@ export default function Home() {
               { name: 'FUN Trading', url: '#', icon: '📈', color: 'from-amber-400 to-orange-400' },
               { name: 'FUN Invest', url: '#', icon: '💰', color: 'from-yellow-400 to-amber-400' },
               { name: 'FUN Market', url: '#', icon: '🛍️', color: 'from-fuchsia-400 to-purple-400' },
-              { name: 'FUN Wallet', url: '#', icon: '👛', color: 'from-violet-400 to-purple-400' },
+              { name: 'FUN Wallet', url: '#', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/c7f03946c_image.png', color: 'from-violet-400 to-purple-400' },
               { name: 'FUN Money', url: '#', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/b402970f9_image.png', color: 'from-green-400 to-teal-400' },
               { name: 'Camly Coin', url: '#', icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/ef7e3390c_image.png', color: 'from-amber-300 to-yellow-400' },
               { name: 'Cosmic Game', url: '#', icon: '🎯', color: 'from-purple-400 to-pink-400' },
