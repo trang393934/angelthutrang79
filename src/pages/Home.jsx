@@ -933,14 +933,19 @@ export default function Home() {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <div className="inline-block mb-6">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-              >
-                <Sparkles className="w-12 h-12 text-purple-500" />
-              </motion.div>
-            </div>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1 }}
+              className="mb-8"
+            >
+              <img
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/693845be034c36e3732b8bac/2ea390297_image.png"
+                alt="FUN Ecosystem Web3"
+                className="w-64 h-auto mx-auto drop-shadow-2xl"
+              />
+            </motion.div>
             <h2 
               className="text-4xl md:text-5xl font-semibold tracking-wide mb-4 text-purple-900"
               style={{
