@@ -15,7 +15,16 @@ export default function HonorBoard() {
 
   // Get current user
   React.useEffect(() => {
-    base44.auth.me().then(user => setCurrentUserEmail(user?.email)).catch(() => null);
+    console.log('🔍 [HonorBoard] Fetching current user...');
+    base44.auth.me()
+      .then(user => {
+        console.log('✅ [HonorBoard] Current user:', user?.email);
+        setCurrentUserEmail(user?.email);
+      })
+      .catch(() => {
+        console.log('⚠️ [HonorBoard] No user logged in');
+        setCurrentUserEmail(null);
+      });
   }, []);
 
   // Fetch total registered users from backend
@@ -23,7 +32,9 @@ export default function HonorBoard() {
     queryKey: ['total-registered-users-honor'],
     queryFn: async () => {
       try {
+        console.log('🔍 [HonorBoard] Fetching total users...');
         const response = await base44.functions.invoke('getTotalRegisteredUsers', {});
+        console.log('✅ [HonorBoard] Total users:', response.data?.total_users);
         return response.data;
       } catch (error) {
         console.error('Failed to fetch total users:', error);
@@ -31,6 +42,8 @@ export default function HonorBoard() {
       }
     },
     refetchInterval: 60000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Fetch ALL users with their balances - OPTIMIZED FOR MOBILE
@@ -75,7 +88,8 @@ export default function HonorBoard() {
     refetchInterval: 30000,
     staleTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    retry: 3
   });
 
   const topEarners = allEarners.slice(0, 10);
@@ -84,14 +98,21 @@ export default function HonorBoard() {
   const { data: allUsers = [] } = useQuery({
     queryKey: ['all-users-avatars'],
     queryFn: async () => {
-      return base44.entities.User.list();
+      console.log('🔍 [HonorBoard] Fetching user avatars...');
+      const users = await base44.entities.User.list('-created_date', 10000);
+      console.log(`✅ [HonorBoard] Found ${users.length} users for avatars`);
+      return users;
     },
+    refetchOnMount: true,
+    staleTime: 60000
   });
 
   // Fetch ALL users with their visit counts
   const { data: allVisitors = [], isLoading: loadingVisitors } = useQuery({
     queryKey: ['all-users-with-visits'],
     queryFn: async () => {
+      console.log('🔍 [HonorBoard] Fetching visitor stats...');
+      
       // Fetch ALL registered users
       const allUsers = await base44.entities.User.list('-created_date', 10000);
       // Fetch all activities
@@ -113,9 +134,16 @@ export default function HonorBoard() {
       }));
 
       // Sort by visit count
-      return usersWithVisits.sort((a, b) => b.visit_count - a.visit_count);
+      const sorted = usersWithVisits.sort((a, b) => b.visit_count - a.visit_count);
+      console.log(`✅ [HonorBoard] Sorted ${sorted.length} visitors`);
+      
+      return sorted;
     },
     refetchInterval: 30000,
+    staleTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    retry: 3
   });
 
   const topVisitors = allVisitors.slice(0, 10);
