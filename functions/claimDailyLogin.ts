@@ -54,28 +54,30 @@ Deno.serve(async (req) => {
       claim_count: 1
     });
 
-    // Update balance
-    const balances = await base44.entities.CamlycoinBalance.filter({ user_email: user.email });
+    // Update balance using service role
+    const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email: user.email });
     let balance;
 
     if (balances.length > 0) {
       balance = balances[0];
-      await base44.entities.CamlycoinBalance.update(balance.id, {
-        balance: (balance.balance || 0) + rewardAmount,
-        unpaid_amount: (balance.unpaid_amount || 0) + rewardAmount,
-        total_earned: (balance.total_earned || 0) + rewardAmount
+      await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+        net_valid_coins: (balance.net_valid_coins || 0) + rewardAmount,
+        total_earned: (balance.total_earned || 0) + rewardAmount,
+        available_for_withdrawal: (balance.net_valid_coins || 0) + rewardAmount - (balance.paid_amount || 0)
       });
     } else {
-      balance = await base44.entities.CamlycoinBalance.create({
+      balance = await base44.asServiceRole.entities.CamlycoinBalance.create({
         user_email: user.email,
-        balance: rewardAmount,
-        unpaid_amount: rewardAmount,
-        total_earned: rewardAmount
+        net_valid_coins: rewardAmount,
+        total_earned: rewardAmount,
+        available_for_withdrawal: rewardAmount,
+        frozen_balance: 0,
+        paid_amount: 0
       });
     }
 
-    // Create transaction
-    await base44.entities.CamlycoinTransaction.create({
+    // Create transaction using service role
+    await base44.asServiceRole.entities.CamlycoinTransaction.create({
       user_email: user.email,
       amount: rewardAmount,
       type: 'manual_add',
@@ -83,7 +85,11 @@ Deno.serve(async (req) => {
     });
 
     // Update user level
-    await base44.functions.invoke('updateUserLevel', { userEmail: user.email });
+    try {
+      await base44.asServiceRole.functions.invoke('updateUserLevel', { userEmail: user.email });
+    } catch (err) {
+      console.log('Level update skipped:', err.message);
+    }
 
     return Response.json({
       success: true,
