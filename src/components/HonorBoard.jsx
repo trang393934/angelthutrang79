@@ -47,24 +47,26 @@ export default function HonorBoard() {
   });
 
   // Fetch ALL users with their balances - OPTIMIZED FOR MOBILE
-  const { data: allEarners = [], isLoading: loadingEarners } = useQuery({
+  const { data: allEarners = [], isLoading: loadingEarners, error: earnersError } = useQuery({
     queryKey: ['all-users-with-balances'],
     queryFn: async () => {
-      console.log('🔍 [HonorBoard] Fetching user balances...');
+      console.log('🔍 [HonorBoard] ========== STARTING FETCH ==========');
       console.log('🔍 [HonorBoard] Current user email:', currentUserEmail);
       
       try {
         // Fetch ALL registered users
+        console.log('🔍 [HonorBoard] Step 1: Fetching users...');
         const allUsers = await base44.entities.User.list('-created_date', 10000);
-        console.log(`✅ [HonorBoard] Found ${allUsers.length} users`);
+        console.log(`✅ [HonorBoard] Step 1 Complete: Found ${allUsers.length} users`);
         
         // Fetch all balances
+        console.log('🔍 [HonorBoard] Step 2: Fetching balances...');
         const balances = await base44.entities.CamlycoinBalance.list('-total_earned', 10000);
-        console.log(`✅ [HonorBoard] Found ${balances.length} balances`);
-        console.log('📊 [HonorBoard] Sample balances:', balances.slice(0, 3));
+        console.log(`✅ [HonorBoard] Step 2 Complete: Found ${balances.length} balances`);
+        console.log('📊 [HonorBoard] First 5 balances:', JSON.stringify(balances.slice(0, 5), null, 2));
         
         if (balances.length === 0) {
-          console.warn('⚠️ [HonorBoard] NO BALANCES FOUND - Possible security rule issue!');
+          console.error('❌ [HonorBoard] NO BALANCES FOUND - Security rule issue or no data!');
         }
         
         // Create balance lookup map
@@ -88,13 +90,16 @@ export default function HonorBoard() {
         
         // Sort by total_earned
         const sorted = usersWithBalances.sort((a, b) => b.total_earned - a.total_earned);
-        console.log(`✅ [HonorBoard] Sorted ${sorted.length} users`);
-        console.log('🏆 [HonorBoard] Top 3 earners:', sorted.slice(0, 3));
+        console.log(`✅ [HonorBoard] Step 3 Complete: Sorted ${sorted.length} users`);
+        console.log('🏆 [HonorBoard] Top 5 earners:', JSON.stringify(sorted.slice(0, 5), null, 2));
+        console.log('🔍 [HonorBoard] ========== FETCH COMPLETE ==========');
         
         return sorted;
       } catch (error) {
-        console.error('❌ [HonorBoard] Error in fetch:', error);
-        console.error('❌ [HonorBoard] Error details:', error?.message, error?.response);
+        console.error('❌❌❌ [HonorBoard] CRITICAL ERROR in fetch:', error);
+        console.error('❌ [HonorBoard] Error message:', error?.message);
+        console.error('❌ [HonorBoard] Error stack:', error?.stack);
+        console.error('❌ [HonorBoard] Error response:', error?.response);
         throw error;
       }
     },
@@ -105,6 +110,16 @@ export default function HonorBoard() {
     refetchOnWindowFocus: true,
     retry: 3
   });
+
+  // Log query state
+  React.useEffect(() => {
+    console.log('📊 [HonorBoard] Query State:', {
+      isLoading: loadingEarners,
+      hasError: !!earnersError,
+      errorMessage: earnersError?.message,
+      dataLength: allEarners?.length || 0
+    });
+  }, [loadingEarners, earnersError, allEarners]);
 
   const topEarners = allEarners.slice(0, 10);
 
