@@ -42,6 +42,7 @@ import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
 import BlessingStories from './pages/BlessingStories';
+import MeditationCompanion from './pages/MeditationCompanion';
 import __Layout from './Layout.jsx';
 
 
@@ -90,6 +91,7 @@ export const PAGES = {
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
     "BlessingStories": BlessingStories,
+    "MeditationCompanion": MeditationCompanion,
 }
 
 export const pagesConfig = {
