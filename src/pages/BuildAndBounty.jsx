@@ -101,7 +101,7 @@ Hãy đánh giá:
 1. Category (code/content/idea/community/design/marketing)
 2. Impact level (low/medium/high)
 3. Feasibility (low/medium/high)
-4. Reward Camlycoin: Tất cả các ý tưởng đóng góp đều nhận 30,000 Camlycoin (mức thưởng cố định)
+4. Reward Camlycoin: Tất cả các ý tưởng đóng góp đều nhận 10,000 Camlycoin (mức thưởng cố định)
 
 Trả về JSON:`,
         response_json_schema: {
@@ -122,7 +122,7 @@ Trả về JSON:`,
         status: 'pending',
         impact: analysis.impact,
         feasibility: analysis.feasibility,
-        reward_points: 30000,
+        reward_points: 10000,
         votes: 0
       });
 
