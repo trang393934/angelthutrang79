@@ -6,6 +6,7 @@ import Analytics from './pages/Analytics';
 import AppRoot from './pages/AppRoot';
 import AuditDashboard from './pages/AuditDashboard';
 import AutoClaimSettings from './pages/AutoClaimSettings';
+import BlessingStories from './pages/BlessingStories';
 import BlogEditor from './pages/BlogEditor';
 import BuildAndBounty from './pages/BuildAndBounty';
 import CamlyWithdrawal from './pages/CamlyWithdrawal';
@@ -25,6 +26,7 @@ import Landing from './pages/Landing';
 import Leaderboard from './pages/Leaderboard';
 import Library from './pages/Library';
 import LightLaw from './pages/LightLaw';
+import MeditationCompanion from './pages/MeditationCompanion';
 import MonitoringDashboard from './pages/MonitoringDashboard';
 import PersonalVision from './pages/PersonalVision';
 import PuritySpotlight from './pages/PuritySpotlight';
@@ -41,8 +43,6 @@ import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import BlessingStories from './pages/BlessingStories';
-import MeditationCompanion from './pages/MeditationCompanion';
 import __Layout from './Layout.jsx';
 
 
@@ -55,6 +55,7 @@ export const PAGES = {
     "AppRoot": AppRoot,
     "AuditDashboard": AuditDashboard,
     "AutoClaimSettings": AutoClaimSettings,
+    "BlessingStories": BlessingStories,
     "BlogEditor": BlogEditor,
     "BuildAndBounty": BuildAndBounty,
     "CamlyWithdrawal": CamlyWithdrawal,
@@ -74,6 +75,7 @@ export const PAGES = {
     "Leaderboard": Leaderboard,
     "Library": Library,
     "LightLaw": LightLaw,
+    "MeditationCompanion": MeditationCompanion,
     "MonitoringDashboard": MonitoringDashboard,
     "PersonalVision": PersonalVision,
     "PuritySpotlight": PuritySpotlight,
@@ -90,8 +92,6 @@ export const PAGES = {
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
-    "BlessingStories": BlessingStories,
-    "MeditationCompanion": MeditationCompanion,
 }
 
 export const pagesConfig = {

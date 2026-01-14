@@ -214,7 +214,7 @@ export default function CamlycoinHistory() {
           transition={{ delay: 0.1 }}
           className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <p className="text-white/80 text-sm mb-1">Số Dư Hiện Tại</p>
               <p className="text-white text-3xl font-bold">{(userBalance?.balance || 0).toLocaleString()}</p>
@@ -226,6 +226,15 @@ export default function CamlycoinHistory() {
             <div>
               <p className="text-white/80 text-sm mb-1">Tổng Đã Thanh Toán</p>
               <p className="text-white text-3xl font-bold">{(userBalance?.paid_amount || 0).toLocaleString()}</p>
+            </div>
+            <div>
+              <p className="text-white/80 text-sm mb-1">Sẵn Sàng Rút</p>
+              <p className={`text-3xl font-bold ${(userBalance?.available_for_withdrawal || 0) < 0 ? 'text-red-300' : 'text-white'}`}>
+                {(userBalance?.available_for_withdrawal || 0).toLocaleString()}
+              </p>
+              {(userBalance?.available_for_withdrawal || 0) < 0 && (
+                <p className="text-red-200 text-xs mt-1">⚠️ Số âm (đã rút quá)</p>
+              )}
             </div>
           </div>
         </motion.div>
