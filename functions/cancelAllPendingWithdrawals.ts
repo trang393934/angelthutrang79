@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
         console.log('🗑️ Cancelling all pending withdrawal requests before 2025-01-15...');
 
         // Parse cutoff date
-        const cutoffDate = new Date('2025-01-15T00:00:00Z');
+        const cutoffDate = new Date('2026-01-15T00:00:00Z');
         console.log(`📅 Cutoff date: ${cutoffDate.toISOString()}`);
 
         // Fetch all withdrawal requests
