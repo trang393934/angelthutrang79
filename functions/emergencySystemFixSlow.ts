@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
         // STEP 2: Recalculate sample users with issues
         console.log('STEP 2: Recalculating users with negative balances...');
         
-        const allBalances = await base45.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 50000);
+        const allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 50000);
         const cleanLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-audit_date', 50000);
         const completedWithdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter(
             { status: 'completed' },
