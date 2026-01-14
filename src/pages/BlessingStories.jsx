@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Heart, Send, Sparkles, Star, Search, Filter, Plus, X, Loader2, Crown } from 'lucide-react';
+import { ArrowLeft, Heart, Send, Sparkles, Star, Search, Filter, Plus, X, Loader2, Crown, MessageCircle, ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,9 @@ export default function BlessingStories() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [currentUser, setCurrentUser] = useState(null);
+  const [selectedStory, setSelectedStory] = useState(null);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
   const queryClient = useQueryClient();
 
   React.useEffect(() => {
@@ -29,10 +32,25 @@ export default function BlessingStories() {
     queryKey: ['blessing-stories', filterType],
     queryFn: async () => {
       const allStories = await base44.entities.BlessingStory.filter({ status: 'approved' }, '-created_date', 1000);
-      if (filterType === 'all') return allStories;
-      return allStories.filter(s => s.blessing_type === filterType);
+      // Sort by is_featured first, then by created_date
+      const sorted = allStories.sort((a, b) => {
+        if (a.is_featured && !b.is_featured) return -1;
+        if (!a.is_featured && b.is_featured) return 1;
+        return new Date(b.created_date) - new Date(a.created_date);
+      });
+      if (filterType === 'all') return sorted;
+      return sorted.filter(s => s.blessing_type === filterType);
     },
     refetchInterval: 30000,
+  });
+
+  const { data: comments = [] } = useQuery({
+    queryKey: ['blessing-comments', selectedStory?.id],
+    queryFn: async () => {
+      if (!selectedStory) return [];
+      return base44.entities.BlessingComment.filter({ story_id: selectedStory.id }, '-created_date');
+    },
+    enabled: !!selectedStory,
   });
 
   const { data: users = [] } = useQuery({
@@ -75,6 +93,30 @@ export default function BlessingStories() {
       base44.entities.BlessingStory.update(id, { likes: currentLikes + 1 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blessing-stories'] });
+    },
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: async () => {
+      await base44.entities.BlessingComment.create({
+        story_id: selectedStory.id,
+        user_email: currentUser.email,
+        content: commentText,
+        likes: 0
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blessing-comments'] });
+      setCommentText('');
+      toast.success('💬 Đã thêm bình luận!');
+    },
+  });
+
+  const likeCommentMutation = useMutation({
+    mutationFn: ({ id, currentLikes }) => 
+      base44.entities.BlessingComment.update(id, { likes: currentLikes + 1 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blessing-comments'] });
     },
   });
 
@@ -255,6 +297,114 @@ export default function BlessingStories() {
         )}
       </AnimatePresence>
 
+      {/* Comments Modal */}
+      <AnimatePresence>
+        {showComments && selectedStory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowComments(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white backdrop-blur-xl border-2 border-amber-300 rounded-3xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-slate-900 text-xl font-semibold">{selectedStory.title}</h3>
+                  <p className="text-amber-700 text-sm">{comments.length} bình luận</p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowComments(false)}
+                  className="text-amber-600 hover:bg-amber-100"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              {/* Add Comment */}
+              <div className="mb-6">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Viết bình luận..."
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    className="flex-1 bg-white border-2 border-amber-300 text-slate-900 placeholder:text-amber-400 rounded-xl px-4 py-2 outline-none"
+                  />
+                  <Button
+                    onClick={() => addCommentMutation.mutate()}
+                    disabled={!commentText.trim()}
+                    className="bg-gradient-to-r from-amber-500 to-rose-500 text-white rounded-xl px-6"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Comments List */}
+              <div className="space-y-4">
+                {comments.length === 0 ? (
+                  <p className="text-center text-slate-600 py-8">Chưa có bình luận nào</p>
+                ) : (
+                  comments.map((comment) => (
+                    <motion.div
+                      key={comment.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-amber-50 border border-amber-200 rounded-2xl p-4"
+                    >
+                      <div className="flex items-start gap-3">
+                        {getUserAvatar(comment.user_email) ? (
+                          <img
+                            src={getUserAvatar(comment.user_email)}
+                            alt="Avatar"
+                            className="w-10 h-10 rounded-full object-cover border-2 border-amber-300"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center">
+                            <span className="text-white font-bold">
+                              {getUserName(comment.user_email)[0]?.toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <p className="text-slate-900 font-semibold text-sm mb-1">
+                            {getUserName(comment.user_email)}
+                          </p>
+                          <p className="text-slate-700 text-sm leading-relaxed mb-2">
+                            {comment.content}
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => likeCommentMutation.mutate({ id: comment.id, currentLikes: comment.likes })}
+                              className="flex items-center gap-1 text-xs text-rose-500 hover:text-rose-600"
+                            >
+                              <ThumbsUp className="w-3 h-3" />
+                              {comment.likes || 0}
+                            </button>
+                            <span className="text-xs text-amber-600">
+                              {new Date(comment.created_date).toLocaleDateString('vi-VN')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
         {/* Search & Filter */}
@@ -366,15 +516,29 @@ export default function BlessingStories() {
                   <p className="text-slate-700 leading-relaxed mb-4 whitespace-pre-line">{story.content}</p>
 
                   <div className="flex items-center justify-between pt-4 border-t border-amber-200">
-                    <Button
-                      onClick={() => likeMutation.mutate({ id: story.id, currentLikes: story.likes })}
-                      variant="ghost"
-                      size="sm"
-                      className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-full"
-                    >
-                      <Heart className="w-4 h-4 mr-1" />
-                      {story.likes || 0}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => likeMutation.mutate({ id: story.id, currentLikes: story.likes })}
+                        variant="ghost"
+                        size="sm"
+                        className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-full"
+                      >
+                        <Heart className="w-4 h-4 mr-1" />
+                        {story.likes || 0}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setSelectedStory(story);
+                          setShowComments(true);
+                        }}
+                        variant="ghost"
+                        size="sm"
+                        className="text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-full"
+                      >
+                        <MessageCircle className="w-4 h-4 mr-1" />
+                        Bình luận
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               );
