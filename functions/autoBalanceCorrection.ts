@@ -131,10 +131,11 @@ Deno.serve(async (req) => {
               total_earned: correctTotalEarned - (currentBalance.total_earned || 0),
               frozen: correctFrozen - (currentBalance.frozen_balance || 0),
               available: correctAvailable - (currentBalance.available_for_withdrawal || 0)
+            },
+            requires_manual_review: maxDiscrepancy > MANUAL_REVIEW_THRESHOLD
+            });
+            results.discrepancies_found++;
             }
-          });
-          results.discrepancies_found++;
-        }
 
         results.scanned++;
       } catch (error) {
@@ -152,11 +153,25 @@ Deno.serve(async (req) => {
     console.log(`\n🔧 PHASE 2: Correcting discrepancies (largest first)...`);
     discrepancyList.sort((a, b) => b.maxDiscrepancy - a.maxDiscrepancy);
 
-    for (const item of discrepancyList) {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Rate limit
+    const manualReviewList = [];
+    const autoCorrectList = [];
 
-        // Update balance
+    for (const item of discrepancyList) {
+      if (item.requires_manual_review) {
+        manualReviewList.push(item);
+      } else {
+        autoCorrectList.push(item);
+      }
+    }
+
+    console.log(`Auto-correct: ${autoCorrectList.length} users`);
+    console.log(`Manual review needed: ${manualReviewList.length} users`);
+
+    // Auto-correct các sai lệch nhỏ
+    for (const item of autoCorrectList) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         await base44.asServiceRole.entities.CamlycoinBalance.update(item.balance_id, {
           total_earned: item.correct.total_earned,
           net_valid_coins: item.correct.net_valid,
@@ -168,16 +183,60 @@ Deno.serve(async (req) => {
         results.corrections.push({
           email: item.email,
           max_discrepancy: item.maxDiscrepancy,
-          changes: item.diffs
+          changes: item.diffs,
+          auto_corrected: true
         });
 
         results.corrected++;
 
-        console.log(`✅ Corrected ${item.email} (max diff: ${item.maxDiscrepancy.toLocaleString()})`);
+        console.log(`✅ Auto-corrected ${item.email} (${item.maxDiscrepancy.toLocaleString()})`);
       } catch (error) {
         results.errors.push({
           user_email: item.email,
           phase: 'correction',
+          error: error.message
+        });
+      }
+    }
+
+    // Tạo alerts cho các trường hợp cần duyệt thủ công
+    for (const item of manualReviewList) {
+      try {
+        await base44.asServiceRole.entities.AdminAlert.create({
+          alert_type: 'high_balance',
+          severity: 'high',
+          title: `Manual Review: ${item.email} - sai lệch ${item.maxDiscrepancy.toLocaleString()}`,
+          message: `User ${item.email} có sai lệch quá lớn (${item.maxDiscrepancy.toLocaleString()} coins).\n\n` +
+            `Cần admin xem xét trước khi sửa:\n` +
+            `- Total Earned diff: ${item.diffs.total_earned.toLocaleString()}\n` +
+            `- Frozen diff: ${item.diffs.frozen.toLocaleString()}\n` +
+            `- Available diff: ${item.diffs.available.toLocaleString()}\n\n` +
+            `Đề xuất:\n` +
+            `- Total: ${item.correct.total_earned.toLocaleString()}\n` +
+            `- Frozen: ${item.correct.frozen.toLocaleString()}\n` +
+            `- Available: ${item.correct.available.toLocaleString()}`,
+          user_email: item.email,
+          data: {
+            max_discrepancy: item.maxDiscrepancy,
+            current: item.current,
+            correct: item.correct,
+            diffs: item.diffs
+          },
+          status: 'new'
+        });
+
+        results.corrections.push({
+          email: item.email,
+          max_discrepancy: item.maxDiscrepancy,
+          changes: item.diffs,
+          manual_review_required: true
+        });
+
+        console.log(`⚠️  Manual review created for ${item.email} (${item.maxDiscrepancy.toLocaleString()})`);
+      } catch (error) {
+        results.errors.push({
+          user_email: item.email,
+          phase: 'manual_review_alert',
           error: error.message
         });
       }
