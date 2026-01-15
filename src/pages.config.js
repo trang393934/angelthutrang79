@@ -1,5 +1,6 @@
 import AITools from './pages/AITools';
 import AdminAuditControl from './pages/AdminAuditControl';
+import AdminBalanceControl from './pages/AdminBalanceControl';
 import AdminCommunityRewards from './pages/AdminCommunityRewards';
 import AdminDashboard from './pages/AdminDashboard';
 import Analytics from './pages/Analytics';
@@ -43,13 +44,13 @@ import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import AdminBalanceControl from './pages/AdminBalanceControl';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AITools": AITools,
     "AdminAuditControl": AdminAuditControl,
+    "AdminBalanceControl": AdminBalanceControl,
     "AdminCommunityRewards": AdminCommunityRewards,
     "AdminDashboard": AdminDashboard,
     "Analytics": Analytics,
@@ -93,7 +94,6 @@ export const PAGES = {
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
-    "AdminBalanceControl": AdminBalanceControl,
 }
 
 export const pagesConfig = {

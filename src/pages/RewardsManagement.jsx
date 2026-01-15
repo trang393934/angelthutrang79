@@ -844,12 +844,15 @@ export default function RewardsManagement() {
                     try {
                       const response = await base44.functions.invoke('resetAndRecalculateWithNewLogic', {});
                       
-                      setRecalculateResults(response.data);
-                      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
-                      
-                      alert(`✅ Reset & Tính lại hoàn tất!\n\n📊 Tổng: ${response.data.summary.total} users\n✅ Thành công: ${response.data.summary.success}\n❌ Lỗi: ${response.data.summary.failed}`);
+                      if (response.data) {
+                        setRecalculateResults(response.data);
+                        queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                        
+                        alert(`✅ Reset & Tính lại hoàn tất!\n\n📊 Tổng: ${response.data.summary?.total || 0} users\n✅ Thành công: ${response.data.summary?.success || 0}\n❌ Lỗi: ${response.data.summary?.failed || 0}`);
+                      }
                     } catch (error) {
-                      alert('❌ Lỗi: ' + error.message);
+                      console.error('Reset error:', error);
+                      alert(`❌ Lỗi khi reset:\n${error.message}\n\nCó thể function chưa tồn tại hoặc có lỗi. Vui lòng kiểm tra console.`);
                     } finally {
                       setIsRecalculating(false);
                     }
