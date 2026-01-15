@@ -76,7 +76,7 @@ export default function RewardsManagement() {
   });
 
   // Admin: Fetch all balances (NO LIMIT - fetch ALL users)
-  const { data: allBalances = [] } = useQuery({
+  const { data: allBalances = [], isLoading: isLoadingBalances } = useQuery({
     queryKey: ['all-balances'],
     queryFn: async () => {
       try {
@@ -89,6 +89,7 @@ export default function RewardsManagement() {
     enabled: isAdmin,
     refetchInterval: 30000,
     staleTime: 0,
+    initialData: [],
   });
 
   // Fetch total registered users count - calculate from allBalances instead of backend
@@ -629,8 +630,15 @@ export default function RewardsManagement() {
 
       {/* Content */}
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
+        {/* Loading State */}
+        {isAdmin && isLoadingBalances && (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-12 h-12 text-purple-500 animate-spin" />
+          </div>
+        )}
+
         {/* Admin: Total Summary */}
-        {isAdmin && (
+        {isAdmin && !isLoadingBalances && (
           <>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
