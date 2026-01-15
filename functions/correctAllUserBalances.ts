@@ -67,11 +67,11 @@ Deno.serve(async (req) => {
         let validRecoveryAmount = 0;
         let duplicateRecoveryAmount = 0;
 
-        // Check for overlap: only count recovery if NOT in current logs
+        // Check for overlap: only count recovery if NOT in valid logs
         for (const tx of recoveryTxs) {
           const recoveryQuestion = tx.description.replace('Recovery: ', '').trim().toLowerCase();
-          if (currentQuestions.has(recoveryQuestion)) {
-            // Duplicate: already in current logs
+          if (validQuestions.has(recoveryQuestion)) {
+            // Duplicate: already in valid logs
             duplicateRecoveryAmount += tx.amount || 0;
           } else {
             // Valid recovery: new question from deleted logs
