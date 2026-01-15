@@ -130,12 +130,15 @@ Deno.serve(async (req) => {
             new_balance: correctAvailable,
             difference: correctAvailable - (currentBalance.available_for_withdrawal || 0),
             breakdown: {
-              current_logs: currentLogTotal,
+              valid_logs: validLogTotal,
+              frozen_logs: frozenLogTotal,
               valid_recovery: validRecoveryAmount,
               duplicate_recovery: duplicateRecoveryAmount,
               manual_adds: manualTotal,
               admin_adjustments: adminTotal,
               total_earned: correctTotalEarned,
+              net_valid: correctNetValid,
+              frozen_balance: correctFrozen,
               withdrawn: totalWithdrawn
             }
           });
