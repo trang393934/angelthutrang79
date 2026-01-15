@@ -31,15 +31,25 @@ Deno.serve(async (req) => {
 
         // FORMULA CHÍNH XÁC NHẤT:
         // Total = Valid Questions + Recovery (Non-Duplicate) + Manual Adds + Admin Adjustments
-        
-        // Step 1: Get all QuestionAuditLog (current valid questions)
-        const currentLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter({
+        // Frozen = Duplicate/Frozen Questions
+        // Available = Total - Paid - Frozen
+
+        // Step 1: Get all QuestionAuditLog (valid + frozen)
+        const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter({
           user_email: userEmail
         }, '-audit_date', 10000);
 
-        const currentLogTotal = currentLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
-        const currentQuestions = new Set(
-          currentLogs.map(log => (log.question_text || '').trim().toLowerCase())
+        // Separate valid and frozen logs
+        const validLogs = allLogs.filter(log => log.exclusion_reason === 'valid');
+        const frozenLogs = allLogs.filter(log => 
+          log.exclusion_reason === 'duplicate' || log.coin_category === 'frozen'
+        );
+
+        const validLogTotal = validLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+        const frozenLogTotal = frozenLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+
+        const validQuestions = new Set(
+          validLogs.map(log => (log.question_text || '').trim().toLowerCase())
         );
 
         // Step 2: Get all CamlycoinTransaction
