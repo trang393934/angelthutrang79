@@ -105,6 +105,8 @@ export default function RewardsManagement() {
     },
     enabled: isAdmin,
     refetchInterval: 60000,
+    retry: false,
+    staleTime: 120000,
   });
 
   // Admin: Fetch all withdrawal requests (reduced limit to avoid 504)
@@ -656,21 +658,21 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Đã Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Chưa Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.available_for_withdrawal || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.available_for_withdrawal || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
@@ -699,35 +701,35 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Sẵn Sàng TT</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.available_balance || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.available_balance || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">✅ Đã duyệt</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.admin_review_pending || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">⏳ Câu 11+</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Chờ Review</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.admin_review_pending || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.admin_review_pending || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">🔍 Câu 11+</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Đã TT</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">✅ Đã chuyển</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Đóng Băng</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">❄️ Spam</p>
               </div>
@@ -757,15 +759,15 @@ export default function RewardsManagement() {
                 </Button>
               </div>
               <p className="text-white text-xs leading-relaxed">
-                <strong>Tổng Kiếm:</strong> {allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}<br/>
+                <strong>Tổng Kiếm:</strong> {(allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}<br/>
                 <strong>Tổng Chi Tiết:</strong> {(
-                  allBalances.reduce((sum, b) => sum + (b.net_valid_coins || 0), 0) +
-                  allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0)
+                  (allBalances || []).reduce((sum, b) => sum + (b.net_valid_coins || 0), 0) +
+                  (allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0)
                 ).toLocaleString()}<br/>
                 <strong className={
-                  allBalances.reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0) === 
-                  (allBalances.reduce((sum, b) => sum + (b.net_valid_coins || 0), 0) +
-                   allBalances.reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
+                  (allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0) === 
+                  ((allBalances || []).reduce((sum, b) => sum + (b.net_valid_coins || 0), 0) +
+                   (allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0))
                   ? 'text-green-300' : 'text-red-300'
                 }>
                   ✅ CHÍNH XÁC
