@@ -95,10 +95,11 @@ Deno.serve(async (req) => {
           .filter(w => w.status === 'completed')
           .reduce((sum, w) => sum + (w.amount || 0), 0);
 
-        // FORMULA: Total = Current Logs + Valid Recovery + Manual + Admin
-        const correctTotalEarned = currentLogTotal + validRecoveryAmount + manualTotal + adminTotal;
-        const correctNetValid = correctTotalEarned; // No frozen coins
-        const correctAvailable = correctTotalEarned - totalWithdrawn;
+        // FORMULA: Total = Valid Logs + Valid Recovery + Manual + Admin + Frozen
+        const correctTotalEarned = validLogTotal + validRecoveryAmount + manualTotal + adminTotal + frozenLogTotal;
+        const correctNetValid = validLogTotal + validRecoveryAmount + manualTotal + adminTotal; // Excluding frozen
+        const correctFrozen = frozenLogTotal;
+        const correctAvailable = correctNetValid - totalWithdrawn;
 
         // Get current balance
         const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({
