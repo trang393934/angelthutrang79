@@ -27,6 +27,9 @@ Deno.serve(async (req) => {
 
     for (const userData of allUsers) {
       try {
+        // Add delay to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 500));
+
         const userEmail = userData.email;
 
         // FORMULA CHÍNH XÁC NHẤT:
