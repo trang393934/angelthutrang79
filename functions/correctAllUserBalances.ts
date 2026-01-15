@@ -177,19 +177,23 @@ Deno.serve(async (req) => {
       corrected: results.corrected,
       errors_count: results.errors.length,
       formula: {
-        name: "Correct Balance Formula",
+        name: "Correct Balance Formula (WITH FROZEN)",
         steps: [
-          "1. Get all QuestionAuditLog entries (current valid questions)",
-          "2. Get all CamlycoinTransaction entries",
-          "3. Get recovery transactions (bounty_reward with 'Recovery:' prefix)",
-          "4. For each recovery transaction:",
-          "   - Check if question exists in current QuestionAuditLog",
+          "1. Get all QuestionAuditLog entries (valid + frozen)",
+          "2. Separate valid logs (exclusion_reason='valid') and frozen logs (exclusion_reason='duplicate' OR coin_category='frozen')",
+          "3. Get all CamlycoinTransaction entries",
+          "4. Get recovery transactions (bounty_reward with 'Recovery:' prefix)",
+          "5. For each recovery transaction:",
+          "   - Check if question exists in VALID logs only",
           "   - If YES → Duplicate (skip, don't count)",
           "   - If NO → Valid recovery (count it)",
-          "5. Sum: Current Logs + Valid Recovery + Manual Adds + Admin Adjustments",
-          "6. Subtract completed withdrawals to get available_for_withdrawal"
+          "6. Calculate:",
+          "   - Total = Valid + Frozen + Recovery + Manual + Admin",
+          "   - Net Valid = Valid + Recovery + Manual + Admin (no frozen)",
+          "   - Frozen Balance = Frozen logs total",
+          "   - Available = Net Valid - Withdrawn"
         ],
-        formula: "Total = CurrentLogs + ValidRecovery + ManualAdds + AdminAdjustments - Withdrawn"
+        formula: "Available = (ValidLogs + ValidRecovery + Manual + Admin) - Withdrawn"
       },
       corrected_users: results.corrected_users.slice(0, 20),
       errors: results.errors.slice(0, 10)
