@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
         // Check if needs correction
         const needsCorrection = !currentBalance || 
           currentBalance.total_earned !== correctTotalEarned ||
+          currentBalance.frozen_balance !== correctFrozen ||
           currentBalance.available_for_withdrawal !== correctAvailable;
 
         if (needsCorrection && currentBalance) {
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.CamlycoinBalance.update(currentBalance.id, {
             total_earned: correctTotalEarned,
             net_valid_coins: correctNetValid,
-            frozen_balance: 0,
+            frozen_balance: correctFrozen,
             paid_amount: totalWithdrawn,
             available_for_withdrawal: correctAvailable
           });
