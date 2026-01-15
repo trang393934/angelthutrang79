@@ -91,23 +91,10 @@ export default function RewardsManagement() {
     staleTime: 0,
   });
 
-  // Fetch total registered users count from backend
-  const { data: totalUsersData } = useQuery({
-    queryKey: ['total-registered-users-rewards'],
-    queryFn: async () => {
-      try {
-        const response = await base44.functions.invoke('getTotalRegisteredUsers', {});
-        return response.data;
-      } catch (error) {
-        console.error('Failed to fetch total users:', error);
-        return { total_users: 0 };
-      }
-    },
-    enabled: isAdmin,
-    refetchInterval: 60000,
-    retry: false,
-    staleTime: 120000,
-  });
+  // Fetch total registered users count - calculate from allBalances instead of backend
+  const totalUsersData = {
+    total_users: allBalances?.length || 0
+  };
 
   // Admin: Fetch all withdrawal requests (reduced limit to avoid 504)
   const { data: allWithdrawalRequests = [] } = useQuery({
