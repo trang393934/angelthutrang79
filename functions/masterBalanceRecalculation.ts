@@ -9,6 +9,22 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+async function retryWithBackoff(fn, maxRetries = 5) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      if (error.message?.includes('Rate limit') && i < maxRetries - 1) {
+        const delay = 2000 * Math.pow(2, i); // 2s, 4s, 8s, 16s, 32s
+        console.log(`⏳ Rate limit hit, waiting ${delay}ms...`);
+        await sleep(delay);
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -28,11 +44,15 @@ Deno.serve(async (req) => {
     // Fetch all users to process
     let usersToProcess = [];
     if (user_email) {
-      const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email });
+      const balances = await retryWithBackoff(() => 
+        base44.asServiceRole.entities.CamlycoinBalance.filter({ user_email })
+      );
       usersToProcess = balances;
       console.log(`📊 Processing 1 user: ${user_email}`);
     } else {
-      usersToProcess = await base44.asServiceRole.entities.CamlycoinBalance.list('-created_date', 10000);
+      usersToProcess = await retryWithBackoff(() => 
+        base44.asServiceRole.entities.CamlycoinBalance.list('-created_date', 10000)
+      );
       console.log(`📊 Processing ${usersToProcess.length} users`);
     }
 
@@ -47,11 +67,11 @@ Deno.serve(async (req) => {
       try {
         const email = balance.user_email;
         
-        // Fetch user's data
+        // Fetch user's data with retry
         const [userLogs, userTxs, userWithdrawals] = await Promise.all([
-          base44.asServiceRole.entities.QuestionAuditLog.filter({ user_email: email }, '-created_date', 10000),
-          base44.asServiceRole.entities.CamlycoinTransaction.filter({ user_email: email }, '-created_date', 10000),
-          base44.asServiceRole.entities.WithdrawalRequest.filter({ user_email: email }, '-created_date', 1000)
+          retryWithBackoff(() => base44.asServiceRole.entities.QuestionAuditLog.filter({ user_email: email }, '-created_date', 10000)),
+          retryWithBackoff(() => base44.asServiceRole.entities.CamlycoinTransaction.filter({ user_email: email }, '-created_date', 10000)),
+          retryWithBackoff(() => base44.asServiceRole.entities.WithdrawalRequest.filter({ user_email: email }, '-created_date', 1000))
         ]);
 
         // ═══════════════════════════════════════════════════════════════
@@ -131,13 +151,15 @@ Deno.serve(async (req) => {
           correctAvailable !== currentValues.available_for_withdrawal;
 
         if (needsUpdate) {
-          await base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
-            frozen_balance: correctFrozen,
-            net_valid_coins: correctNetValid,
-            total_earned: correctTotalEarned,
-            paid_amount: correctPaidAmount,
-            available_for_withdrawal: correctAvailable
-          });
+          await retryWithBackoff(() => 
+            base44.asServiceRole.entities.CamlycoinBalance.update(balance.id, {
+              frozen_balance: correctFrozen,
+              net_valid_coins: correctNetValid,
+              total_earned: correctTotalEarned,
+              paid_amount: correctPaidAmount,
+              available_for_withdrawal: correctAvailable
+            })
+          );
 
           results.updated++;
           results.details.push({
@@ -164,10 +186,12 @@ Deno.serve(async (req) => {
 
         results.processed++;
         
-        // Small delay to avoid rate limits
-        if (results.processed % 20 === 0) {
-          await sleep(1000);
+        // Longer delay to avoid rate limits
+        if (results.processed % 10 === 0) {
+          await sleep(3000);
           console.log(`📊 Progress: ${results.processed}/${usersToProcess.length}`);
+        } else {
+          await sleep(500);
         }
 
       } catch (error) {
