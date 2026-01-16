@@ -45,6 +45,7 @@ import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
+import UserBalanceAudit from './pages/UserBalanceAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -96,6 +97,7 @@ export const PAGES = {
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
+    "UserBalanceAudit": UserBalanceAudit,
 }
 
 export const pagesConfig = {

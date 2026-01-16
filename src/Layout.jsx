@@ -257,6 +257,12 @@ export default function Layout({ children, currentPageName }) {
         gradient: 'from-amber-400 to-orange-500'
       },
       { 
+        name: 'Audit Số Dư User', 
+        icon: Shield, 
+        path: 'UserBalanceAudit',
+        gradient: 'from-orange-400 to-red-500'
+      },
+      { 
         name: 'Test R2 Upload', 
         icon: Sparkles, 
         path: 'TestR2Upload',
