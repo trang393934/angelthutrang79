@@ -667,7 +667,7 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Chưa Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {(allBalances || []).reduce((sum, b) => sum + (b.available_for_withdrawal || 0), 0).toLocaleString()}
+                  {(allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) - (b.paid_amount || 0)), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
