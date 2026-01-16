@@ -734,24 +734,44 @@ export default function RewardsManagement() {
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30 mt-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-white/90 text-sm font-bold">✅ Kiểm Tra Công Thức:</p>
-                <Button
-                  onClick={async () => {
-                    if (confirm('Chạy lại validation và fix toàn bộ balances?')) {
-                      try {
-                        await base44.functions.invoke('validateAndFixAllBalances', {});
-                        queryClient.invalidateQueries({ queryKey: ['all-balances'] });
-                        alert('✅ Đã chạy validation và refresh dữ liệu!');
-                      } catch (error) {
-                        alert('❌ Lỗi: ' + error.message);
+                <div className="flex gap-2">
+                  <Button
+                    onClick={async () => {
+                      if (confirm('🔄 Sync công thức "available_for_withdrawal = net_valid_coins - paid_amount" cho TẤT CẢ users?')) {
+                        try {
+                          const result = await base44.functions.invoke('syncAvailableForWithdrawal', {});
+                          queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                          alert(`✅ Sync hoàn tất!\n\n📊 Tổng: ${result.data.summary.total} users\n✅ Cập nhật: ${result.data.summary.updated}\n❌ Lỗi: ${result.data.summary.errors}`);
+                        } catch (error) {
+                          alert('❌ Lỗi: ' + error.message);
+                        }
                       }
-                    }
-                  }}
-                  size="sm"
-                  className="bg-white/30 text-white border border-white/50 rounded-lg hover:bg-white/40 h-7"
-                >
-                  <Activity className="w-3 h-3 mr-1" />
-                  Fix & Refresh
-                </Button>
+                    }}
+                    size="sm"
+                    className="bg-white/30 text-white border border-white/50 rounded-lg hover:bg-white/40 h-7"
+                  >
+                    <Activity className="w-3 h-3 mr-1" />
+                    Sync Formula
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (confirm('Chạy lại validation và fix toàn bộ balances?')) {
+                        try {
+                          await base44.functions.invoke('validateAndFixAllBalances', {});
+                          queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                          alert('✅ Đã chạy validation và refresh dữ liệu!');
+                        } catch (error) {
+                          alert('❌ Lỗi: ' + error.message);
+                        }
+                      }
+                    }}
+                    size="sm"
+                    className="bg-white/30 text-white border border-white/50 rounded-lg hover:bg-white/40 h-7"
+                  >
+                    <Activity className="w-3 h-3 mr-1" />
+                    Fix & Refresh
+                  </Button>
+                </div>
               </div>
               <p className="text-white text-xs leading-relaxed">
                 <strong>Tổng Kiếm:</strong> {(allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}<br/>
