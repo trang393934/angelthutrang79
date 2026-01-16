@@ -16,6 +16,8 @@ export default function UserBalanceAudit() {
   const [isAuditing, setIsAuditing] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isRemovingDuplicates, setIsRemovingDuplicates] = useState(false);
+  const [showRemoveDuplicatesDialog, setShowRemoveDuplicatesDialog] = useState(false);
 
   const handleAudit = async () => {
     if (!userEmail.trim()) {
@@ -68,6 +70,30 @@ export default function UserBalanceAudit() {
       toast.error('Lỗi khi cập nhật số dư: ' + error.message);
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleRemoveDuplicates = async () => {
+    setShowRemoveDuplicatesDialog(false);
+    setIsRemovingDuplicates(true);
+    
+    try {
+      const { data } = await base44.functions.invoke('removeDuplicateRecoveryForUser', { 
+        user_email: userEmail.trim(),
+        dry_run: false
+      });
+      
+      if (data.error) {
+        toast.error('Lỗi xóa duplicate: ' + data.error);
+      } else if (data.success) {
+        toast.success(`Đã xóa ${data.summary.deleted_count} duplicate recovery transactions!`);
+        // Refresh audit results
+        await handleAudit();
+      }
+    } catch (error) {
+      toast.error('Lỗi khi xóa duplicate: ' + error.message);
+    } finally {
+      setIsRemovingDuplicates(false);
     }
   };
 
@@ -342,13 +368,13 @@ export default function UserBalanceAudit() {
               </Card>
             )}
 
-            {/* Action Button */}
-            {auditResults.has_discrepancy && (
-              <div className="flex justify-center">
+            {/* Action Buttons */}
+            <div className="flex justify-center gap-4">
+              {auditResults.has_discrepancy && (
                 <Button
                   size="lg"
                   onClick={() => setShowConfirmDialog(true)}
-                  disabled={isUpdating}
+                  disabled={isUpdating || isRemovingDuplicates}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold px-8 py-6 text-lg"
                 >
                   {isUpdating ? (
@@ -363,10 +389,67 @@ export default function UserBalanceAudit() {
                     </>
                   )}
                 </Button>
-              </div>
-            )}
+              )}
+              
+              {auditResults.recovery_analysis && auditResults.recovery_analysis.duplicate_recovery > 0 && (
+                <Button
+                  size="lg"
+                  onClick={() => setShowRemoveDuplicatesDialog(true)}
+                  disabled={isUpdating || isRemovingDuplicates}
+                  className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-bold px-8 py-6 text-lg"
+                >
+                  {isRemovingDuplicates ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Đang Xóa...
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-5 h-5 mr-2" />
+                      Xóa Duplicate Recovery
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         )}
+
+        {/* Remove Duplicates Dialog */}
+        <AlertDialog open={showRemoveDuplicatesDialog} onOpenChange={setShowRemoveDuplicatesDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+                <XCircle className="w-6 h-6" />
+                Xác Nhận Xóa Duplicate Recovery
+              </AlertDialogTitle>
+              <AlertDialogDescription className="space-y-3">
+                <p>Bạn có chắc chắn muốn xóa các recovery transactions bị trùng lặp cho:</p>
+                <p className="font-bold text-slate-900">{userEmail}</p>
+                <div className="bg-red-50 p-3 rounded-lg border border-red-200 text-sm">
+                  <p className="font-semibold text-red-900 mb-2">⚠️ Hành động này sẽ:</p>
+                  {auditResults && auditResults.recovery_analysis && (
+                    <>
+                      <p>• Xóa {auditResults.transactions_breakdown?.bounty_reward?.count || 0} recovery transactions</p>
+                      <p>• Loại bỏ {formatNumber(auditResults.recovery_analysis.duplicate_recovery)} coins bị trùng</p>
+                      <p>• Giữ lại {formatNumber(auditResults.recovery_analysis.valid_recovery)} coins hợp lệ</p>
+                    </>
+                  )}
+                </div>
+                <p className="text-amber-600 font-semibold">💡 Lưu ý: Công thức tính toán ĐÃ loại bỏ duplicate recovery, hành động này chỉ làm sạch database.</p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Hủy</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleRemoveDuplicates}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Xác Nhận Xóa
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
