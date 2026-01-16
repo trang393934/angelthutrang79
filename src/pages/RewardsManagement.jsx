@@ -761,9 +761,9 @@ export default function RewardsManagement() {
                 <Button
                   onClick={async () => {
                     try {
-                      const result = await base44.functions.invoke('auditFrozenQuestionDuplicates', {});
-                      const totalFrozen = (allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
-                      alert(`🔍 Kiểm tra Frozen Balance:\n\n📊 Hiển thị: ${totalFrozen.toLocaleString()}\n📊 Thực tế: ${result.data.summary?.total_frozen || 0}\n\n${result.data.summary?.is_accurate ? '✅ CHÍNH XÁC' : '❌ SAI SỐ'}`);
+                      const result = await base44.functions.invoke('checkFrozenBalance', {});
+                      const displayTotal = (allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
+                      alert(`🔍 Kiểm tra Frozen Balance:\n\n📊 Hiển thị: ${displayTotal.toLocaleString()}\n📊 Từ Balances: ${result.data.summary.total_frozen_from_balances.toLocaleString()}\n📊 Từ Logs: ${result.data.summary.total_frozen_from_logs.toLocaleString()}\n📊 Chênh lệch: ${result.data.summary.difference.toLocaleString()}\n\n${result.data.summary.is_accurate ? '✅ CHÍNH XÁC' : '⚠️ CÓ SAI SỐ'}\n\n👥 Users có frozen: ${result.data.summary.total_users_with_frozen}`);
                     } catch (error) {
                       alert('❌ Lỗi: ' + error.message);
                     }
@@ -771,7 +771,7 @@ export default function RewardsManagement() {
                   size="sm"
                   className="mt-2 w-full bg-white/20 text-white border border-white/40 rounded-lg hover:bg-white/30 h-6 text-xs"
                 >
-                  Verify
+                  🔍 Verify
                 </Button>
               </div>
             </div>
