@@ -13,11 +13,11 @@ Deno.serve(async (req) => {
     const allBalances = await base44.entities.CamlycoinBalance.list('-created_date', 10000);
     const allLogs = await base44.entities.QuestionAuditLog.list('-created_date', 50000);
 
-    // Calculate frozen from logs per user
+    // Calculate frozen from logs per user (using INTEGER)
     const frozenByUser = {};
     allLogs.forEach(log => {
       if (log.exclusion_reason && log.exclusion_reason !== 'valid' && log.coin_category === 'frozen') {
-        frozenByUser[log.user_email] = (frozenByUser[log.user_email] || 0) + (log.coins_earned || 0);
+        frozenByUser[log.user_email] = (frozenByUser[log.user_email] || 0) + Math.floor(log.coins_earned || 0);
       }
     });
 
@@ -26,8 +26,8 @@ Deno.serve(async (req) => {
     let totalDiscrepancy = 0;
 
     allBalances.forEach(balance => {
-      const frozenInDB = balance.frozen_balance || 0;
-      const frozenFromLogs = frozenByUser[balance.user_email] || 0;
+      const frozenInDB = Math.floor(balance.frozen_balance || 0);
+      const frozenFromLogs = Math.floor(frozenByUser[balance.user_email] || 0);
       const diff = frozenInDB - frozenFromLogs;
 
       if (Math.abs(diff) > 0) {

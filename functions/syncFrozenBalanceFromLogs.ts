@@ -15,11 +15,11 @@ Deno.serve(async (req) => {
     const allLogs = await base44.entities.QuestionAuditLog.list('-created_date', 50000);
     console.log(`📊 Total logs: ${allLogs.length}`);
 
-    // Calculate correct frozen balance per user from logs
+    // Calculate correct frozen balance per user from logs (using INTEGER)
     const correctFrozenByUser = {};
     allLogs.forEach(log => {
       if (log.exclusion_reason && log.exclusion_reason !== 'valid' && log.coin_category === 'frozen') {
-        correctFrozenByUser[log.user_email] = (correctFrozenByUser[log.user_email] || 0) + (log.coins_earned || 0);
+        correctFrozenByUser[log.user_email] = (correctFrozenByUser[log.user_email] || 0) + Math.floor(log.coins_earned || 0);
       }
     });
 
@@ -33,12 +33,12 @@ Deno.serve(async (req) => {
     const updates = [];
 
     for (const balance of allBalances) {
-      const correctFrozen = correctFrozenByUser[balance.user_email] || 0;
-      const currentFrozen = balance.frozen_balance || 0;
+      const correctFrozen = Math.floor(correctFrozenByUser[balance.user_email] || 0);
+      const currentFrozen = Math.floor(balance.frozen_balance || 0);
 
       if (correctFrozen !== currentFrozen) {
         try {
-          const newTotalEarned = (balance.net_valid_coins || 0) + correctFrozen;
+          const newTotalEarned = Math.floor(balance.net_valid_coins || 0) + correctFrozen;
           
           await base44.entities.CamlycoinBalance.update(balance.id, {
             frozen_balance: correctFrozen,

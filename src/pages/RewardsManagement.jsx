@@ -854,7 +854,7 @@ export default function RewardsManagement() {
             </div>
           </motion.div>
 
-          {/* Recalculate Balances Tool */}
+          {/* Master Recalculation Tool */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -865,11 +865,10 @@ export default function RewardsManagement() {
               <div className="flex-1">
                 <h3 className="text-white text-xl font-bold mb-2 flex items-center gap-2">
                   <Activity className="w-6 h-6" />
-                  Tính Toán Lại Số Dư
+                  Master Balance Recalculation (INTEGER)
                 </h3>
                 <p className="text-white/90 text-sm mb-4">
-                  Chức năng này sẽ tính toán lại số dư Camlycoin chính xác từ transactions và audit logs thực tế. 
-                  Admin có thể tính toán cho 1 user cụ thể hoặc tất cả users.
+                  Tính toán lại số dư với INTEGER arithmetic (không lỗi làm tròn). Công thức chuẩn hóa cho toàn hệ thống.
                 </p>
               </div>
             </div>
@@ -886,7 +885,7 @@ export default function RewardsManagement() {
                 />
                 <Button
                   onClick={async () => {
-                    if (!confirm(`⚠️ Xác nhận tính toán lại số dư${recalculateEmail ? ` cho ${recalculateEmail}` : ' cho TẤT CẢ USERS'}?`)) {
+                    if (!confirm(`✅ Chạy MASTER recalculation${recalculateEmail ? ` cho ${recalculateEmail}` : ' cho TẤT CẢ'}?\n\nSử dụng INTEGER arithmetic, công thức chuẩn.`)) {
                       return;
                     }
 
@@ -894,12 +893,12 @@ export default function RewardsManagement() {
                     setRecalculateResults(null);
                     try {
                       const payload = recalculateEmail ? { user_email: recalculateEmail } : {};
-                      const response = await base44.functions.invoke('recalculateUserBalances', payload);
+                      const response = await base44.functions.invoke('masterBalanceRecalculation', payload);
                       
                       setRecalculateResults(response.data);
                       queryClient.invalidateQueries({ queryKey: ['all-balances'] });
                       
-                      alert(`✅ Hoàn tất!\n\n📊 Tổng: ${response.data.summary.total_users} users\n✅ Thành công: ${response.data.summary.success_count}\n❌ Lỗi: ${response.data.summary.error_count}`);
+                      alert(`✅ Hoàn tất!\n\n📊 Tổng: ${response.data.summary.total} users\n✅ Cập nhật: ${response.data.summary.updated}\n❌ Lỗi: ${response.data.summary.errors}`);
                     } catch (error) {
                       alert('❌ Lỗi: ' + error.message);
                     } finally {
@@ -914,41 +913,31 @@ export default function RewardsManagement() {
                   ) : (
                     <Activity className="w-4 h-4 mr-2" />
                   )}
-                  Tính Toán Lại
+                  Master Fix
                 </Button>
                 <Button
                   onClick={async () => {
-                    if (!confirm('🚨 CẢNH BÁO: Thao tác này sẽ XÓA TOÀN BỘ số liệu hiện tại và tính lại từ đầu!\n\nLogic mới: Chỉ tính 10 câu đầu tiên/ngày + tasks khác. Câu 11+ -> đóng băng.\n\n⚠️ Bạn chắc chắn muốn RESET TẤT CẢ?')) {
-                      return;
-                    }
-
                     setIsRecalculating(true);
-                    setRecalculateResults(null);
                     try {
-                      const response = await base44.functions.invoke('resetAndRecalculateWithNewLogic', {});
+                      const payload = recalculateEmail ? { user_email: recalculateEmail, auto_fix: false } : { auto_fix: false };
+                      const response = await base44.functions.invoke('comprehensiveBalanceAudit', payload);
                       
-                      if (response.data) {
-                        setRecalculateResults(response.data);
-                        queryClient.invalidateQueries({ queryKey: ['all-balances'] });
-                        
-                        alert(`✅ Reset & Tính lại hoàn tất!\n\n📊 Tổng: ${response.data.summary?.total || 0} users\n✅ Thành công: ${response.data.summary?.success || 0}\n❌ Lỗi: ${response.data.summary?.failed || 0}`);
-                      }
+                      alert(`🔍 Audit hoàn tất!\n\n📊 Quét: ${response.data.summary.scanned} users\n⚠️  Vấn đề: ${response.data.summary.issues_found}\n✅ Đã sửa: ${response.data.summary.fixed}\n❌ Lỗi: ${response.data.summary.errors_count}`);
                     } catch (error) {
-                      console.error('Reset error:', error);
-                      alert(`❌ Lỗi khi reset:\n${error.message}\n\nCó thể function chưa tồn tại hoặc có lỗi. Vui lòng kiểm tra console.`);
+                      alert('❌ Lỗi: ' + error.message);
                     } finally {
                       setIsRecalculating(false);
                     }
                   }}
                   disabled={isRecalculating}
-                  className="bg-gradient-to-r from-red-500 to-rose-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-xl font-bold shadow-lg hover:shadow-xl disabled:opacity-50"
                 >
                   {isRecalculating ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <AlertCircle className="w-4 h-4 mr-2" />
+                    <Search className="w-4 h-4 mr-2" />
                   )}
-                  Reset & Tính Lại (Logic Mới)
+                  Audit Only
                 </Button>
               </div>
 
@@ -958,40 +947,37 @@ export default function RewardsManagement() {
                   <div className="grid grid-cols-3 gap-3 mb-4">
                     <div className="bg-white/30 rounded-lg p-3 text-center">
                       <p className="text-white/80 text-xs mb-1">Tổng Users</p>
-                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.total_users}</p>
+                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.total || recalculateResults.summary.processed || 0}</p>
                     </div>
                     <div className="bg-green-500/30 rounded-lg p-3 text-center">
-                      <p className="text-white/80 text-xs mb-1">Thành Công</p>
-                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.success_count}</p>
+                      <p className="text-white/80 text-xs mb-1">Cập Nhật</p>
+                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.updated || recalculateResults.summary.success_count || 0}</p>
                     </div>
                     <div className="bg-red-500/30 rounded-lg p-3 text-center">
                       <p className="text-white/80 text-xs mb-1">Lỗi</p>
-                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.error_count}</p>
+                      <p className="text-white text-2xl font-bold">{recalculateResults.summary.errors || recalculateResults.summary.error_count || 0}</p>
                     </div>
                   </div>
                   
                   <div className="max-h-60 overflow-y-auto space-y-2">
-                    {recalculateResults.results.slice(0, 10).map((result, idx) => (
+                    {(recalculateResults.sample_updates || recalculateResults.details || recalculateResults.results || []).slice(0, 10).map((result, idx) => (
                       <div 
                         key={idx}
-                        className={`bg-white/20 rounded-lg p-2 text-xs ${
-                          result.success ? 'border-l-4 border-green-400' : 'border-l-4 border-red-400'
-                        }`}
+                        className="bg-white/20 rounded-lg p-2 text-xs border-l-4 border-green-400"
                       >
-                        <p className="text-white font-semibold">{result.user_email}</p>
-                        {result.success ? (
-                          <div className="text-white/80 text-[10px] mt-1">
-                            Total: {result.old.total_earned.toLocaleString()} → {result.new.total_earned.toLocaleString()} 
-                            ({result.changes.total_earned >= 0 ? '+' : ''}{result.changes.total_earned.toLocaleString()})
+                        <p className="text-white font-semibold">{result.user_email || result.email}</p>
+                        {result.changes && (
+                          <div className="text-white/80 text-[10px] mt-1 space-y-0.5">
+                            <div>NetValid: {(result.old?.net_valid_coins || 0).toLocaleString()} → {(result.new?.net_valid_coins || 0).toLocaleString()} ({result.changes.net_valid_coins >= 0 ? '+' : ''}{result.changes.net_valid_coins.toLocaleString()})</div>
+                            <div>Frozen: {(result.old?.frozen_balance || 0).toLocaleString()} → {(result.new?.frozen_balance || 0).toLocaleString()} ({result.changes.frozen_balance >= 0 ? '+' : ''}{result.changes.frozen_balance.toLocaleString()})</div>
+                            <div>Available: {(result.old?.available_for_withdrawal || 0).toLocaleString()} → {(result.new?.available_for_withdrawal || 0).toLocaleString()} ({result.changes.available_for_withdrawal >= 0 ? '+' : ''}{result.changes.available_for_withdrawal.toLocaleString()})</div>
                           </div>
-                        ) : (
-                          <p className="text-red-300 text-[10px] mt-1">❌ {result.error}</p>
                         )}
                       </div>
                     ))}
-                    {recalculateResults.results.length > 10 && (
+                    {(recalculateResults.sample_updates || recalculateResults.details || recalculateResults.results || []).length > 10 && (
                       <p className="text-white/60 text-xs text-center">
-                        ... và {recalculateResults.results.length - 10} users khác
+                        ... và {(recalculateResults.sample_updates || recalculateResults.details || recalculateResults.results || []).length - 10} users khác
                       </p>
                     )}
                   </div>
