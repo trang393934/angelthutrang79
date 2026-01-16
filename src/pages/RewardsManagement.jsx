@@ -953,7 +953,7 @@ export default function RewardsManagement() {
               <span className="text-slate-700 text-xs md:text-sm font-medium">Chưa Thanh Toán</span>
             </div>
             <p className="text-slate-900 text-2xl md:text-3xl font-bold break-words">
-              {(userBalance?.unpaid_amount || 0).toLocaleString()}
+              {((userBalance?.net_valid_coins || 0) - (userBalance?.paid_amount || 0)).toLocaleString()}
             </p>
             <p className="text-orange-600 text-xs mt-1">Camlycoin</p>
           </div>
