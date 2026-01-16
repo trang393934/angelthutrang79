@@ -758,21 +758,38 @@ export default function RewardsManagement() {
                   {(allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">❄️ Spam</p>
-                <Button
-                  onClick={async () => {
-                    try {
-                      const result = await base44.functions.invoke('checkFrozenBalance', {});
-                      const displayTotal = (allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
-                      alert(`🔍 Kiểm tra Frozen Balance:\n\n📊 Hiển thị: ${displayTotal.toLocaleString()}\n📊 Từ Balances: ${result.data.summary.total_frozen_from_balances.toLocaleString()}\n📊 Từ Logs: ${result.data.summary.total_frozen_from_logs.toLocaleString()}\n📊 Chênh lệch: ${result.data.summary.difference.toLocaleString()}\n\n${result.data.summary.is_accurate ? '✅ CHÍNH XÁC' : '⚠️ CÓ SAI SỐ'}\n\n👥 Users có frozen: ${result.data.summary.total_users_with_frozen}`);
-                    } catch (error) {
-                      alert('❌ Lỗi: ' + error.message);
-                    }
-                  }}
-                  size="sm"
-                  className="mt-2 w-full bg-white/20 text-white border border-white/40 rounded-lg hover:bg-white/30 h-6 text-xs"
-                >
-                  🔍 Verify
-                </Button>
+                <div className="flex gap-1 mt-2">
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const result = await base44.functions.invoke('investigateFrozenDiscrepancy', {});
+                        alert(`🔍 Phân tích Frozen:\n\n📊 Tổng chênh lệch: ${result.data.summary.total_discrepancy.toLocaleString()}\n👥 Users có sai: ${result.data.summary.users_with_discrepancy}\n📝 Logs sai category: ${result.data.summary.wrong_category_logs_count}\n\n${result.data.recommendation}`);
+                      } catch (error) {
+                        alert('❌ Lỗi: ' + error.message);
+                      }
+                    }}
+                    size="sm"
+                    className="flex-1 bg-white/20 text-white border border-white/40 rounded-lg hover:bg-white/30 h-6 text-xs"
+                  >
+                    🔍
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!confirm('⚠️ Sync lại frozen_balance từ audit logs?\n\nĐiều này sẽ cập nhật frozen_balance và total_earned cho tất cả users.')) return;
+                      try {
+                        const result = await base44.functions.invoke('syncFrozenBalanceFromLogs', {});
+                        alert(`✅ ${result.data.message}\n\n📊 Đã cập nhật: ${result.data.summary.updated} users\n❌ Lỗi: ${result.data.summary.errors}`);
+                        refetchBalances();
+                      } catch (error) {
+                        alert('❌ Lỗi: ' + error.message);
+                      }
+                    }}
+                    size="sm"
+                    className="flex-1 bg-green-500/80 text-white border border-white/40 rounded-lg hover:bg-green-600/80 h-6 text-xs"
+                  >
+                    ✅ Sync
+                  </Button>
+                </div>
               </div>
             </div>
             
