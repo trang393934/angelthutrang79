@@ -10,6 +10,7 @@ import AngelMascot from '@/components/AngelMascot';
 import SupportChatWidget from '@/components/SupportChatWidget';
 import ThemeToggle from '@/components/ThemeToggle';
 import ThemeProvider from '@/components/ThemeProvider';
+import SystemStatusBanner from '@/components/SystemStatusBanner';
 import { toast } from 'sonner';
 
 export default function Layout({ children, currentPageName }) {
@@ -102,6 +103,12 @@ export default function Layout({ children, currentPageName }) {
       icon: TrendingUp, 
       path: 'Analytics',
       gradient: 'from-purple-400 to-pink-400'
+    },
+    { 
+      name: '🛡️ Dashboard Minh Bạch', 
+      icon: Shield, 
+      path: 'TransparencyDashboard',
+      gradient: 'from-blue-400 to-cyan-400'
     },
     { 
       name: 'Bảng Xếp Hạng', 
@@ -778,6 +785,11 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
 
       {/* Main Content */}
       <div className="flex-1 lg:ml-48 transition-all duration-300">
+        <div className="p-6">
+          {currentUser && currentUser.light_law_agreed && currentPageName !== 'TransparencyDashboard' && (
+            <SystemStatusBanner />
+          )}
+        </div>
         {children}
       </div>
 
