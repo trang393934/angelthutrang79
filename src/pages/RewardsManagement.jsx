@@ -758,6 +758,21 @@ export default function RewardsManagement() {
                   {(allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0).toLocaleString()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">❄️ Spam</p>
+                <Button
+                  onClick={async () => {
+                    try {
+                      const result = await base44.functions.invoke('auditFrozenQuestionDuplicates', {});
+                      const totalFrozen = (allBalances || []).reduce((sum, b) => sum + (b.frozen_balance || 0), 0);
+                      alert(`🔍 Kiểm tra Frozen Balance:\n\n📊 Hiển thị: ${totalFrozen.toLocaleString()}\n📊 Thực tế: ${result.data.summary?.total_frozen || 0}\n\n${result.data.summary?.is_accurate ? '✅ CHÍNH XÁC' : '❌ SAI SỐ'}`);
+                    } catch (error) {
+                      alert('❌ Lỗi: ' + error.message);
+                    }
+                  }}
+                  size="sm"
+                  className="mt-2 w-full bg-white/20 text-white border border-white/40 rounded-lg hover:bg-white/30 h-6 text-xs"
+                >
+                  Verify
+                </Button>
               </div>
             </div>
             
