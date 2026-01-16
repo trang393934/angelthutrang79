@@ -645,10 +645,30 @@ export default function RewardsManagement() {
             animate={{ opacity: 1, y: 0 }}
             className="bg-gradient-to-br from-purple-500 to-indigo-600 rounded-3xl p-6 shadow-2xl mb-6 border-2 border-white"
           >
-            <h3 className="text-white text-xl font-bold mb-4 flex items-center gap-2">
-              <Users className="w-6 h-6" />
-              TỔNG HỢP HỆ THỐNG
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white text-xl font-bold flex items-center gap-2">
+                <Users className="w-6 h-6" />
+                TỔNG HỢP HỆ THỐNG
+              </h3>
+              <Button
+                onClick={async () => {
+                  if (confirm('🔄 Sync công thức "available_for_withdrawal = net_valid_coins - paid_amount" cho TẤT CẢ users?')) {
+                    try {
+                      const result = await base44.functions.invoke('syncAvailableForWithdrawal', {});
+                      queryClient.invalidateQueries({ queryKey: ['all-balances'] });
+                      alert(`✅ Sync hoàn tất!\n\n📊 Tổng: ${result.data.summary.total} users\n✅ Cập nhật: ${result.data.summary.updated}\n❌ Lỗi: ${result.data.summary.errors}`);
+                    } catch (error) {
+                      alert('❌ Lỗi: ' + error.message);
+                    }
+                  }
+                }}
+                size="sm"
+                className="bg-white/30 text-white border border-white/50 rounded-lg hover:bg-white/40 h-8 px-4 font-bold"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                🔄 Sync Formula
+              </Button>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
