@@ -74,60 +74,61 @@ export default function Layout({ children, currentPageName }) {
       path: 'Chat',
       gradient: 'from-amber-400 to-rose-400'
     },
-    { 
-      name: 'Lịch Sử Camlycoin', 
-      icon: Wallet, 
-      path: 'CamlycoinHistory',
-      gradient: 'from-yellow-400 to-orange-400'
-    },
-    { 
-      name: 'Báo Cáo Thu Nhập', 
-      icon: TrendingUp, 
-      path: 'IncomeReport',
-      gradient: 'from-purple-400 to-pink-400'
-    },
-    { 
-      name: 'Rút Camlycoin', 
-      icon: Wallet, 
-      path: 'WithdrawCamlycoin',
-      gradient: 'from-green-400 to-emerald-400'
-    },
-    { 
-      name: 'Lịch Sử Rút Tiền', 
-      icon: Wallet, 
-      path: 'WithdrawalHistory',
-      gradient: 'from-teal-400 to-cyan-400'
-    },
-    { 
-      name: 'Analytics', 
-      icon: TrendingUp, 
-      path: 'Analytics',
-      gradient: 'from-purple-400 to-pink-400'
-    },
+    // HIDDEN DURING SYSTEM FREEZE - Tạm ẩn trong thời gian đóng băng hệ thống
+    // { 
+    //   name: 'Lịch Sử Camlycoin', 
+    //   icon: Wallet, 
+    //   path: 'CamlycoinHistory',
+    //   gradient: 'from-yellow-400 to-orange-400'
+    // },
+    // { 
+    //   name: 'Báo Cáo Thu Nhập', 
+    //   icon: TrendingUp, 
+    //   path: 'IncomeReport',
+    //   gradient: 'from-purple-400 to-pink-400'
+    // },
+    // { 
+    //   name: 'Rút Camlycoin', 
+    //   icon: Wallet, 
+    //   path: 'WithdrawCamlycoin',
+    //   gradient: 'from-green-400 to-emerald-400'
+    // },
+    // { 
+    //   name: 'Lịch Sử Rút Tiền', 
+    //   icon: Wallet, 
+    //   path: 'WithdrawalHistory',
+    //   gradient: 'from-teal-400 to-cyan-400'
+    // },
+    // { 
+    //   name: 'Analytics', 
+    //   icon: TrendingUp, 
+    //   path: 'Analytics',
+    //   gradient: 'from-purple-400 to-pink-400'
+    // },
     { 
       name: '🛡️ Dashboard Minh Bạch', 
       icon: Shield, 
       path: 'TransparencyDashboard',
       gradient: 'from-blue-400 to-cyan-400'
     },
-    { 
-      name: 'Bảng Xếp Hạng', 
-      icon: Award, 
-      path: 'Leaderboard',
-      gradient: 'from-yellow-400 to-amber-500'
-    },
-    { 
-      name: 'Nhiệm Vụ', 
-      icon: Target, 
-      path: 'Quests',
-      gradient: 'from-indigo-400 to-purple-500'
-    },
-    { 
-      name: 'Tâm Điểm Thưởng', 
-      icon: Award, 
-      path: 'PuritySpotlight',
-      gradient: 'from-amber-400 to-rose-400'
-    },
+    // { 
+    //   name: 'Bảng Xếp Hạng', 
+    //   icon: Award, 
+    //   path: 'Leaderboard',
+    //   gradient: 'from-yellow-400 to-amber-500'
+    // },
+    // { 
+    //   name: 'Nhiệm Vụ', 
+    //   icon: Target, 
+    //   path: 'Quests',
+    //   gradient: 'from-indigo-400 to-purple-500'
+    // },
+    // { 
+    //   name: 'Tâm Điểm Thưởng', 
+    //   icon: Award, 
+    //   path: 'PuritySpotlight',
+    //   gradient: 'from-amber-400 to-rose-400'
+    // },
     { 
       name: 'Chế độ thoại', 
       icon: Mic, 
@@ -170,18 +171,18 @@ export default function Layout({ children, currentPageName }) {
       path: 'Library',
       gradient: 'from-violet-400 to-purple-400'
     },
-    { 
-      name: 'Build & Bounty', 
-      icon: Gift, 
-      path: 'BuildAndBounty',
-      gradient: 'from-amber-400 to-orange-400'
-    },
-    { 
-      name: 'Community Rewards', 
-      icon: Gift, 
-      path: 'CommunityRewards',
-      gradient: 'from-purple-400 to-pink-400'
-    },
+    // { 
+    //   name: 'Build & Bounty', 
+    //   icon: Gift, 
+    //   path: 'BuildAndBounty',
+    //   gradient: 'from-amber-400 to-orange-400'
+    // },
+    // { 
+    //   name: 'Community Rewards', 
+    //   icon: Gift, 
+    //   path: 'CommunityRewards',
+    //   gradient: 'from-purple-400 to-pink-400'
+    // },
     { 
       name: 'Diễn Đàn', 
       icon: MessageSquare, 
@@ -194,12 +195,12 @@ export default function Layout({ children, currentPageName }) {
       path: 'Whitepaper',
       gradient: 'from-amber-400 to-orange-400'
     },
-    { 
-      name: 'Camlycoin', 
-      icon: Globe, 
-      path: 'RewardsManagement',
-      gradient: 'from-yellow-400 to-amber-400'
-    },
+    // { 
+    //   name: 'Camlycoin', 
+    //   icon: Globe, 
+    //   path: 'RewardsManagement',
+    //   gradient: 'from-yellow-400 to-amber-400'
+    // },
     ...(currentUser?.role === 'admin' ? [
       { 
         name: 'Admin Dashboard', 

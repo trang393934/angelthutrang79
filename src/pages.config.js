@@ -36,6 +36,7 @@ import ReviewPendingActions from './pages/ReviewPendingActions';
 import RewardsManagement from './pages/RewardsManagement';
 import Settings from './pages/Settings';
 import TestR2Upload from './pages/TestR2Upload';
+import TransparencyDashboard from './pages/TransparencyDashboard';
 import UserManagement from './pages/UserManagement';
 import UserProfile from './pages/UserProfile';
 import VisionBoard from './pages/VisionBoard';
@@ -44,7 +45,6 @@ import Whitepaper from './pages/Whitepaper';
 import WithdrawCamlycoin from './pages/WithdrawCamlycoin';
 import WithdrawalHistory from './pages/WithdrawalHistory';
 import WithdrawalManagement from './pages/WithdrawalManagement';
-import TransparencyDashboard from './pages/TransparencyDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +87,7 @@ export const PAGES = {
     "RewardsManagement": RewardsManagement,
     "Settings": Settings,
     "TestR2Upload": TestR2Upload,
+    "TransparencyDashboard": TransparencyDashboard,
     "UserManagement": UserManagement,
     "UserProfile": UserProfile,
     "VisionBoard": VisionBoard,
@@ -95,7 +96,6 @@ export const PAGES = {
     "WithdrawCamlycoin": WithdrawCamlycoin,
     "WithdrawalHistory": WithdrawalHistory,
     "WithdrawalManagement": WithdrawalManagement,
-    "TransparencyDashboard": TransparencyDashboard,
 }
 
 export const pagesConfig = {
