@@ -653,21 +653,32 @@ export default function RewardsManagement() {
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Kiếm Được</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {(allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0).toLocaleString()}
+                  {(() => {
+                    const totalEarned = (allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0);
+                    return totalEarned.toLocaleString();
+                  })()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Đã Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {(allBalances || []).reduce((sum, b) => sum + (b.paid_amount || 0), 0).toLocaleString()}
+                  {(() => {
+                    const totalPaid = (allBalances || []).reduce((sum, b) => sum + (b.paid_amount || 0), 0);
+                    return totalPaid.toLocaleString();
+                  })()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 border border-white/30">
                 <p className="text-white/90 text-xs font-medium mb-1">Tổng Chưa Thanh Toán</p>
                 <p className="text-white text-xl md:text-2xl font-bold break-words">
-                  {(allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) - (b.paid_amount || 0)), 0).toLocaleString()}
+                  {(() => {
+                    const totalEarned = (allBalances || []).reduce((sum, b) => sum + ((b.net_valid_coins || 0) + (b.frozen_balance || 0)), 0);
+                    const totalPaid = (allBalances || []).reduce((sum, b) => sum + (b.paid_amount || 0), 0);
+                    const totalUnpaid = totalEarned - totalPaid;
+                    return totalUnpaid.toLocaleString();
+                  })()}
                 </p>
                 <p className="text-white/80 text-xs mt-1">Camlycoin</p>
               </div>
