@@ -23,9 +23,11 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.CamlycoinTransaction.delete(allManualAdds[i].id);
       deletedCount++;
       
-      if ((i + 1) % 50 === 0) {
+      // Delay after every transaction
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      if ((i + 1) % 100 === 0) {
         console.log(`✅ ${deletedCount}/${allManualAdds.length}`);
-        await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
 
