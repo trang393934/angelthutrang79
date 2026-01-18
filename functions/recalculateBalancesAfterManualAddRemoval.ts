@@ -100,9 +100,11 @@ Deno.serve(async (req) => {
           console.log(`   Progress: ${i + 1}/${targetUsers.length} (${successCount} success, ${errorCount} errors)`);
         }
         
-        // Add delay to avoid rate limit
-        if ((i + 1) % 5 === 0) {
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        // Add delay to avoid rate limit - increased for safety
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay after each user
+        
+        if ((i + 1) % 3 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 5000)); // Longer delay every 3 users
         }
         
       } catch (error) {
