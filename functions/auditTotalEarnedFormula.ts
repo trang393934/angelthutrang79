@@ -12,26 +12,31 @@ Deno.serve(async (req) => {
     console.log('🔍 Auditing Total Earned Formula...');
 
     const allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 50000);
+    const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 50000);
+    
+    // Group logs by user
+    const logsByUser = {};
+    for (const log of allLogs) {
+      if (!logsByUser[log.user_email]) {
+        logsByUser[log.user_email] = [];
+      }
+      logsByUser[log.user_email].push(log);
+    }
     
     let systemTotalFromBalance = 0;
     let systemTotalFromLogs = 0;
     let discrepancyCount = 0;
     const discrepancies = [];
 
-    // Check sample of users
-    for (let i = 0; i < Math.min(500, allBalances.length); i++) {
-      const balance = allBalances[i];
-      
+    // Check all users
+    for (const balance of allBalances) {
       // Total from balance record
       const fromBalance = (balance.net_valid_coins || 0) + (balance.frozen_balance || 0);
       systemTotalFromBalance += fromBalance;
       
       // Total from audit logs
-      const allLogs = await base44.asServiceRole.entities.QuestionAuditLog.filter({ 
-        user_email: balance.user_email 
-      });
-      
-      const fromLogs = allLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
+      const userLogs = logsByUser[balance.user_email] || [];
+      const fromLogs = userLogs.reduce((sum, log) => sum + (log.coins_earned || 0), 0);
       systemTotalFromLogs += fromLogs;
       
       if (Math.abs(fromBalance - fromLogs) > 0) {
@@ -44,7 +49,7 @@ Deno.serve(async (req) => {
             difference: fromBalance - fromLogs,
             net_valid: balance.net_valid_coins || 0,
             frozen: balance.frozen_balance || 0,
-            log_count: allLogs.length
+            log_count: userLogs.length
           });
         }
       }
