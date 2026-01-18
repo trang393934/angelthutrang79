@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     const allBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-total_earned', 50000);
     const top51Users = allBalances.slice(0, 51);
 
-    console.log(`📊 Processing ${top51Users.length} users with 300ms delay...`);
+    console.log(`📊 Processing ${top51Users.length} users with 500ms delay...`);
 
     const updateResults = [];
     let updatedCount = 0;
@@ -132,7 +132,7 @@ Deno.serve(async (req) => {
           console.log(`✅ Correct`);
         }
 
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
       } catch (error) {
         console.error(`❌ Error: ${balance.user_email}:`, error.message);
