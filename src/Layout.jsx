@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import ReactMarkdown from 'react-markdown';
-import AngelMascot from '@/components/AngelMascot';
+
 import SupportChatWidget from '@/components/SupportChatWidget';
 import ThemeToggle from '@/components/ThemeToggle';
 import ThemeProvider from '@/components/ThemeProvider';
@@ -799,8 +799,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
         {children}
       </div>
 
-      {/* Angel Mascot */}
-      <AngelMascot />
+
 
       {/* Support Chat Widget */}
       {currentUser && currentUser.light_law_agreed && <SupportChatWidget />}
