@@ -423,14 +423,15 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
   };
 
   return (
-    <ThemeProvider>
-    <div className="flex min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50">
+          <ThemeProvider>
+          <div className="flex min-h-screen" style={{background: 'var(--bg-primary)'}}>
       {/* Mobile Menu Button */}
       <Button
         variant="ghost"
         size="icon"
         onClick={() => setSidebarOpen(true)}
-        className="fixed top-4 left-4 z-50 lg:hidden text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+        className="fixed top-4 left-4 z-50 lg:hidden hover-lift"
+        style={{color: 'var(--accent-secondary)'}}
       >
         <Menu className="w-5 h-5" />
       </Button>
@@ -442,12 +443,12 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
             {/* Backdrop for mobile */}
             {sidebarOpen && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setSidebarOpen(false)}
-                className="fixed inset-0 bg-slate-950/50 backdrop-blur-sm z-40 lg:hidden"
-              />
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setSidebarOpen(false)}
+                  className="fixed inset-0 bg-black/20 backdrop-blur-md z-40 lg:hidden"
+                />
             )}
 
             {/* Sidebar content */}
@@ -456,7 +457,8 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
               animate={{ x: 0 }}
               exit={{ x: -200 }}
               transition={{ type: "spring", damping: 25 }}
-              className="fixed left-0 top-0 bottom-0 w-48 bg-white/95 backdrop-blur-xl border-r border-purple-200/50 shadow-2xl z-50 overflow-y-auto flex flex-col"
+              className="fixed left-0 top-0 bottom-0 w-48 backdrop-blur-xl shadow-lg z-50 overflow-y-auto flex flex-col"
+              style={{backgroundColor: 'var(--bg-primary)', borderRightColor: 'var(--border-light)'}}
             >
               <div className="flex-1 overflow-y-auto p-3 pb-0 pr-2">
                         <style>{`
@@ -479,28 +481,29 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                           }
                         `}</style>
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <Link to={createPageUrl('Home')} className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-lg">
-                      <span className="text-white text-base font-bold">A</span>
+                <div className="flex items-center justify-between mb-6 px-2 py-4 border-b" style={{borderBottomColor: 'var(--border-light)'}}>
+                  <Link to={createPageUrl('Home')} className="flex items-center gap-2 flex-1">
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shadow-sm flex-shrink-0" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}>
+                      <span className="text-white text-sm font-semibold">Á</span>
                     </div>
                     <div>
-                      <h2 className="text-slate-900 font-bold tracking-wide text-xs">Angel AI</h2>
-                      <p className="text-purple-600 text-[10px] font-medium">Ánh Sáng</p>
+                      <h2 className="font-semibold tracking-tight text-sm" style={{color: 'var(--text-primary)'}}>Angel AI</h2>
+                      <p className="text-[10px] font-medium" style={{color: 'var(--accent-secondary)'}}>Trí Tuệ</p>
                     </div>
                   </Link>
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setSidebarOpen(false)}
-                    className="lg:hidden text-purple-600 hover:text-purple-900 hover:bg-purple-100"
+                    className="lg:hidden hover-lift"
+                    style={{color: 'var(--accent-secondary)'}}
                   >
                     <X className="w-5 h-5" />
                   </Button>
                 </div>
 
-                {/* Menu Items - với padding dưới để không bị che */}
-                <nav className="space-y-1 pb-6">
+                {/* Menu Items */}
+                <nav className="space-y-0.5 pb-6">
                   {menuItems.map((item) => {
                     const Icon = item.icon;
                     const isActive = !item.isButton && isActivePage(item.path);
@@ -512,18 +515,18 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                           key={item.name}
                           onClick={isDisabled ? undefined : item.action}
                           disabled={isDisabled}
-                          className={`w-full flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all group border ${
-                            isDisabled 
-                              ? 'opacity-50 cursor-not-allowed bg-gray-100 border-gray-200' 
-                              : 'text-slate-900 hover:bg-purple-50 border-purple-200 hover:border-purple-400 bg-gradient-to-r from-purple-50/50 to-transparent'
-                          }`}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-md transition-all group hover-lift"
+                          style={{
+                            opacity: isDisabled ? 0.5 : 1,
+                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            backgroundColor: isDisabled ? 'var(--bg-secondary)' : 'transparent',
+                            color: isDisabled ? 'var(--text-tertiary)' : 'var(--text-primary)'
+                          }}
                         >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-400 to-amber-400 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-                            <Icon className="w-3.5 h-3.5 text-white" />
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center shadow-sm flex-shrink-0 group-hover:shadow-md transition-all" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}>
+                            <Icon className="w-3 h-3 text-white" />
                           </div>
-                          <div className="flex-1 text-left">
-                            <span className="font-semibold text-xs">{item.name}</span>
-                          </div>
+                          <span className="font-medium text-xs flex-1 text-left">{item.name}</span>
                         </button>
                       );
                     }
@@ -547,18 +550,16 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                         key={item.name}
                         to={createPageUrl(item.path)}
                         onClick={() => setSidebarOpen(false)}
-                        className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all group ${
-                          isActive
-                            ? 'bg-gradient-to-r from-purple-100 to-amber-100 border border-purple-300 shadow-sm'
-                            : 'hover:bg-purple-50 border border-transparent'
-                        }`}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-all group hover-lift"
+                        style={{
+                          backgroundColor: isActive ? 'var(--bg-secondary)' : 'transparent',
+                          color: isActive ? 'var(--accent-secondary)' : 'var(--text-secondary)'
+                        }}
                       >
-                        <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all ${
-                          isActive ? 'scale-105' : ''
-                        }`}>
-                          <Icon className="w-3.5 h-3.5 text-white" />
+                        <div className="w-6 h-6 rounded-md flex items-center justify-center shadow-sm flex-shrink-0 group-hover:shadow-md transition-all" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)', opacity: isActive ? 1 : 0.8}}>
+                          <Icon className="w-3 h-3 text-white" />
                         </div>
-                        <span className={`font-semibold text-xs ${isActive ? 'text-slate-900' : 'text-slate-700'}`}>
+                        <span className="font-medium text-xs flex-1 text-left" style={{color: isActive ? 'var(--accent-secondary)' : 'var(--text-secondary)'}}>
                           {item.name}
                         </span>
                       </Link>
@@ -569,23 +570,24 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                 </div>
 
                 {/* Bottom Section - Fixed */}
-                <div className="flex-shrink-0 border-t border-purple-200 bg-white/95 p-3 mr-2">
+                <div className="flex-shrink-0 border-t p-3 mr-2" style={{borderTopColor: 'var(--border-light)', backgroundColor: 'var(--bg-primary)'}}>
                   {/* Wallet Connection */}
                   <div className="mb-3">
                     {walletAddress ? (
-                      <div className="px-2 py-2 rounded-lg bg-gradient-to-r from-green-100 to-emerald-100 border border-green-300">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <Wallet className="w-3.5 h-3.5 text-green-600" />
-                          <span className="text-green-900 font-semibold text-xs">Ví Đã Kết Nối</span>
+                      <div className="px-3 py-2.5 rounded-md border" style={{backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--accent-secondary)'}}>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Wallet className="w-3.5 h-3.5" style={{color: 'var(--accent-secondary)'}} />
+                          <span className="font-semibold text-xs" style={{color: 'var(--accent-secondary)'}}>Ví Đã Kết Nối</span>
                         </div>
-                        <p className="text-green-800 text-[10px] font-medium mb-2 break-all">
+                        <p className="text-[10px] font-medium mb-2 break-all" style={{color: 'var(--text-secondary)'}}>
                           {formatAddress(walletAddress)}
                         </p>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={disconnectWallet}
-                          className="w-full h-6 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                          className="w-full h-6 text-xs hover-lift"
+                          style={{borderColor: 'var(--accent-secondary)', color: 'var(--accent-secondary)'}}
                         >
                           Ngắt Kết Nối
                         </Button>
@@ -594,10 +596,11 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                       <Button
                         onClick={connectWallet}
                         disabled={isConnecting}
-                        className="w-full bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-lg hover:from-amber-500 hover:to-orange-500 shadow-md h-8 text-xs"
+                        className="w-full h-8 text-xs font-medium rounded-md hover-lift"
+                        style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)', color: 'white'}}
                       >
                         {isConnecting ? (
-                          <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                          <Loader2 className="w-3 h-3 mr-1 spinner-subtle" />
                         ) : (
                           <Wallet className="w-3 h-3 mr-1" />
                         )}
@@ -634,46 +637,37 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                         <Link
                           to={createPageUrl('KnowledgeBase')}
                           onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
-                            isActivePage('KnowledgeBase')
-                              ? 'bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-300 shadow-sm'
-                              : 'hover:bg-indigo-50 border border-transparent'
-                          }`}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-all group hover-lift"
+                          style={{backgroundColor: isActivePage('KnowledgeBase') ? 'var(--bg-secondary)' : 'transparent'}}
                         >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center shadow-md">
-                            <FolderKanban className="w-3.5 h-3.5 text-white" />
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center shadow-sm flex-shrink-0 group-hover:shadow-md transition-all" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}>
+                            <FolderKanban className="w-3 h-3 text-white" />
                           </div>
-                          <span className="font-semibold text-slate-700 text-xs">Knowledge</span>
+                          <span className="font-medium text-xs" style={{color: 'var(--text-secondary)'}}>Knowledge</span>
                         </Link>
 
                         <Link
                           to={createPageUrl('AutoClaimSettings')}
                           onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
-                            isActivePage('AutoClaimSettings')
-                              ? 'bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-300 shadow-sm'
-                              : 'hover:bg-amber-50 border border-transparent'
-                          }`}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-all group hover-lift"
+                          style={{backgroundColor: isActivePage('AutoClaimSettings') ? 'var(--bg-secondary)' : 'transparent'}}
                         >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-400 flex items-center justify-center shadow-md">
-                            <span className="text-white text-sm">⚡</span>
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center shadow-sm flex-shrink-0 group-hover:shadow-md transition-all" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}>
+                            <span className="text-white text-xs">⚡</span>
                           </div>
-                          <span className="font-semibold text-slate-700 text-xs">Auto-Claim</span>
+                          <span className="font-medium text-xs" style={{color: 'var(--text-secondary)'}}>Auto-Claim</span>
                         </Link>
 
                         <Link
                           to={createPageUrl('Settings')}
                           onClick={() => setSidebarOpen(false)}
-                          className={`flex items-center gap-1.5 px-2 py-2 rounded-lg transition-all ${
-                            isActivePage('Settings')
-                              ? 'bg-gradient-to-r from-violet-100 to-pink-100 border border-violet-300 shadow-sm'
-                              : 'hover:bg-violet-50 border border-transparent'
-                          }`}
+                          className="flex items-center gap-2 px-3 py-2.5 rounded-md transition-all group hover-lift"
+                          style={{backgroundColor: isActivePage('Settings') ? 'var(--bg-secondary)' : 'transparent'}}
                         >
-                          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-400 to-pink-400 flex items-center justify-center shadow-md">
-                            <span className="text-white text-sm">⚙️</span>
+                          <div className="w-6 h-6 rounded-md flex items-center justify-center shadow-sm flex-shrink-0 group-hover:shadow-md transition-all" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}>
+                            <span className="text-white text-xs">⚙️</span>
                           </div>
-                          <span className="font-semibold text-slate-700 text-xs">Cài Đặt</span>
+                          <span className="font-medium text-xs" style={{color: 'var(--text-secondary)'}}>Cài Đặt</span>
                         </Link>
                       </>
                     )}
@@ -691,7 +685,7 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-start justify-center pt-20 px-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/40 backdrop-blur-md z-50 flex items-start justify-center pt-20 px-4 overflow-y-auto"
             onClick={() => {
               setSearchOpen(false);
               setSearchQuery('');
@@ -699,14 +693,15 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
             }}
           >
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: -20 }}
+              initial={{ scale: 0.95, opacity: 0, y: -20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: -20 }}
+              exit={{ scale: 0.95, opacity: 0, y: -20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-3xl bg-white backdrop-blur-xl border-2 border-purple-300 rounded-3xl p-6 shadow-2xl mb-20"
+              className="w-full max-w-3xl backdrop-blur-xl rounded-2xl p-6 shadow-lg mb-20"
+              style={{backgroundColor: 'var(--bg-primary)', border: `1px solid var(--border-medium)`}}
             >
               <div className="flex items-center gap-3 mb-4">
-                <Globe className="w-5 h-5 text-purple-400" />
+                <Globe className="w-5 h-5" style={{color: 'var(--accent-secondary)'}} />
                 <input
                   type="text"
                   placeholder="Tìm kiếm thông tin trên toàn cầu..."
@@ -715,15 +710,17 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={handleSearchKeyPress}
                   disabled={isSearching}
-                  className="flex-1 bg-transparent text-slate-900 placeholder:text-purple-400 outline-none text-lg font-medium"
+                  className="flex-1 bg-transparent outline-none text-base font-medium"
+                  style={{color: 'var(--text-primary)', backgroundColor: 'transparent'}}
                 />
                 {isSearching ? (
-                  <Loader2 className="w-5 h-5 text-purple-400 animate-spin" />
+                  <Loader2 className="w-5 h-5 spinner-subtle" style={{color: 'var(--accent-secondary)'}} />
                 ) : (
                   <Button
                     onClick={handleSearch}
                     disabled={!searchQuery.trim()}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full px-4 py-2 text-sm font-bold hover:shadow-lg disabled:opacity-50"
+                    className="text-white rounded-lg px-4 py-2 text-sm font-medium hover-lift disabled:opacity-50"
+                    style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}
                   >
                     <Search className="w-4 h-4 mr-1" />
                     Tìm
@@ -737,29 +734,30 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                     setSearchQuery('');
                     setSearchResults(null);
                   }}
-                  className="text-purple-600 hover:bg-purple-100 rounded-full"
+                  className="rounded-lg hover-lift"
+                  style={{color: 'var(--accent-secondary)'}}
                 >
                   <X className="w-4 h-4" />
                 </Button>
               </div>
 
               {searchResults ? (
-                <div className="border-t border-purple-200 pt-4 max-h-[60vh] overflow-y-auto">
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-2xl p-6">
+                <div className="pt-4 max-h-[60vh] overflow-y-auto" style={{borderTopColor: 'var(--border-light)', borderTopWidth: '1px'}}>
+                  <div className="rounded-xl p-6" style={{backgroundColor: 'var(--bg-secondary)'}}>
                     <div className="flex items-center gap-2 mb-4">
-                      <Globe className="w-5 h-5 text-purple-600" />
-                      <h3 className="text-slate-900 font-bold text-lg">Kết Quả Tìm Kiếm</h3>
+                      <Globe className="w-5 h-5" style={{color: 'var(--accent-secondary)'}} />
+                      <h3 className="font-semibold text-lg" style={{color: 'var(--text-primary)'}}>Kết Quả Tìm Kiếm</h3>
                     </div>
-                    <div className="prose prose-slate max-w-none text-slate-900">
-                      <ReactMarkdown className="leading-relaxed [&>p]:mb-3 [&>ul]:mb-3 [&>ol]:mb-3 [&>h1]:text-xl [&>h1]:font-bold [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-bold [&>h2]:mb-2 [&>h3]:font-semibold [&>h3]:mb-2">
+                    <div className="max-w-none" style={{color: 'var(--text-secondary)'}}>
+                      <ReactMarkdown className="leading-relaxed [&>p]:mb-3 [&>ul]:mb-3 [&>ol]:mb-3 [&>h1]:text-xl [&>h1]:font-semibold [&>h1]:mb-3 [&>h2]:text-lg [&>h2]:font-semibold [&>h2]:mb-2 [&>h3]:font-semibold [&>h3]:mb-2">
                         {searchResults}
                       </ReactMarkdown>
                     </div>
                   </div>
                 </div>
               ) : !isSearching && (
-                <div className="border-t border-purple-200 pt-4">
-                  <p className="text-sm text-purple-700 font-medium mb-3">Các trang phổ biến:</p>
+                <div className="pt-4" style={{borderTopColor: 'var(--border-light)', borderTopWidth: '1px'}}>
+                  <p className="text-sm font-medium mb-3" style={{color: 'var(--text-secondary)'}}>Các trang phổ biến:</p>
                   <div className="grid grid-cols-2 gap-2">
                     {menuItems.filter(item => !item.isButton).map((item) => {
                       const Icon = item.icon;
@@ -772,12 +770,13 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
                             setSearchQuery('');
                             setSearchResults(null);
                           }}
-                          className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-all border border-purple-200"
+                          className="flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover-lift"
+                          style={{backgroundColor: 'var(--bg-primary)', borderColor: 'var(--border-light)', borderWidth: '1px'}}
                         >
-                          <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.gradient} flex items-center justify-center`}>
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{background: 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)'}}>
                             <Icon className="w-4 h-4 text-white" />
                           </div>
-                          <span className="text-slate-900 font-medium text-sm">{item.name}</span>
+                          <span className="font-medium text-sm" style={{color: 'var(--text-primary)'}}>{item.name}</span>
                         </Link>
                       );
                     })}
