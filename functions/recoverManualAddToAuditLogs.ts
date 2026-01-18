@@ -74,19 +74,15 @@ Deno.serve(async (req) => {
           updatedBalances++;
         }
 
-        // Delete manual_add transactions for this user
-        for (const tx of txs) {
-          try {
-            await base44.asServiceRole.entities.CamlycoinTransaction.delete(tx.id);
-            deletedTransactions++;
-            await new Promise(resolve => setTimeout(resolve, 50));
-          } catch (e) {
-            errorCount++;
-          }
-        }
+        // Delete manual_add transactions for this user - batch delete
+        const deletePromises = txs.map(tx => 
+          base44.asServiceRole.entities.CamlycoinTransaction.delete(tx.id)
+            .then(() => deletedTransactions++)
+            .catch(() => errorCount++)
+        );
+        await Promise.all(deletePromises);
 
         console.log(`✅ ${userEmail}: +${totalCoins.toLocaleString()} (${txs.length} TX recovered)`);
-        await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (error) {
         errorCount++;
