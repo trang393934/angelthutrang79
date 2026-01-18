@@ -107,7 +107,10 @@ Deno.serve(async (req) => {
         errors: errorCount,
         total_users_recovered: Object.keys(byUser).length,
         total_coins_recovered: Object.values(byUser).reduce((sum, txs) => 
-          sum + txs.reduce((s, tx) => s + (tx.amount || 0), 0), 0
+          sum + txs.reduce((s, tx) => {
+            const amount = typeof tx === 'object' && tx.amount ? tx.amount : (tx.data?.amount || 0);
+            return s + amount;
+          }, 0), 0
         )
       }
     });
