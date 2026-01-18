@@ -19,14 +19,16 @@ Deno.serve(async (req) => {
     
     console.log(`Found ${allManualAdds.length} manual_add transactions totaling ${allManualAdds.reduce((sum, t) => sum + t.amount, 0).toLocaleString()} coins`);
 
-    // Delete all manual_add transactions with delays
+    // Delete all manual_add transactions with delays - batch by 50 with 2s delay
     let deletedCount = 0;
-    for (const tx of allManualAdds) {
+    for (let i = 0; i < allManualAdds.length; i++) {
+      const tx = allManualAdds[i];
       await base44.asServiceRole.entities.CamlycoinTransaction.delete(tx.id);
       deletedCount++;
-      if (deletedCount % 100 === 0) {
+      
+      if ((i + 1) % 50 === 0) {
         console.log(`  ✅ Deleted ${deletedCount}/${allManualAdds.length} transactions`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
     console.log(`✅ Deleted all ${deletedCount} manual_add transactions\n`);
