@@ -37,7 +37,10 @@ Deno.serve(async (req) => {
     for (const [userEmail, txs] of Object.entries(byUser)) {
       try {
         // Tạo audit log entries từ manual_add transactions
-        const totalCoins = txs.reduce((sum, tx) => sum + (tx.data.amount || 0), 0);
+        const totalCoins = txs.reduce((sum, tx) => {
+          const amount = typeof tx === 'object' && tx.amount ? tx.amount : (tx.data?.amount || 0);
+          return sum + amount;
+        }, 0);
 
         // Tạo 1 entry audit log cho tất cả manual_add của user
         const auditLog = await base44.asServiceRole.entities.QuestionAuditLog.create({
