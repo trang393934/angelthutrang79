@@ -74,6 +74,11 @@ export default function SystemStatusBanner() {
   const config = statusConfig[status];
   const Icon = config.icon;
 
+  // Chỉ hiển thị banner khi có vấn đề
+  if (status === 'normal') {
+    return null;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: -20 }}
