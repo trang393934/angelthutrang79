@@ -45,7 +45,11 @@ Deno.serve(async (req) => {
         }
 
         // Delay để tránh quá tải
-        await new Promise(resolve => setTimeout(resolve, 20));
+        if ((i + 1) % 5 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1s sau mỗi 5 transactions
+        } else {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
 
       } catch (error) {
         errors++;
