@@ -170,18 +170,18 @@ export default function Layout({ children, currentPageName }) {
       path: 'Library',
       gradient: 'from-violet-400 to-purple-400'
     },
-    // { 
-    //   name: 'Build & Bounty', 
-    //   icon: Gift, 
-    //   path: 'BuildAndBounty',
-    //   gradient: 'from-amber-400 to-orange-400'
-    // },
-    // { 
-    //   name: 'Community Rewards', 
-    //   icon: Gift, 
-    //   path: 'CommunityRewards',
-    //   gradient: 'from-purple-400 to-pink-400'
-    // },
+    { 
+      name: 'Build & Bounty', 
+      icon: Gift, 
+      path: 'BuildAndBounty',
+      gradient: 'from-amber-400 to-orange-400'
+    },
+    { 
+      name: 'Community Rewards', 
+      icon: Gift, 
+      path: 'CommunityRewards',
+      gradient: 'from-purple-400 to-pink-400'
+    },
     { 
       name: 'Diễn Đàn', 
       icon: MessageSquare, 
@@ -194,12 +194,12 @@ export default function Layout({ children, currentPageName }) {
       path: 'Whitepaper',
       gradient: 'from-amber-400 to-orange-400'
     },
-    // { 
-    //   name: 'Camlycoin', 
-    //   icon: Globe, 
-    //   path: 'RewardsManagement',
-    //   gradient: 'from-yellow-400 to-amber-400'
-    // },
+    { 
+      name: 'Camlycoin', 
+      icon: Globe, 
+      path: 'RewardsManagement',
+      gradient: 'from-yellow-400 to-amber-400'
+    },
     ...(currentUser?.role === 'admin' ? [
       { 
         name: 'Admin Dashboard', 
