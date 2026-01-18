@@ -53,7 +53,8 @@ Deno.serve(async (req) => {
     let updatedCount = 0;
     const updates = [];
 
-    for (const balance of allBalances) {
+    for (let i = 0; i < allBalances.length; i++) {
+      const balance = allBalances[i];
       const userLogs = logsByUser[balance.user_email] || [];
       
       // net_valid_coins = sum of all coins from audit logs (all exclusion reasons combined)
@@ -80,9 +81,9 @@ Deno.serve(async (req) => {
         });
 
         updatedCount++;
-        if (updatedCount % 50 === 0) {
+        if ((i + 1) % 50 === 0) {
           console.log(`  ✅ Updated ${updatedCount}/${allBalances.length} balances`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
     }
