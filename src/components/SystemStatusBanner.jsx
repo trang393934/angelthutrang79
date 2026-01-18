@@ -3,7 +3,7 @@ import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function SystemStatusBanner() {
-  const [status, setStatus] = React.useState('frozen'); // 'normal', 'maintenance', 'warning', 'frozen'
+  const [status, setStatus] = React.useState('normal'); // 'normal', 'maintenance', 'warning', 'frozen'
   const [timeLeft, setTimeLeft] = React.useState('');
 
   React.useEffect(() => {
