@@ -23,9 +23,11 @@ export default function Leaderboard() {
   const { data: allBalances = [], isLoading, refetch } = useQuery({
     queryKey: ['leaderboard-balances'],
     queryFn: () => base44.entities.CamlycoinBalance.list('-total_earned', 50000),
-    refetchInterval: 30000,
+    refetchInterval: 5000, // Auto-refresh every 5 seconds
     staleTime: 0,
     cacheTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Fetch all users to get full names

@@ -154,6 +154,7 @@ export default function UserProfile() {
     },
     enabled: !!targetEmail,
     staleTime: 0, // Always fresh
+    refetchInterval: 5000, // Auto-refresh every 5 seconds
     refetchOnMount: true,
     refetchOnWindowFocus: true
   });
@@ -905,6 +906,14 @@ Trả về JSON:`;
             <div className="flex items-center gap-2 mb-2">
               <Coins className="w-5 h-5 sm:w-6 sm:h-6 text-white flex-shrink-0" />
               <span className="text-white/90 text-xs font-medium">Tổng Camlycoin</span>
+              <Button
+                onClick={() => refetchBalance()}
+                size="icon"
+                variant="ghost"
+                className="ml-auto w-6 h-6 text-white/80 hover:text-white hover:bg-white/20"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingBalance ? 'animate-spin' : ''}`} />
+              </Button>
             </div>
             {isLoadingBalance ? (
               <div className="flex items-center gap-2">
