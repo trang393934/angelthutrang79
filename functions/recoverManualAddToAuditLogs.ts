@@ -26,10 +26,10 @@ Deno.serve(async (req) => {
     // Group by user để cộng gộp lại
     const byUser = {};
     for (const tx of manualAdds) {
-      if (!byUser[tx.data.user_email]) {
-        byUser[tx.data.user_email] = [];
+      if (!byUser[tx.user_email]) {
+        byUser[tx.user_email] = [];
       }
-      byUser[tx.data.user_email].push(tx);
+      byUser[tx.user_email].push(tx);
     }
 
     console.log(`Processing ${Object.keys(byUser).length} users...`);
@@ -53,12 +53,12 @@ Deno.serve(async (req) => {
         createdLogs++;
 
         // Update balance
-        const balance = await base44.asServiceRole.entities.CamlycoinBalance.filter({
+        const balances = await base44.asServiceRole.entities.CamlycoinBalance.filter({
           user_email: userEmail
         });
 
-        if (balance && balance.length > 0) {
-          const bal = balance[0];
+        if (balances && balances.length > 0) {
+          const bal = balances[0];
           const newNetValid = (bal.net_valid_coins || 0) + totalCoins;
           const newTotal = newNetValid + (bal.frozen_balance || 0);
 
@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         errors: errorCount,
         total_users_recovered: Object.keys(byUser).length,
         total_coins_recovered: Object.values(byUser).reduce((sum, txs) => 
-          sum + txs.reduce((s, tx) => s + (tx.data.amount || 0), 0), 0
+          sum + txs.reduce((s, tx) => s + (tx.amount || 0), 0), 0
         )
       }
     });
