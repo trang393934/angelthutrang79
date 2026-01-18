@@ -32,9 +32,11 @@ Deno.serve(async (req) => {
       byUser[tx.user_email].push(tx);
     }
 
-    console.log(`Processing ${Object.keys(byUser).length} users...`);
+    // Process only first 5 users per batch to avoid timeout
+    const users = Object.entries(byUser).slice(0, 5);
+    console.log(`Processing ${users.length} users in this batch (of ${Object.keys(byUser).length} total)...`);
 
-    for (const [userEmail, txs] of Object.entries(byUser)) {
+    for (const [userEmail, txs] of users) {
       try {
         // Tạo audit log entries từ manual_add transactions
         const totalCoins = txs.reduce((sum, tx) => {
@@ -83,6 +85,7 @@ Deno.serve(async (req) => {
         await Promise.all(deletePromises);
 
         console.log(`✅ ${userEmail}: +${totalCoins.toLocaleString()} (${txs.length} TX recovered)`);
+        await new Promise(resolve => setTimeout(resolve, 100));
 
       } catch (error) {
         errorCount++;
