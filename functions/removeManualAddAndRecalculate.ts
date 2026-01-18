@@ -78,9 +78,9 @@ Deno.serve(async (req) => {
         });
 
         updatedCount++;
-        if (updatedCount % 100 === 0) {
+        if (updatedCount % 50 === 0) {
           console.log(`  ✅ Updated ${updatedCount}/${allBalances.length} balances`);
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
     }
