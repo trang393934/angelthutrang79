@@ -634,6 +634,52 @@ Vui lòng kiểm tra logs hoặc thử lại.`);
     setIsLoading(false);
   };
 
+  const handleBatchCleanup = async () => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      setResult('❌ Chỉ admin mới có thể chạy function này');
+      return;
+    }
+
+    setIsLoading(true);
+    setResult('');
+    setCleanupProgress({ status: 'running', message: '🔄 Đang chạy batch cleanup...' });
+
+    try {
+      const response = await base44.functions.invoke('cleanupManualAddBatch', {});
+      
+      setCleanupProgress({ 
+        status: response.need_more_rounds ? 'partial' : 'completed',
+        message: response.need_more_rounds ? '⚠️ Cần chạy thêm' : '✅ Hoàn tất!',
+        data: response
+      });
+      
+      setResult(`${response.need_more_rounds ? '⚠️' : '✅'} **BATCH CLEANUP**
+
+📊 **Kết Quả Batch Này:**
+- **Xóa:** ${response.deleted_transactions} manual_add
+- **Còn lại:** ${response.remaining_manual_adds} manual_add
+- **Cập nhật:** ${response.updated_users} users
+- **Tạo mới:** ${response.created_users} users
+- **Tổng users tìm thấy:** ${response.total_users_found}
+
+${response.need_more_rounds ? '⚠️ **CHẠY LẠI ĐỂ TIẾP TỤC!**' : '🎉 **HOÀN THÀNH TẤT CẢ!**'}
+
+💡 Dashboard và Honor Board đã cập nhật ngay lập tức.`);
+    } catch (error) {
+      setCleanupProgress({ 
+        status: 'error', 
+        message: '❌ Có lỗi xảy ra' 
+      });
+      setResult(`❌ **LỖI KHI CHẠY BATCH**
+
+Chi tiết: ${error.message || 'Unknown error'}
+
+Vui lòng thử lại.`);
+    }
+
+    setIsLoading(false);
+  };
+
   const handleMusicChat = async () => {
     if (!chatInput.trim() || isLoading || musicMessages.length === 0) return;
     
@@ -680,7 +726,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
   const handleProcess = () => {
     switch (activeTab) {
       case 'admin':
-        handleCleanupAndRebuild();
+        handleBatchCleanup();
         break;
       case 'quiz':
         handleGenerateQuiz();
@@ -838,37 +884,41 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
 
           {activeTab === 'admin' && (
             <div className="space-y-4">
-              <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="text-red-900 font-bold text-sm mb-2">⚠️ CẢNH BÁO QUAN TRỌNG</h4>
-                    <p className="text-red-800 text-sm leading-relaxed">
-                      Function này sẽ <strong>XÓA TẤT CẢ</strong> giao dịch "manual_add" và <strong>REBUILD TOÀN BỘ</strong> số dư users.
-                      Quá trình này <strong>KHÔNG THỂ HOÀN TÁC</strong>.
+                    <h4 className="text-green-900 font-bold text-sm mb-2">✅ KHUYẾN NGHỊ: Batch Cleanup</h4>
+                    <p className="text-green-800 text-sm leading-relaxed">
+                      Xóa <strong>50 manual_add</strong> + rebuild <strong>20 users</strong> mỗi lần. 
+                      <strong>An toàn</strong>, cập nhật dashboard ngay lập tức. Chạy nhiều lần đến khi hết.
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
-                <h4 className="text-blue-900 font-bold text-sm mb-2">📋 Function sẽ thực hiện:</h4>
-                <ul className="text-blue-800 text-sm space-y-1.5 list-disc list-inside">
-                  <li>✅ Xóa tất cả "manual_add" transactions (batch 500)</li>
-                  <li>✅ Rebuild số dư từ QuestionAuditLog + Transactions + Withdrawals</li>
-                  <li>✅ Cập nhật CamlycoinBalance cho tất cả users</li>
-                  <li>✅ Gửi email + AdminAlert thông báo kết quả</li>
-                </ul>
+              <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-red-900 font-bold text-sm mb-2">⚠️ Full Cleanup (Không khuyến nghị)</h4>
+                    <p className="text-red-800 text-sm leading-relaxed">
+                      Xóa <strong>TẤT CẢ</strong> manual_add một lúc - có thể bị rate limit.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {cleanupProgress && (
                 <div className={`border-2 rounded-xl p-4 ${
                   cleanupProgress.status === 'running' ? 'bg-yellow-50 border-yellow-300' :
+                  cleanupProgress.status === 'partial' ? 'bg-blue-50 border-blue-300' :
                   cleanupProgress.status === 'completed' ? 'bg-green-50 border-green-300' :
                   'bg-red-50 border-red-300'
                 }`}>
                   <p className={`font-bold text-sm ${
                     cleanupProgress.status === 'running' ? 'text-yellow-900' :
+                    cleanupProgress.status === 'partial' ? 'text-blue-900' :
                     cleanupProgress.status === 'completed' ? 'text-green-900' :
                     'text-red-900'
                   }`}>
@@ -876,7 +926,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
                   </p>
                   {cleanupProgress.data && (
                     <div className="mt-2 text-xs text-slate-700">
-                      <p>Xóa: {cleanupProgress.data.deleted_transactions} | Cập nhật: {cleanupProgress.data.updated_users} | Tạo mới: {cleanupProgress.data.created_users}</p>
+                      <p>Xóa: {cleanupProgress.data.deleted_transactions} | Còn lại: {cleanupProgress.data.remaining_manual_adds} | Cập nhật: {cleanupProgress.data.updated_users}</p>
                     </div>
                   )}
                 </div>
@@ -1097,11 +1147,10 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             />
           )}
 
-          {activeTab !== 'upload' && (
+          {activeTab !== 'upload' && activeTab !== 'admin' && (
             <Button
               onClick={handleProcess}
               disabled={
-                (activeTab === 'admin' && isLoading) ||
                 (activeTab === 'quiz' && !quizTopic.trim()) ||
                 (activeTab === 'assist' && !userAnswer.trim()) ||
                 (activeTab !== 'quiz' && activeTab !== 'assist' && activeTab !== 'admin' && !input.trim()) ||
@@ -1117,7 +1166,6 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  {activeTab === 'admin' && '🚀 Chạy Cleanup & Rebuild'}
                   {activeTab === 'quiz' && 'Tạo Quiz Ngay 📝'}
                   {activeTab === 'assist' && 'Gợi Ý Cải Thiện 💡'}
                   {activeTab === 'create' && 'Tạo Nội Dung Ngay'}
@@ -1130,6 +1178,47 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
                 </>
               )}
             </Button>
+          )}
+
+          {activeTab === 'admin' && (
+            <div className="grid grid-cols-1 gap-3">
+              <Button
+                onClick={handleBatchCleanup}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Đang Xử Lý...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    🔄 Chạy Batch Cleanup (50 + 20)
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={handleCleanupAndRebuild}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full border-2 border-red-300 text-red-700 hover:bg-red-50 rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Đang Xử Lý...
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    ⚠️ Full Cleanup (Không khuyến nghị)
+                  </>
+                )}
+              </Button>
+            </div>
           )}
         </motion.div>
 
