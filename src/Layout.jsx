@@ -24,6 +24,7 @@ export default function Layout({ children, currentPageName }) {
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
   const [currentUser, setCurrentUser] = useState(null);
   const [NotificationBell, setNotificationBell] = useState(null);
+  const [systemConfig, setSystemConfig] = useState(null);
   const location = useLocation();
 
   // Lazy load NotificationBell
@@ -34,6 +35,17 @@ export default function Layout({ children, currentPageName }) {
       });
     }
   }, [currentUser]);
+
+  // Check system status
+  useEffect(() => {
+    base44.entities.SystemConfig.filter({ config_key: 'system_status' })
+      .then(configs => {
+        if (configs && configs.length > 0) {
+          setSystemConfig(configs[0]);
+        }
+      })
+      .catch(() => setSystemConfig(null));
+  }, []);
 
   // Check user authentication and Light Law agreement
   useEffect(() => {
@@ -422,10 +434,65 @@ Trả lời bằng tiếng Việt, rõ ràng và dễ hiểu.`,
     return currentPageName === path || location.pathname.includes(path?.toLowerCase());
   };
 
+  // Show maintenance page if system is frozen (except for admins)
+  if (systemConfig?.is_frozen && currentUser?.role !== 'admin') {
+    return (
+      <ThemeProvider>
+        <div className="min-h-screen flex items-center justify-center p-4" style={{background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-2xl w-full bg-white rounded-3xl shadow-2xl p-8 text-center"
+          >
+            <motion.div
+              animate={{ 
+                rotate: [0, 10, -10, 10, 0],
+              }}
+              transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+              className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-red-400 to-orange-500 rounded-full flex items-center justify-center"
+            >
+              <span className="text-5xl">🚨</span>
+            </motion.div>
+
+            <h1 className="text-3xl font-bold text-slate-900 mb-4">
+              Hệ Thống Tạm Dừng Bảo Trì
+            </h1>
+
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-2xl p-6 mb-6">
+              <p className="text-slate-800 text-lg leading-relaxed whitespace-pre-line">
+                {systemConfig.maintenance_message}
+              </p>
+            </div>
+
+            {systemConfig.freeze_reason && (
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-2xl p-4 mb-4">
+                <p className="text-blue-900 font-semibold text-sm mb-1">📋 Lý do:</p>
+                <p className="text-slate-800">{systemConfig.freeze_reason}</p>
+              </div>
+            )}
+
+            {systemConfig.estimated_restore_time && (
+              <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-4">
+                <p className="text-green-900 font-semibold text-sm mb-1">⏰ Thời gian dự kiến:</p>
+                <p className="text-slate-800">{systemConfig.estimated_restore_time}</p>
+              </div>
+            )}
+
+            <div className="mt-8">
+              <p className="text-slate-600 text-sm">
+                Cảm ơn bạn đã kiên nhẫn. Chúng tôi đang làm việc chăm chỉ để khôi phục hệ thống! 🙏
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </ThemeProvider>
+    );
+  }
+
   return (
-          <ThemeProvider>
-          <div className="flex min-h-screen" style={{background: 'var(--bg-primary)'}}>
-      {/* Mobile Menu Button */}
+        <ThemeProvider>
+        <div className="flex min-h-screen" style={{background: 'var(--bg-primary)'}}>
+    {/* Mobile Menu Button */}
       <Button
         variant="ghost"
         size="icon"

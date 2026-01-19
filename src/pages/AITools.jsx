@@ -634,6 +634,74 @@ Vui lòng kiểm tra logs hoặc thử lại.`);
     setIsLoading(false);
   };
 
+  const handleFreezeSystem = async () => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      setResult('❌ Chỉ admin mới có thể đóng băng hệ thống');
+      return;
+    }
+
+    const confirmed = window.confirm('🚨 BẠN CHẮC CHẮN MUỐN ĐÓNG BĂNG HỆ THỐNG?\n\nTất cả users (trừ admin) sẽ không thể truy cập.\nChỉ sử dụng khi cần sửa lỗi nghiêm trọng!');
+    if (!confirmed) return;
+
+    setIsLoading(true);
+    setResult('');
+
+    try {
+      const { data: response } = await base44.functions.invoke('freezeSystemMaintenance', {
+        action: 'freeze',
+        reason: 'Hệ thống đang khắc phục lỗi tính điểm nghiêm trọng',
+        message: '🚨 HỆ THỐNG TẠM DỪNG BẢO TRÌ\n\nHệ thống phát hiện lỗi nghiêm trọng về tính điểm và đang tiến hành khắc phục khẩn cấp.\n\nĐội ngũ kỹ thuật đang:\n✅ Kiểm tra toàn bộ giao dịch\n✅ Xác định và xóa dữ liệu sai\n✅ Khôi phục số điểm chính xác cho tất cả users\n\nVui lòng quay lại sau. Chúng tôi sẽ thông báo ngay khi hoàn tất.'
+      });
+
+      setResult(`✅ **HỆ THỐNG ĐÃ BỊ ĐÓNG BĂNG**
+
+🚨 Tất cả users (trừ admin) giờ sẽ thấy trang bảo trì.
+
+💡 Để mở lại hệ thống, sử dụng nút "Mở Lại Hệ Thống" bên dưới.`);
+
+      // Reload page sau 2s để admin thấy thông báo frozen (nếu muốn test)
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    } catch (error) {
+      setResult(`❌ **LỖI KHI ĐÓNG BĂNG HỆ THỐNG**
+
+Chi tiết: ${error.message || 'Unknown error'}`);
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleUnfreezeSystem = async () => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      setResult('❌ Chỉ admin mới có thể mở lại hệ thống');
+      return;
+    }
+
+    setIsLoading(true);
+    setResult('');
+
+    try {
+      const { data: response } = await base44.functions.invoke('freezeSystemMaintenance', {
+        action: 'unfreeze'
+      });
+
+      setResult(`✅ **HỆ THỐNG ĐÃ ĐƯỢC MỞ LẠI**
+
+🎉 Users giờ có thể truy cập bình thường.`);
+
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    } catch (error) {
+      setResult(`❌ **LỖI KHI MỞ LẠI HỆ THỐNG**
+
+Chi tiết: ${error.message || 'Unknown error'}`);
+    }
+
+    setIsLoading(false);
+  };
+
   const handleBatchCleanup = async () => {
     if (!currentUser || currentUser.role !== 'admin') {
       setResult('❌ Chỉ admin mới có thể chạy function này');
@@ -884,6 +952,19 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
 
           {activeTab === 'admin' && (
             <div className="space-y-4">
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-300 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-red-900 font-bold text-sm mb-2">🚨 ĐÓNG BĂNG HỆ THỐNG (Khẩn Cấp)</h4>
+                    <p className="text-red-800 text-sm leading-relaxed">
+                      Tạm dừng toàn bộ hệ thống, hiển thị thông báo bảo trì cho users. 
+                      Chỉ admin có thể truy cập. Sử dụng khi cần sửa lỗi nghiêm trọng.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -1182,6 +1263,44 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
 
           {activeTab === 'admin' && (
             <div className="grid grid-cols-1 gap-3">
+              <Button
+                onClick={handleFreezeSystem}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Đang Xử Lý...
+                  </>
+                ) : (
+                  <>
+                    <AlertCircle className="w-5 h-5 mr-2" />
+                    🚨 Đóng Băng Hệ Thống (Khẩn Cấp)
+                  </>
+                )}
+              </Button>
+
+              <Button
+                onClick={handleUnfreezeSystem}
+                disabled={isLoading}
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Đang Xử Lý...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 mr-2" />
+                    ✅ Mở Lại Hệ Thống
+                  </>
+                )}
+              </Button>
+
+              <div className="border-t-2 border-slate-300 my-2" />
+
               <Button
                 onClick={handleBatchCleanup}
                 disabled={isLoading}
