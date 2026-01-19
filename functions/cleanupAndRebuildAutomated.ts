@@ -58,9 +58,15 @@ Deno.serve(async (req) => {
 
     // PHASE 2: Rebuild số dư tự động
     console.log('📍 PHASE 2: Rebuild số dư user...');
-    
-    const auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 50000);
-    const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 50000);
+
+    // Add delays to avoid rate limit
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 10000);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 10000);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
     const withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter({ status: 'completed' });
     
     // Group audit logs by user
@@ -97,7 +103,8 @@ Deno.serve(async (req) => {
     });
 
     // Update/create balances
-    const existingBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-updated_date', 50000);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const existingBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-updated_date', 10000);
     let updated = 0;
     let created = 0;
 
@@ -146,6 +153,7 @@ Deno.serve(async (req) => {
     
     try {
       await base44.asServiceRole.entities.AdminAlert.create({
+        title: 'Cleanup Completed',
         alert_type: 'cleanup_completed',
         severity: 'info',
         message: `Quy trình dọn dẹp 'manual add' hoàn tất thành công!`,
@@ -186,6 +194,7 @@ Deno.serve(async (req) => {
     try {
       const base44 = createClientFromRequest(req);
       await base44.asServiceRole.entities.AdminAlert.create({
+        title: 'Cleanup Failed',
         alert_type: 'cleanup_failed',
         severity: 'critical',
         message: `Quy trình dọn dẹp thất bại: ${error.message}`,
