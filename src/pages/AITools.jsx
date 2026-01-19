@@ -602,7 +602,7 @@ Ngôn ngữ: Tiếng Việt, dễ hiểu`,
     setCleanupProgress({ status: 'running', message: '🚀 Đang bắt đầu quy trình dọn dẹp...' });
 
     try {
-      const response = await base44.functions.invoke('cleanupAndRebuildAutomated', {});
+      const { data: response } = await base44.functions.invoke('cleanupAndRebuildAutomated', {});
       
       setCleanupProgress({ 
         status: 'completed', 
@@ -645,7 +645,7 @@ Vui lòng kiểm tra logs hoặc thử lại.`);
     setCleanupProgress({ status: 'running', message: '🔄 Đang chạy batch cleanup...' });
 
     try {
-      const response = await base44.functions.invoke('cleanupManualAddBatch', {});
+      const { data: response } = await base44.functions.invoke('cleanupManualAddBatch', {});
       
       setCleanupProgress({ 
         status: response.need_more_rounds ? 'partial' : 'completed',
