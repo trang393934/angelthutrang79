@@ -124,6 +124,9 @@ Deno.serve(async (req) => {
 
       const existingBalance = existingBalances.find(b => b.user_email === userEmail);
 
+      // Add small delay between updates to avoid rate limit
+      await new Promise(resolve => setTimeout(resolve, 200));
+
       if (existingBalance) {
         await base44.asServiceRole.entities.CamlycoinBalance.update(existingBalance.id, {
           net_valid_coins: netValidCoins,
