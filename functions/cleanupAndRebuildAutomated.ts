@@ -59,14 +59,14 @@ Deno.serve(async (req) => {
     // PHASE 2: Rebuild số dư tự động
     console.log('📍 PHASE 2: Rebuild số dư user...');
 
-    // Add delays to avoid rate limit - fetch in smaller batches
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    const auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 5000);
+    // Add delays to avoid rate limit - fetch in MUCH smaller batches
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    const auditLogs = await base44.asServiceRole.entities.QuestionAuditLog.list('-created_date', 1000);
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 5000);
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    const transactions = await base44.asServiceRole.entities.CamlycoinTransaction.list('-created_date', 1000);
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     const withdrawals = await base44.asServiceRole.entities.WithdrawalRequest.filter({ status: 'completed' });
     
     // Group audit logs by user
@@ -103,8 +103,8 @@ Deno.serve(async (req) => {
     });
 
     // Update/create balances
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    const existingBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-updated_date', 5000);
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    const existingBalances = await base44.asServiceRole.entities.CamlycoinBalance.list('-updated_date', 1000);
     let updated = 0;
     let created = 0;
 
@@ -115,7 +115,10 @@ Deno.serve(async (req) => {
       ...existingBalances.map(b => b.user_email)
     ]);
 
-    for (const userEmail of allUsers) {
+    // Limit to first 50 users per run to avoid rate limit
+    const usersToProcess = Array.from(allUsers).slice(0, 50);
+
+    for (const userEmail of usersToProcess) {
       const validCoins = (auditByUser[userEmail]?.valid || 0) + (txByUser[userEmail] || 0);
       const frozenCoins = auditByUser[userEmail]?.frozen || 0;
       const paidAmount = withdrawalByUser[userEmail] || 0;
@@ -124,8 +127,8 @@ Deno.serve(async (req) => {
 
       const existingBalance = existingBalances.find(b => b.user_email === userEmail);
 
-      // Add small delay between updates to avoid rate limit
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Add delay between updates to avoid rate limit
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       if (existingBalance) {
         await base44.asServiceRole.entities.CamlycoinBalance.update(existingBalance.id, {
