@@ -1,6 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music, PenTool, Lightbulb, Upload, BookOpen, HelpCircle, Edit3 } from 'lucide-react';
+import { ArrowLeft, Sparkles, FileText, Languages, BarChart3, Tags, Loader2, Copy, CheckCircle2, Music, PenTool, Lightbulb, Upload, BookOpen, HelpCircle, Edit3, Shield, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +15,8 @@ export default function AITools() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [cleanupProgress, setCleanupProgress] = useState(null);
   const [targetLanguage, setTargetLanguage] = useState('en');
   const [copied, setCopied] = useState(false);
   const [musicStyle, setMusicStyle] = useState('pop');
@@ -33,7 +35,14 @@ export default function AITools() {
   const [aiSuggestion, setAiSuggestion] = useState('');
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    base44.auth.me().then(user => {
+      setCurrentUser(user);
+    }).catch(() => setCurrentUser(null));
+  }, []);
+
   const tabs = [
+    { id: 'admin', label: '🔧 Admin Tools', icon: Shield, gradient: 'from-red-400 to-orange-500', adminOnly: true },
     { id: 'upload', label: 'Phân Tích File', icon: Upload, gradient: 'from-cyan-400 to-blue-500' },
     { id: 'quiz', label: 'Tạo Quiz', icon: HelpCircle, gradient: 'from-pink-400 to-rose-500' },
     { id: 'assist', label: 'AI Gợi Ý', icon: Edit3, gradient: 'from-emerald-400 to-green-500' },
@@ -582,6 +591,49 @@ Ngôn ngữ: Tiếng Việt, dễ hiểu`,
     setIsLoading(false);
   };
 
+  const handleCleanupAndRebuild = async () => {
+    if (!currentUser || currentUser.role !== 'admin') {
+      setResult('❌ Chỉ admin mới có thể chạy function này');
+      return;
+    }
+
+    setIsLoading(true);
+    setResult('');
+    setCleanupProgress({ status: 'running', message: '🚀 Đang bắt đầu quy trình dọn dẹp...' });
+
+    try {
+      const response = await base44.functions.invoke('cleanupAndRebuildAutomated', {});
+      
+      setCleanupProgress({ 
+        status: 'completed', 
+        message: '✅ Hoàn tất!',
+        data: response
+      });
+      
+      setResult(`✅ **HOÀN TẤT DỌN DẸP & REBUILD**
+
+📊 **Kết Quả:**
+- **Xóa:** ${response.deleted_transactions} giao dịch "manual add"
+- **Cập nhật:** ${response.updated_users} users
+- **Tạo mới:** ${response.created_users} users
+
+🎉 Hệ thống đã được dọn dẹp và rebuild hoàn toàn.
+📧 Email thông báo đã được gửi đến admin.`);
+    } catch (error) {
+      setCleanupProgress({ 
+        status: 'error', 
+        message: '❌ Có lỗi xảy ra' 
+      });
+      setResult(`❌ **LỖI KHI CHẠY FUNCTION**
+
+Chi tiết: ${error.message || 'Unknown error'}
+
+Vui lòng kiểm tra logs hoặc thử lại.`);
+    }
+
+    setIsLoading(false);
+  };
+
   const handleMusicChat = async () => {
     if (!chatInput.trim() || isLoading || musicMessages.length === 0) return;
     
@@ -627,6 +679,9 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
 
   const handleProcess = () => {
     switch (activeTab) {
+      case 'admin':
+        handleCleanupAndRebuild();
+        break;
       case 'quiz':
         handleGenerateQuiz();
         break;
@@ -718,7 +773,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
       <div className="pt-20 pb-32 px-4 max-w-6xl mx-auto">
         {/* Tabs */}
         <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-8">
-          {tabs.map((tab) => {
+          {tabs.filter(tab => !tab.adminOnly || (currentUser && currentUser.role === 'admin')).map((tab) => {
             const TabIcon = tab.icon;
             return (
               <motion.button
@@ -766,6 +821,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             <div>
               <h3 className="text-slate-900 font-bold text-lg">{currentTab?.label}</h3>
               <p className="text-purple-700 text-sm font-medium">
+              {activeTab === 'admin' && '🔧 Công cụ quản trị - Dọn dẹp và rebuild số dư tự động'}
               {activeTab === 'upload' && 'Tải lên file để AI phân tích và tóm tắt nội dung'}
               {activeTab === 'quiz' && 'Tạo câu hỏi luyện tập từ chủ đề hoặc tài liệu'}
               {activeTab === 'assist' && 'Nhận gợi ý và chỉnh sửa từ AI cho câu trả lời của bạn'}
@@ -779,6 +835,54 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
               </p>
             </div>
           </div>
+
+          {activeTab === 'admin' && (
+            <div className="space-y-4">
+              <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-red-900 font-bold text-sm mb-2">⚠️ CẢNH BÁO QUAN TRỌNG</h4>
+                    <p className="text-red-800 text-sm leading-relaxed">
+                      Function này sẽ <strong>XÓA TẤT CẢ</strong> giao dịch "manual_add" và <strong>REBUILD TOÀN BỘ</strong> số dư users.
+                      Quá trình này <strong>KHÔNG THỂ HOÀN TÁC</strong>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
+                <h4 className="text-blue-900 font-bold text-sm mb-2">📋 Function sẽ thực hiện:</h4>
+                <ul className="text-blue-800 text-sm space-y-1.5 list-disc list-inside">
+                  <li>✅ Xóa tất cả "manual_add" transactions (batch 500)</li>
+                  <li>✅ Rebuild số dư từ QuestionAuditLog + Transactions + Withdrawals</li>
+                  <li>✅ Cập nhật CamlycoinBalance cho tất cả users</li>
+                  <li>✅ Gửi email + AdminAlert thông báo kết quả</li>
+                </ul>
+              </div>
+
+              {cleanupProgress && (
+                <div className={`border-2 rounded-xl p-4 ${
+                  cleanupProgress.status === 'running' ? 'bg-yellow-50 border-yellow-300' :
+                  cleanupProgress.status === 'completed' ? 'bg-green-50 border-green-300' :
+                  'bg-red-50 border-red-300'
+                }`}>
+                  <p className={`font-bold text-sm ${
+                    cleanupProgress.status === 'running' ? 'text-yellow-900' :
+                    cleanupProgress.status === 'completed' ? 'text-green-900' :
+                    'text-red-900'
+                  }`}>
+                    {cleanupProgress.message}
+                  </p>
+                  {cleanupProgress.data && (
+                    <div className="mt-2 text-xs text-slate-700">
+                      <p>Xóa: {cleanupProgress.data.deleted_transactions} | Cập nhật: {cleanupProgress.data.updated_users} | Tạo mới: {cleanupProgress.data.created_users}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {activeTab === 'upload' && (
             <div className="mb-4">
@@ -997,9 +1101,10 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             <Button
               onClick={handleProcess}
               disabled={
+                (activeTab === 'admin' && isLoading) ||
                 (activeTab === 'quiz' && !quizTopic.trim()) ||
                 (activeTab === 'assist' && !userAnswer.trim()) ||
-                (activeTab !== 'quiz' && activeTab !== 'assist' && !input.trim()) ||
+                (activeTab !== 'quiz' && activeTab !== 'assist' && activeTab !== 'admin' && !input.trim()) ||
                 isLoading
               }
               className={`w-full bg-gradient-to-r ${currentTab?.gradient} text-white rounded-2xl shadow-lg hover:shadow-xl disabled:opacity-50 font-bold text-lg py-6`}
@@ -1012,6 +1117,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
+                  {activeTab === 'admin' && '🚀 Chạy Cleanup & Rebuild'}
                   {activeTab === 'quiz' && 'Tạo Quiz Ngay 📝'}
                   {activeTab === 'assist' && 'Gợi Ý Cải Thiện 💡'}
                   {activeTab === 'create' && 'Tạo Nội Dung Ngay'}
