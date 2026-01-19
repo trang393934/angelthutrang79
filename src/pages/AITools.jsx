@@ -1080,7 +1080,7 @@ Trả về bài hát đã được chỉnh sửa hoàn chỉnh.`,
             </div>
           )}
 
-          {activeTab !== 'upload' && activeTab !== 'quiz' && activeTab !== 'assist' && (
+          {activeTab !== 'upload' && activeTab !== 'quiz' && activeTab !== 'assist' && activeTab !== 'admin' && (
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
