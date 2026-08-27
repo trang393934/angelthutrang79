@@ -1,0 +1,85 @@
+{
+  "name": "GratitudeJournal",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "post_content": {
+      "type": "string",
+      "description": "N\u1ed9i dung b\u00e0i vi\u1ebft s\u00e1m h\u1ed1i/bi\u1ebft \u01a1n"
+    },
+    "post_type": {
+      "type": "string",
+      "enum": [
+        "repentance",
+        "gratitude",
+        "both"
+      ],
+      "description": "Lo\u1ea1i b\u00e0i vi\u1ebft: s\u00e1m h\u1ed1i, bi\u1ebft \u01a1n, ho\u1eb7c c\u1ea3 hai"
+    },
+    "post_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi gian \u0111\u0103ng b\u00e0i"
+    },
+    "post_hour": {
+      "type": "number",
+      "description": "Gi\u1edd \u0111\u0103ng b\u00e0i (0-23)"
+    },
+    "is_after_8pm": {
+      "type": "boolean",
+      "description": "B\u00e0i vi\u1ebft c\u00f3 sau 20h kh\u00f4ng"
+    },
+    "coins_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 Camlycoin \u0111\u01b0\u1ee3c th\u01b0\u1edfng"
+    },
+    "word_count": {
+      "type": "number",
+      "description": "S\u1ed1 t\u1eeb trong b\u00e0i vi\u1ebft"
+    },
+    "quality_score": {
+      "type": "number",
+      "description": "\u0110i\u1ec3m ch\u1ea5t l\u01b0\u1ee3ng (0-100)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "approved",
+      "description": "Tr\u1ea1ng th\u00e1i b\u00e0i vi\u1ebft"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Ghi ch\u00fa c\u1ee7a admin"
+    },
+    "bonus_multiplier": {
+      "type": "number",
+      "default": 1,
+      "description": "H\u1ec7 s\u1ed1 nh\u00e2n th\u01b0\u1edfng (1.0 = 100%)"
+    },
+    "is_self_written": {
+      "type": "boolean",
+      "default": false,
+      "description": "B\u00e0i vi\u1ebft t\u1ef1 s\u00e1ng t\u1ea1o (kh\u00f4ng d\u1ef1a g\u1ee3i \u00fd Angel AI)"
+    }
+  },
+  "required": [
+    "user_email",
+    "post_content",
+    "post_type",
+    "post_date"
+  ],
+  "security": {
+    "read": "email == user_email || role == 'admin'",
+    "create": "role == 'admin'",
+    "update": "role == 'admin'",
+    "delete": "role == 'admin'"
+  }
+}

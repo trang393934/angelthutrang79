@@ -1,0 +1,64 @@
+{
+  "name": "UserQuestProgress",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "quest_id": {
+      "type": "string",
+      "description": "ID c\u1ee7a quest"
+    },
+    "current_progress": {
+      "type": "number",
+      "default": 0,
+      "description": "Ti\u1ebfn \u0111\u1ed9 hi\u1ec7n t\u1ea1i"
+    },
+    "target_count": {
+      "type": "number",
+      "description": "S\u1ed1 l\u01b0\u1ee3ng c\u1ea7n ho\u00e0n th\u00e0nh"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "in_progress",
+        "completed",
+        "claimed"
+      ],
+      "default": "in_progress",
+      "description": "Tr\u1ea1ng th\u00e1i nhi\u1ec7m v\u1ee5"
+    },
+    "started_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y b\u1eaft \u0111\u1ea7u"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y ho\u00e0n th\u00e0nh"
+    },
+    "claimed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y nh\u1eadn th\u01b0\u1edfng"
+    },
+    "reward_claimed": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u0110\u00e3 nh\u1eadn th\u01b0\u1edfng ch\u01b0a"
+    },
+    "reset_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y reset (cho daily/weekly quests)"
+    }
+  },
+  "required": [
+    "user_email",
+    "quest_id",
+    "target_count"
+  ],
+  "rls": {}
+}

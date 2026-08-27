@@ -1,0 +1,69 @@
+{
+  "name": "BuildIdea",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Ti\u00eau \u0111\u1ec1 \u00fd t\u01b0\u1edfng"
+    },
+    "description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 chi ti\u1ebft \u00fd t\u01b0\u1edfng"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "code",
+        "content",
+        "idea",
+        "community",
+        "design",
+        "marketing"
+      ],
+      "description": "Danh m\u1ee5c \u0111\u00f3ng g\u00f3p"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "completed",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Tr\u1ea1ng th\u00e1i \u00fd t\u01b0\u1edfng"
+    },
+    "impact": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "M\u1ee9c \u0111\u1ed9 t\u00e1c \u0111\u1ed9ng"
+    },
+    "feasibility": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "T\u00ednh kh\u1ea3 thi"
+    },
+    "reward_points": {
+      "type": "number",
+      "description": "S\u1ed1 \u0111i\u1ec3m th\u01b0\u1edfng d\u1ef1 ki\u1ebfn"
+    },
+    "votes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t vote t\u1eeb c\u1ed9ng \u0111\u1ed3ng"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "category"
+  ]
+}

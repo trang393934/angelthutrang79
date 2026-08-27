@@ -1,0 +1,44 @@
+{
+  "name": "CamlycoinBalance",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email c\u1ee7a ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "total_earned": {
+      "type": "integer",
+      "default": 0,
+      "description": "T\u1ed5ng ki\u1ebfm \u0111\u01b0\u1ee3c = net_valid_coins + frozen_balance"
+    },
+    "net_valid_coins": {
+      "type": "integer",
+      "default": 0,
+      "description": "T\u1ed5ng \u0111i\u1ec3m h\u1ee3p l\u1ec7 t\u1eeb 10 c\u00e2u \u0111\u1ea7u ti\u00ean/ng\u00e0y v\u00e0 c\u00e1c ho\u1ea1t \u0111\u1ed9ng kh\u00e1c (tr\u01b0\u1edbc khi tr\u1eeb paid_amount)"
+    },
+    "frozen_balance": {
+      "type": "integer",
+      "default": 0,
+      "description": "T\u1ed5ng b\u1ecb \u0110\u00f3ng B\u0103ng (c\u00e2u tr\u00f9ng, ch\u00e0o, spam)"
+    },
+    "paid_amount": {
+      "type": "integer",
+      "default": 0,
+      "description": "T\u1ed5ng \u0111i\u1ec3m \u0111\u00e3 thanh to\u00e1n th\u00e0nh c\u00f4ng"
+    },
+    "available_for_withdrawal": {
+      "type": "integer",
+      "default": 0,
+      "description": "S\u1ed1 d\u01b0 s\u1eb5n s\u00e0ng r\u00fat = net_valid_coins - paid_amount"
+    }
+  },
+  "required": [
+    "user_email"
+  ],
+  "security": {
+    "read": "true",
+    "create": "role == 'admin'",
+    "update": "role == 'admin'",
+    "delete": "role == 'admin'"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "MeditationReminder",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "reminder_5am": {
+      "type": "boolean",
+      "default": true,
+      "description": "Nh\u1eafc nh\u1edf l\u00fac 5h s\u00e1ng"
+    },
+    "reminder_12pm": {
+      "type": "boolean",
+      "default": true,
+      "description": "Nh\u1eafc nh\u1edf l\u00fac 12h tr\u01b0a"
+    },
+    "reminder_8pm": {
+      "type": "boolean",
+      "default": true,
+      "description": "Nh\u1eafc nh\u1edf l\u00fac 20h t\u1ed1i"
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "B\u1eadt/t\u1eaft h\u1ec7 th\u1ed1ng nh\u1eafc nh\u1edf"
+    },
+    "last_practice_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y th\u1ef1c h\u00e0nh g\u1ea7n nh\u1ea5t"
+    },
+    "streak_days": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 ng\u00e0y th\u1ef1c h\u00e0nh li\u00ean t\u1ee5c"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

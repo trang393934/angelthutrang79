@@ -1,0 +1,52 @@
+{
+  "name": "UserActivity",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email c\u1ee7a ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "chat_message",
+        "ai_tool_use",
+        "knowledge_upload",
+        "vision_create",
+        "library_view",
+        "imagine_use",
+        "bounty_submit",
+        "settings_update"
+      ],
+      "description": "Lo\u1ea1i ho\u1ea1t \u0111\u1ed9ng"
+    },
+    "activity_details": {
+      "type": "object",
+      "properties": {
+        "feature": {
+          "type": "string"
+        },
+        "tool_type": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number"
+        },
+        "topic": {
+          "type": "string"
+        }
+      },
+      "description": "Chi ti\u1ebft ho\u1ea1t \u0111\u1ed9ng"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi gian ho\u1ea1t \u0111\u1ed9ng"
+    }
+  },
+  "required": [
+    "user_email",
+    "activity_type",
+    "timestamp"
+  ]
+}

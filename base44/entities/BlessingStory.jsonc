@@ -1,0 +1,63 @@
+{
+  "name": "BlessingStory",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi chia s\u1ebb"
+    },
+    "title": {
+      "type": "string",
+      "description": "Ti\u00eau \u0111\u1ec1 c\u00e2u chuy\u1ec7n ph\u01b0\u1edbc l\u00e0nh"
+    },
+    "content": {
+      "type": "string",
+      "description": "N\u1ed9i dung c\u00e2u chuy\u1ec7n chi ti\u1ebft"
+    },
+    "blessing_type": {
+      "type": "string",
+      "enum": [
+        "health",
+        "wealth",
+        "relationship",
+        "spiritual",
+        "peace",
+        "family",
+        "career",
+        "other"
+      ],
+      "default": "spiritual",
+      "description": "Lo\u1ea1i ph\u01b0\u1edbc l\u00e0nh"
+    },
+    "image_url": {
+      "type": "string",
+      "description": "URL h\u00ecnh \u1ea3nh minh h\u1ecda (n\u1ebfu c\u00f3)"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t th\u00edch"
+    },
+    "is_featured": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin ch\u1ecdn c\u00e2u chuy\u1ec7n n\u1ed5i b\u1eadt"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "approved",
+      "description": "Tr\u1ea1ng th\u00e1i duy\u1ec7t"
+    }
+  },
+  "required": [
+    "user_email",
+    "title",
+    "content",
+    "blessing_type"
+  ]
+}

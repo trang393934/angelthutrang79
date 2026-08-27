@@ -1,0 +1,82 @@
+{
+  "name": "ForumPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Ti\u00eau \u0111\u1ec1 b\u00e0i \u0111\u0103ng"
+    },
+    "content": {
+      "type": "string",
+      "description": "N\u1ed9i dung b\u00e0i \u0111\u0103ng"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "qa",
+        "experience",
+        "feedback",
+        "announcement"
+      ],
+      "default": "general",
+      "description": "Danh m\u1ee5c b\u00e0i \u0111\u0103ng"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags cho b\u00e0i \u0111\u0103ng"
+    },
+    "upvotes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t upvote"
+    },
+    "downvotes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t downvote"
+    },
+    "upvoted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch email \u0111\u00e3 upvote"
+    },
+    "downvoted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch email \u0111\u00e3 downvote"
+    },
+    "reply_count": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3ng reply"
+    },
+    "view_count": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t xem"
+    },
+    "is_pinned": {
+      "type": "boolean",
+      "default": false,
+      "description": "B\u00e0i \u0111\u0103ng \u0111\u01b0\u1ee3c ghim"
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Kh\u00f3a b\u00ecnh lu\u1eadn"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "category"
+  ]
+}

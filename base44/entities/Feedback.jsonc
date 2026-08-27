@@ -1,0 +1,34 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "message_content": {
+      "type": "string",
+      "description": "N\u1ed9i dung c\u00e2u tr\u1ea3 l\u1eddi \u0111\u01b0\u1ee3c \u0111\u00e1nh gi\u00e1"
+    },
+    "rating": {
+      "type": "string",
+      "enum": [
+        "helpful",
+        "not_helpful"
+      ],
+      "description": "\u0110\u00e1nh gi\u00e1 c\u1ee7a ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "feedback_text": {
+      "type": "string",
+      "description": "Nh\u1eadn x\u00e9t chi ti\u1ebft t\u1eeb ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "conversation_context": {
+      "type": "string",
+      "description": "Context c\u1ee7a cu\u1ed9c tr\u00f2 chuy\u1ec7n"
+    },
+    "ai_analysis": {
+      "type": "string",
+      "description": "Ph\u00e2n t\u00edch c\u1ee7a AI v\u1ec1 feedback"
+    }
+  },
+  "required": [
+    "message_content",
+    "rating"
+  ]
+}

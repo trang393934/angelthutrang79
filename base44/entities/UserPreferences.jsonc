@@ -1,0 +1,98 @@
+{
+  "name": "UserPreferences",
+  "type": "object",
+  "properties": {
+    "response_style": {
+      "type": "string",
+      "enum": [
+        "formal",
+        "friendly",
+        "concise",
+        "detailed",
+        "humorous",
+        "poetic"
+      ],
+      "default": "friendly",
+      "description": "Phong c\u00e1ch tr\u1ea3 l\u1eddi \u01b0a th\u00edch"
+    },
+    "tone": {
+      "type": "string",
+      "enum": [
+        "gentle",
+        "energetic",
+        "peaceful",
+        "motivational",
+        "warm",
+        "cheerful",
+        "serious",
+        "compassionate"
+      ],
+      "default": "gentle",
+      "description": "Gi\u1ecdng \u0111i\u1ec7u \u01b0a th\u00edch"
+    },
+    "communication_style": {
+      "type": "string",
+      "enum": [
+        "\u89aa\u5207",
+        "\u89aa\u5bc6",
+        "\u5c08\u696d",
+        "\u6d3b\u6f51",
+        "\u6eab\u67d4",
+        "\u667a\u6167"
+      ],
+      "default": "\u89aa\u5bc6",
+      "description": "Phong c\u00e1ch giao ti\u1ebfp"
+    },
+    "topics_of_interest": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "C\u00e1c ch\u1ee7 \u0111\u1ec1 quan t\u00e2m"
+    },
+    "personal_notes": {
+      "type": "string",
+      "description": "Ghi ch\u00fa c\u00e1 nh\u00e2n v\u1ec1 ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "learning_preferences": {
+      "type": "object",
+      "properties": {
+        "prefer_examples": {
+          "type": "boolean",
+          "default": true,
+          "description": "\u01afa th\u00edch v\u00ed d\u1ee5 c\u1ee5 th\u1ec3"
+        },
+        "prefer_metaphors": {
+          "type": "boolean",
+          "default": true,
+          "description": "\u01afa th\u00edch \u1ea9n d\u1ee5"
+        },
+        "prefer_step_by_step": {
+          "type": "boolean",
+          "default": true,
+          "description": "\u01afa th\u00edch h\u01b0\u1edbng d\u1eabn t\u1eebng b\u01b0\u1edbc"
+        }
+      },
+      "description": "S\u1edf th\u00edch h\u1ecdc t\u1eadp"
+    },
+    "interaction_history": {
+      "type": "object",
+      "properties": {
+        "favorite_topics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "C\u00e1c ch\u1ee7 \u0111\u1ec1 \u0111\u01b0\u1ee3c h\u1ecfi nhi\u1ec1u nh\u1ea5t"
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "date-time",
+          "description": "L\u1ea7n c\u1eadp nh\u1eadt cu\u1ed1i"
+        }
+      },
+      "description": "L\u1ecbch s\u1eed t\u01b0\u01a1ng t\u00e1c \u0111\u1ec3 AI h\u1ecdc h\u1ecfi"
+    }
+  },
+  "required": []
+}

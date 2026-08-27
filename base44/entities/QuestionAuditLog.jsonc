@@ -1,0 +1,78 @@
+{
+  "name": "QuestionAuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "transaction_id": {
+      "type": "string",
+      "description": "ID c\u1ee7a transaction t\u01b0\u01a1ng \u1ee9ng"
+    },
+    "question_text": {
+      "type": "string",
+      "description": "N\u1ed9i dung c\u00e2u h\u1ecfi"
+    },
+    "question_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi gian \u0111\u1eb7t c\u00e2u h\u1ecfi"
+    },
+    "coins_earned": {
+      "type": "integer",
+      "description": "S\u1ed1 coins ki\u1ebfm \u0111\u01b0\u1ee3c"
+    },
+    "exclusion_reason": {
+      "type": "string",
+      "enum": [
+        "duplicate",
+        "greeting",
+        "exceeds_daily_limit",
+        "low_quality",
+        "valid"
+      ],
+      "description": "L\u00fd do lo\u1ea1i b\u1ecf ho\u1eb7c h\u1ee3p l\u1ec7"
+    },
+    "similar_to_question": {
+      "type": "string",
+      "description": "C\u00e2u h\u1ecfi t\u01b0\u01a1ng t\u1ef1 (n\u1ebfu duplicate)"
+    },
+    "similarity_score": {
+      "type": "number",
+      "description": "\u0110i\u1ec3m t\u01b0\u01a1ng \u0111\u1ed3ng (0-1)"
+    },
+    "coin_category": {
+      "type": "string",
+      "enum": [
+        "frozen",
+        "pending_review",
+        "pending_withdrawal"
+      ],
+      "description": "Coins \u0111\u01b0\u1ee3c ph\u00e2n v\u00e0o category n\u00e0o"
+    },
+    "audit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y audit"
+    },
+    "question_number_in_day": {
+      "type": "integer",
+      "description": "Th\u1ee9 t\u1ef1 c\u00e2u h\u1ecfi trong ng\u00e0y (1-indexed)"
+    }
+  },
+  "required": [
+    "user_email",
+    "question_text",
+    "question_date",
+    "coins_earned",
+    "exclusion_reason",
+    "coin_category"
+  ],
+  "security": {
+    "read": "email == user_email || role == 'admin'",
+    "create": "role == 'admin'",
+    "update": "role == 'admin'",
+    "delete": "role == 'admin'"
+  }
+}

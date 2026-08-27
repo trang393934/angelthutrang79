@@ -1,0 +1,48 @@
+{
+  "name": "BountySubmission",
+  "type": "object",
+  "properties": {
+    "task_id": {
+      "type": "number",
+      "description": "ID c\u1ee7a nhi\u1ec7m v\u1ee5 bounty"
+    },
+    "task_title": {
+      "type": "string",
+      "description": "T\u00ean nhi\u1ec7m v\u1ee5"
+    },
+    "proof_link": {
+      "type": "string",
+      "description": "Link b\u1eb1ng ch\u1ee9ng ho\u00e0n th\u00e0nh (URL post, repo, file, v.v.)"
+    },
+    "description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 v\u1ec1 c\u00e1ch ho\u00e0n th\u00e0nh nhi\u1ec7m v\u1ee5"
+    },
+    "wallet_address": {
+      "type": "string",
+      "description": "\u0110\u1ecba ch\u1ec9 v\u00ed \u0111\u1ec3 nh\u1eadn th\u01b0\u1edfng"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Tr\u1ea1ng th\u00e1i ph\u00ea duy\u1ec7t"
+    },
+    "reward_amount": {
+      "type": "number",
+      "description": "S\u1ed1 l\u01b0\u1ee3ng Camlycoin th\u01b0\u1edfng"
+    }
+  },
+  "required": [
+    "task_id",
+    "task_title",
+    "proof_link",
+    "wallet_address",
+    "reward_amount"
+  ],
+  "rls": {}
+}

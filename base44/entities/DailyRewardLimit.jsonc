@@ -1,0 +1,29 @@
+{
+  "name": "DailyRewardLimit",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email c\u1ee7a ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y (YYYY-MM-DD)"
+    },
+    "questions_rewarded": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 c\u00e2u h\u1ecfi \u0111\u00e3 \u0111\u01b0\u1ee3c th\u01b0\u1edfng trong ng\u00e0y"
+    },
+    "total_coins_earned_today": {
+      "type": "number",
+      "default": 0,
+      "description": "T\u1ed5ng s\u1ed1 Camlycoin \u0111\u00e3 ki\u1ebfm trong ng\u00e0y"
+    }
+  },
+  "required": [
+    "user_email",
+    "date"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "light_law_agreed": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u0110\u00e3 \u0111\u1ed3ng \u00fd v\u1edbi Lu\u1eadt \u00c1nh S\u00e1ng"
+    },
+    "web3_wallet": {
+      "type": "string",
+      "description": "\u0110\u1ecba ch\u1ec9 v\u00ed Web3 (Ethereum/Polygon)"
+    }
+  },
+  "required": [
+    "web3_wallet"
+  ]
+}

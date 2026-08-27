@@ -1,0 +1,35 @@
+{
+  "name": "DailyAutoClaimLimit",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y (YYYY-MM-DD)"
+    },
+    "total_claimed_today": {
+      "type": "number",
+      "default": 0,
+      "description": "T\u1ed5ng s\u1ed1 CAMLY \u0111\u00e3 claim trong ng\u00e0y"
+    },
+    "claim_count": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u1ea7n claim trong ng\u00e0y"
+    },
+    "remaining_limit": {
+      "type": "number",
+      "default": 500000,
+      "description": "S\u1ed1 CAMLY c\u00f2n l\u1ea1i c\u00f3 th\u1ec3 claim h\u00f4m nay"
+    }
+  },
+  "required": [
+    "user_email",
+    "date"
+  ],
+  "rls": {}
+}

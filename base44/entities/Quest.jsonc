@@ -1,0 +1,100 @@
+{
+  "name": "Quest",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "T\u00ean nhi\u1ec7m v\u1ee5"
+    },
+    "description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 nhi\u1ec7m v\u1ee5"
+    },
+    "quest_type": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "one_time",
+        "achievement"
+      ],
+      "description": "Lo\u1ea1i nhi\u1ec7m v\u1ee5"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "chat",
+        "ai_tools",
+        "social",
+        "learning",
+        "community"
+      ],
+      "description": "Danh m\u1ee5c nhi\u1ec7m v\u1ee5"
+    },
+    "target_count": {
+      "type": "number",
+      "description": "S\u1ed1 l\u01b0\u1ee3ng c\u1ea7n ho\u00e0n th\u00e0nh"
+    },
+    "target_action": {
+      "type": "string",
+      "description": "H\u00e0nh \u0111\u1ed9ng c\u1ea7n th\u1ef1c hi\u1ec7n (quality_question, ai_tool_use, share_content, feedback_given, etc.)"
+    },
+    "reward_coins": {
+      "type": "number",
+      "description": "S\u1ed1 Camlycoin th\u01b0\u1edfng khi ho\u00e0n th\u00e0nh"
+    },
+    "reward_bonus": {
+      "type": "string",
+      "description": "Th\u01b0\u1edfng bonus (badge, feature unlock, multiplier, etc.)"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon emoji cho nhi\u1ec7m v\u1ee5"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "easy",
+        "medium",
+        "hard",
+        "expert"
+      ],
+      "default": "easy",
+      "description": "\u0110\u1ed9 kh\u00f3 nhi\u1ec7m v\u1ee5"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Nhi\u1ec7m v\u1ee5 c\u00f3 \u0111ang active kh\u00f4ng"
+    },
+    "reset_schedule": {
+      "type": "string",
+      "enum": [
+        "never",
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "default": "never",
+      "description": "L\u1ecbch reset nhi\u1ec7m v\u1ee5"
+    },
+    "required_level": {
+      "type": "number",
+      "default": 1,
+      "description": "Level t\u1ed1i thi\u1ec3u \u0111\u1ec3 nh\u1eadn nhi\u1ec7m v\u1ee5"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi h\u1ea1n ho\u00e0n th\u00e0nh (n\u1ebfu c\u00f3)"
+    }
+  },
+  "required": [
+    "title",
+    "description",
+    "quest_type",
+    "target_count",
+    "target_action",
+    "reward_coins"
+  ]
+}

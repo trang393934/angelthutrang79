@@ -1,0 +1,50 @@
+{
+  "name": "CamlycoinTransaction",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email c\u1ee7a ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "amount": {
+      "type": "integer",
+      "description": "S\u1ed1 l\u01b0\u1ee3ng Camlycoin (d\u01b0\u01a1ng = nh\u1eadn, \u00e2m = ti\u00eau)"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "bounty_reward",
+        "build_reward",
+        "admin_adjustment",
+        "manual_add",
+        "manual_deduct",
+        "purchase"
+      ],
+      "description": "Lo\u1ea1i giao d\u1ecbch"
+    },
+    "description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 giao d\u1ecbch"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID tham chi\u1ebfu (submission ID, idea ID, v.v.)"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Email c\u1ee7a admin x\u1eed l\u00fd (n\u1ebfu c\u00f3)"
+    }
+  },
+  "required": [
+    "user_email",
+    "amount",
+    "type",
+    "description"
+  ],
+  "security": {
+    "create": "role == 'admin'",
+    "update": "role == 'admin'",
+    "delete": "role == 'admin'",
+    "read": "email == user_email || role == 'admin'"
+  }
+}

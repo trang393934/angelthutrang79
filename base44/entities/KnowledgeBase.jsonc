@@ -1,0 +1,55 @@
+{
+  "name": "KnowledgeBase",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Ti\u00eau \u0111\u1ec1 t\u00e0i li\u1ec7u/gi\u00e1o l\u00fd"
+    },
+    "content": {
+      "type": "string",
+      "description": "N\u1ed9i dung \u0111\u00e3 \u0111\u01b0\u1ee3c tr\u00edch xu\u1ea5t t\u1eeb file"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL c\u1ee7a file \u0111\u00e3 upload"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "document",
+        "teaching",
+        "article",
+        "mantra",
+        "guideline"
+      ],
+      "default": "document",
+      "description": "Lo\u1ea1i t\u00e0i li\u1ec7u"
+    },
+    "category_id": {
+      "type": "string",
+      "description": "ID c\u1ee7a th\u01b0 m\u1ee5c ch\u1ee9a t\u00e0i li\u1ec7u"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags \u0111\u1ec3 ph\u00e2n lo\u1ea1i"
+    },
+    "summary": {
+      "type": "string",
+      "description": "T\u00f3m t\u1eaft n\u1ed9i dung"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "AI c\u00f3 s\u1eed d\u1ee5ng t\u00e0i li\u1ec7u n\u00e0y kh\u00f4ng"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "type"
+  ]
+}

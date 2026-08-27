@@ -1,0 +1,90 @@
+{
+  "name": "CommunityReward",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng nh\u1eadn th\u01b0\u1edfng"
+    },
+    "reward_type": {
+      "type": "string",
+      "enum": [
+        "share_content",
+        "upload_knowledge",
+        "helpful_feedback",
+        "daily_login",
+        "gratitude_journal",
+        "vision_creation",
+        "community_help",
+        "quality_question"
+      ],
+      "description": "Lo\u1ea1i ho\u1ea1t \u0111\u1ed9ng \u0111\u01b0\u1ee3c th\u01b0\u1edfng"
+    },
+    "activity_description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 ho\u1ea1t \u0111\u1ed9ng c\u1ee5 th\u1ec3"
+    },
+    "coins_awarded": {
+      "type": "number",
+      "description": "S\u1ed1 Camlycoin \u0111\u01b0\u1ee3c t\u1eb7ng"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID tham chi\u1ebfu (message, knowledge base, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Tr\u1ea1ng th\u00e1i x\u00e9t duy\u1ec7t"
+    },
+    "auto_approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "T\u1ef1 \u0111\u1ed9ng duy\u1ec7t hay c\u1ea7n admin review"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Admin x\u1eed l\u00fd (n\u1ebfu c\u00f3)"
+    },
+    "processed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y x\u1eed l\u00fd"
+    },
+    "upvotes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t upvote"
+    },
+    "downvotes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t downvote"
+    },
+    "upvoted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch email \u0111\u00e3 upvote"
+    },
+    "downvoted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch email \u0111\u00e3 downvote"
+    }
+  },
+  "required": [
+    "user_email",
+    "reward_type",
+    "activity_description",
+    "coins_awarded"
+  ]
+}

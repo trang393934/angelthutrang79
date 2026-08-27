@@ -1,0 +1,34 @@
+{
+  "name": "KnowledgeFAQ",
+  "type": "object",
+  "properties": {
+    "question": {
+      "type": "string",
+      "description": "C\u00e2u h\u1ecfi th\u01b0\u1eddng g\u1eb7p"
+    },
+    "answer": {
+      "type": "string",
+      "description": "C\u00e2u tr\u1ea3 l\u1eddi chi ti\u1ebft"
+    },
+    "related_docs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ID c\u00e1c t\u00e0i li\u1ec7u li\u00ean quan"
+    },
+    "category": {
+      "type": "string",
+      "description": "Danh m\u1ee5c FAQ"
+    },
+    "views": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t xem"
+    }
+  },
+  "required": [
+    "question",
+    "answer"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "SystemConfig",
+  "type": "object",
+  "properties": {
+    "config_key": {
+      "type": "string",
+      "description": "Unique config key (e.g., 'system_status')"
+    },
+    "is_frozen": {
+      "type": "boolean",
+      "default": false,
+      "description": "H\u1ec7 th\u1ed1ng c\u00f3 \u0111ang \u0111\u00f3ng b\u0103ng kh\u00f4ng"
+    },
+    "freeze_reason": {
+      "type": "string",
+      "description": "L\u00fd do \u0111\u00f3ng b\u0103ng"
+    },
+    "estimated_restore_time": {
+      "type": "string",
+      "description": "Th\u1eddi gian d\u1ef1 ki\u1ebfn kh\u00f4i ph\u1ee5c"
+    },
+    "maintenance_message": {
+      "type": "string",
+      "description": "Th\u00f4ng b\u00e1o b\u1ea3o tr\u00ec"
+    }
+  },
+  "required": [
+    "config_key"
+  ]
+}

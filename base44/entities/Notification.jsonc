@@ -1,0 +1,64 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi nh\u1eadn th\u00f4ng b\u00e1o"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "forum_reply",
+        "forum_upvote",
+        "reward_approved",
+        "reward_rejected",
+        "group_invite",
+        "mention",
+        "system"
+      ],
+      "description": "Lo\u1ea1i th\u00f4ng b\u00e1o"
+    },
+    "title": {
+      "type": "string",
+      "description": "Ti\u00eau \u0111\u1ec1 th\u00f4ng b\u00e1o"
+    },
+    "content": {
+      "type": "string",
+      "description": "N\u1ed9i dung th\u00f4ng b\u00e1o"
+    },
+    "reference_id": {
+      "type": "string",
+      "description": "ID tham chi\u1ebfu (post, reply, reward)"
+    },
+    "reference_type": {
+      "type": "string",
+      "enum": [
+        "forum_post",
+        "forum_reply",
+        "community_reward",
+        "discussion_group"
+      ],
+      "description": "Lo\u1ea1i tham chi\u1ebfu"
+    },
+    "from_user": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi t\u1ea1o h\u00e0nh \u0111\u1ed9ng"
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false,
+      "description": "\u0110\u00e3 \u0111\u1ecdc ch\u01b0a"
+    },
+    "action_url": {
+      "type": "string",
+      "description": "URL \u0111\u1ec3 chuy\u1ec3n \u0111\u1ebfn khi click"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "title",
+    "content"
+  ]
+}

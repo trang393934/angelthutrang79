@@ -1,0 +1,38 @@
+{
+  "name": "LightMessage",
+  "type": "object",
+  "properties": {
+    "content": {
+      "type": "string",
+      "description": "The full message content"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "chat",
+        "daily_message"
+      ],
+      "description": "Type of message"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "AI-generated tags for categorization"
+    },
+    "summary": {
+      "type": "string",
+      "description": "AI-generated summary of the message"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user marked this as favorite"
+    }
+  },
+  "required": [
+    "content",
+    "type"
+  ]
+}

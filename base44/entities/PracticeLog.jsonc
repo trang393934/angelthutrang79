@@ -1,0 +1,63 @@
+{
+  "name": "PracticeLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "practice_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y th\u1ef1c h\u00e0nh"
+    },
+    "practice_time": {
+      "type": "string",
+      "enum": [
+        "5am",
+        "12pm",
+        "8pm",
+        "other"
+      ],
+      "description": "Khung gi\u1edd th\u1ef1c h\u00e0nh"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Th\u1eddi gian th\u1ef1c h\u00e0nh th\u1ef1c t\u1ebf (ph\u00fat)"
+    },
+    "practice_type": {
+      "type": "string",
+      "description": "Lo\u1ea1i th\u1ef1c h\u00e0nh"
+    },
+    "mood_before": {
+      "type": "string",
+      "enum": [
+        "very_peaceful",
+        "peaceful",
+        "neutral",
+        "stressed",
+        "very_stressed"
+      ],
+      "description": "T\u00e2m tr\u1ea1ng tr\u01b0\u1edbc khi th\u1ef1c h\u00e0nh"
+    },
+    "mood_after": {
+      "type": "string",
+      "enum": [
+        "very_peaceful",
+        "peaceful",
+        "neutral",
+        "stressed",
+        "very_stressed"
+      ],
+      "description": "T\u00e2m tr\u1ea1ng sau khi th\u1ef1c h\u00e0nh"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Ghi ch\u00fa c\u00e1 nh\u00e2n"
+    }
+  },
+  "required": [
+    "user_email",
+    "practice_date"
+  ]
+}

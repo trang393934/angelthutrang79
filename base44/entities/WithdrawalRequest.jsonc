@@ -1,0 +1,87 @@
+{
+  "name": "WithdrawalRequest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng y\u00eau c\u1ea7u r\u00fat"
+    },
+    "withdrawal_address": {
+      "type": "string",
+      "description": "\u0110\u1ecba ch\u1ec9 BEP-20 nh\u1eadn Camly"
+    },
+    "amount": {
+      "type": "integer",
+      "description": "S\u1ed1 l\u01b0\u1ee3ng Camly mu\u1ed1n r\u00fat"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "processing",
+        "completed",
+        "failed",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Tr\u1ea1ng th\u00e1i withdrawal"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "description": "M\u1ee9c \u0111\u1ed9 r\u1ee7i ro c\u1ee7a user"
+    },
+    "requires_manual_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "C\u1ea7n admin duy\u1ec7t th\u1ee7 c\u00f4ng"
+    },
+    "rejection_reason": {
+      "type": "string",
+      "description": "L\u00fd do t\u1eeb ch\u1ed1i (n\u1ebfu c\u00f3)"
+    },
+    "tx_hash": {
+      "type": "string",
+      "description": "Transaction hash tr\u00ean BSC"
+    },
+    "gas_fee_bnb": {
+      "type": "number",
+      "description": "Ph\u00ed gas \u01b0\u1edbc t\u00ednh (BNB)"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Admin x\u1eed l\u00fd"
+    },
+    "processed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y x\u1eed l\u00fd"
+    },
+    "verification_status": {
+      "type": "string",
+      "enum": [
+        "not_verified",
+        "email_verified",
+        "phone_verified",
+        "fully_verified"
+      ],
+      "default": "not_verified",
+      "description": "Tr\u1ea1ng th\u00e1i x\u00e1c th\u1ef1c"
+    },
+    "purity_streak_days": {
+      "type": "integer",
+      "default": 0,
+      "description": "S\u1ed1 ng\u00e0y ho\u1ea1t \u0111\u1ed9ng clean li\u00ean t\u1ee5c"
+    }
+  },
+  "required": [
+    "user_email",
+    "withdrawal_address",
+    "amount"
+  ]
+}

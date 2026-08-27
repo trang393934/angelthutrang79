@@ -1,0 +1,63 @@
+{
+  "name": "UserAppeal",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng kh\u00e1ng c\u00e1o"
+    },
+    "appeal_type": {
+      "type": "string",
+      "enum": [
+        "unfreeze_coins",
+        "review_ban",
+        "dispute_spam_flag"
+      ],
+      "description": "Lo\u1ea1i kh\u00e1ng c\u00e1o"
+    },
+    "frozen_amount": {
+      "type": "number",
+      "description": "S\u1ed1 Camlycoin b\u1ecb \u0111\u00f3ng b\u0103ng"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Gi\u1ea3i th\u00edch t\u1eeb ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "evidence_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Links b\u1eb1ng ch\u1ee9ng (screenshots, etc.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "under_review",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Tr\u1ea1ng th\u00e1i kh\u00e1ng c\u00e1o"
+    },
+    "admin_response": {
+      "type": "string",
+      "description": "Ph\u1ea3n h\u1ed3i t\u1eeb admin"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Email admin x\u1eed l\u00fd"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Ng\u00e0y x\u1eed l\u00fd"
+    }
+  },
+  "required": [
+    "user_email",
+    "appeal_type",
+    "explanation"
+  ]
+}

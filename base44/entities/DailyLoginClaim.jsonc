@@ -1,0 +1,30 @@
+{
+  "name": "DailyLoginClaim",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "claim_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y claim (YYYY-MM-DD)"
+    },
+    "coins_awarded": {
+      "type": "integer",
+      "default": 100,
+      "description": "S\u1ed1 Camlycoin \u0111\u01b0\u1ee3c th\u01b0\u1edfng"
+    },
+    "claim_count": {
+      "type": "integer",
+      "default": 1,
+      "description": "S\u1ed1 l\u1ea7n claim trong ng\u00e0y (\u0111\u1ec3 detect spam)"
+    }
+  },
+  "required": [
+    "user_email",
+    "claim_date"
+  ],
+  "rls": {}
+}

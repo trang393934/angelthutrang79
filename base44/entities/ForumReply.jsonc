@@ -1,0 +1,47 @@
+{
+  "name": "ForumReply",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "ID c\u1ee7a b\u00e0i \u0111\u0103ng g\u1ed1c"
+    },
+    "content": {
+      "type": "string",
+      "description": "N\u1ed9i dung reply"
+    },
+    "upvotes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t upvote"
+    },
+    "downvotes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t downvote"
+    },
+    "upvoted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch email \u0111\u00e3 upvote"
+    },
+    "downvoted_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch email \u0111\u00e3 downvote"
+    },
+    "is_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "C\u00e2u tr\u1ea3 l\u1eddi \u0111\u01b0\u1ee3c ch\u1ea5p nh\u1eadn (cho Q&A)"
+    }
+  },
+  "required": [
+    "post_id",
+    "content"
+  ]
+}

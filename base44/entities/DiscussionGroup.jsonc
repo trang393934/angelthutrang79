@@ -1,0 +1,76 @@
+{
+  "name": "DiscussionGroup",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "T\u00ean nh\u00f3m th\u1ea3o lu\u1eadn"
+    },
+    "description": {
+      "type": "string",
+      "description": "M\u00f4 t\u1ea3 v\u1ec1 nh\u00f3m"
+    },
+    "cover_image_url": {
+      "type": "string",
+      "description": "URL \u1ea3nh b\u00eca nh\u00f3m"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "spiritual",
+        "wellbeing",
+        "technology",
+        "lifestyle",
+        "learning",
+        "other"
+      ],
+      "default": "other",
+      "description": "Danh m\u1ee5c nh\u00f3m"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags c\u1ee7a nh\u00f3m"
+    },
+    "admin_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch admin c\u1ee7a nh\u00f3m"
+    },
+    "member_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch th\u00e0nh vi\u00ean"
+    },
+    "member_count": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3ng th\u00e0nh vi\u00ean"
+    },
+    "post_count": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3ng b\u00e0i \u0111\u0103ng"
+    },
+    "is_private": {
+      "type": "boolean",
+      "default": false,
+      "description": "Nh\u00f3m ri\u00eang t\u01b0 (c\u1ea7n x\u00e9t duy\u1ec7t)"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Tr\u1ea1ng th\u00e1i ho\u1ea1t \u0111\u1ed9ng"
+    }
+  },
+  "required": [
+    "name",
+    "description"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "BlessingComment",
+  "type": "object",
+  "properties": {
+    "story_id": {
+      "type": "string",
+      "description": "ID c\u1ee7a c\u00e2u chuy\u1ec7n ph\u01b0\u1edbc l\u00e0nh"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi b\u00ecnh lu\u1eadn"
+    },
+    "content": {
+      "type": "string",
+      "description": "N\u1ed9i dung b\u00ecnh lu\u1eadn"
+    },
+    "likes": {
+      "type": "number",
+      "default": 0,
+      "description": "S\u1ed1 l\u01b0\u1ee3t th\u00edch b\u00ecnh lu\u1eadn"
+    }
+  },
+  "required": [
+    "story_id",
+    "user_email",
+    "content"
+  ]
+}

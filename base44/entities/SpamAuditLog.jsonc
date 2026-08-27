@@ -1,0 +1,71 @@
+{
+  "name": "SpamAuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng b\u1ecb audit"
+    },
+    "audit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi gian audit"
+    },
+    "total_questions": {
+      "type": "number",
+      "description": "T\u1ed5ng s\u1ed1 c\u00e2u h\u1ecfi"
+    },
+    "spam_questions": {
+      "type": "number",
+      "description": "S\u1ed1 c\u00e2u h\u1ecfi spam"
+    },
+    "spam_ratio": {
+      "type": "number",
+      "description": "T\u1ef7 l\u1ec7 spam (0-1)"
+    },
+    "spam_score": {
+      "type": "number",
+      "description": "\u0110i\u1ec3m spam t\u1ed5ng h\u1ee3p (0-100)"
+    },
+    "detection_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "L\u00fd do ph\u00e1t hi\u1ec7n spam"
+    },
+    "questions_per_hour": {
+      "type": "number",
+      "description": "S\u1ed1 c\u00e2u h\u1ecfi trung b\u00ecnh m\u1ed7i gi\u1edd"
+    },
+    "similarity_score": {
+      "type": "number",
+      "description": "\u0110i\u1ec3m t\u01b0\u01a1ng \u0111\u1ed3ng n\u1ed9i dung (0-1)"
+    },
+    "coins_frozen": {
+      "type": "number",
+      "description": "S\u1ed1 Camlycoin b\u1ecb \u0111\u00f3ng b\u0103ng"
+    },
+    "action_taken": {
+      "type": "string",
+      "enum": [
+        "flagged",
+        "frozen",
+        "under_review",
+        "cleared",
+        "banned"
+      ],
+      "description": "H\u00e0nh \u0111\u1ed9ng \u0111\u00e3 th\u1ef1c hi\u1ec7n"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Ghi ch\u00fa c\u1ee7a admin"
+    }
+  },
+  "required": [
+    "user_email",
+    "audit_date",
+    "spam_score",
+    "action_taken"
+  ]
+}

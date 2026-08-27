@@ -1,0 +1,93 @@
+{
+  "name": "AutoClaimConfig",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email ng\u01b0\u1eddi d\u00f9ng"
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "B\u1eadt/t\u1eaft auto-claim"
+    },
+    "primary_wallet": {
+      "type": "string",
+      "description": "\u0110\u1ecba ch\u1ec9 v\u00ed ch\u00ednh (BEP-20)"
+    },
+    "backup_wallets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "added_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Danh s\u00e1ch v\u00ed d\u1ef1 ph\u00f2ng"
+    },
+    "claim_mode": {
+      "type": "string",
+      "enum": [
+        "threshold",
+        "scheduled",
+        "manual"
+      ],
+      "default": "threshold",
+      "description": "Ch\u1ebf \u0111\u1ed9 r\u00fat t\u1ef1 \u0111\u1ed9ng"
+    },
+    "threshold_amount": {
+      "type": "number",
+      "default": 100000,
+      "description": "Ng\u01b0\u1ee1ng t\u1ef1 \u0111\u1ed9ng r\u00fat (m\u1eb7c \u0111\u1ecbnh 100k)"
+    },
+    "schedule_frequency": {
+      "type": "string",
+      "enum": [
+        "daily",
+        "weekly",
+        "monthly"
+      ],
+      "description": "T\u1ea7n su\u1ea5t r\u00fat theo l\u1ecbch"
+    },
+    "schedule_day": {
+      "type": "number",
+      "description": "Ng\u00e0y trong tu\u1ea7n (0-6) ho\u1eb7c trong th\u00e1ng (1-31)"
+    },
+    "schedule_time": {
+      "type": "string",
+      "description": "Gi\u1edd r\u00fat (HH:MM)"
+    },
+    "max_daily_claim": {
+      "type": "number",
+      "default": 500000,
+      "description": "Gi\u1edbi h\u1ea1n r\u00fat t\u1ed1i \u0111a/ng\u00e0y (500k)"
+    },
+    "cooldown_hours": {
+      "type": "number",
+      "default": 24,
+      "description": "Th\u1eddi gian ch\u1edd gi\u1eefa c\u00e1c l\u1ea7n claim (gi\u1edd)"
+    },
+    "last_claim_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "L\u1ea7n claim cu\u1ed1i c\u00f9ng"
+    },
+    "total_auto_claimed": {
+      "type": "number",
+      "default": 0,
+      "description": "T\u1ed5ng s\u1ed1 CAMLY \u0111\u00e3 auto-claim"
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

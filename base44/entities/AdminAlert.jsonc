@@ -1,0 +1,84 @@
+{
+  "name": "AdminAlert",
+  "type": "object",
+  "properties": {
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "high_balance",
+        "multiple_withdrawals",
+        "review_spike"
+      ],
+      "description": "Lo\u1ea1i c\u1ea3nh b\u00e1o"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "M\u1ee9c \u0111\u1ed9 nghi\u00eam tr\u1ecdng"
+    },
+    "title": {
+      "type": "string",
+      "description": "Ti\u00eau \u0111\u1ec1 c\u1ea3nh b\u00e1o"
+    },
+    "message": {
+      "type": "string",
+      "description": "N\u1ed9i dung chi ti\u1ebft"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email user li\u00ean quan (n\u1ebfu c\u00f3)"
+    },
+    "data": {
+      "type": "object",
+      "description": "D\u1eef li\u1ec7u chi ti\u1ebft (s\u1ed1 ti\u1ec1n, s\u1ed1 l\u01b0\u1ee3ng, v.v.)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "acknowledged",
+        "resolved"
+      ],
+      "default": "new",
+      "description": "Tr\u1ea1ng th\u00e1i x\u1eed l\u00fd"
+    },
+    "acknowledged_by": {
+      "type": "string",
+      "description": "Admin \u0111\u00e3 xem"
+    },
+    "acknowledged_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi gian xem"
+    },
+    "resolved_by": {
+      "type": "string",
+      "description": "Admin \u0111\u00e3 gi\u1ea3i quy\u1ebft"
+    },
+    "resolved_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Th\u1eddi gian gi\u1ea3i quy\u1ebft"
+    },
+    "resolution_notes": {
+      "type": "string",
+      "description": "Ghi ch\u00fa gi\u1ea3i quy\u1ebft"
+    }
+  },
+  "required": [
+    "alert_type",
+    "severity",
+    "title",
+    "message"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}"
+    }
+  }
+}
