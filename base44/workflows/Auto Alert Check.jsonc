@@ -1,0 +1,51 @@
+{
+  "name": "Auto Alert Check",
+  "description": "Ki\u1ec3m tra t\u1ef1 \u0111\u1ed9ng v\u00e0 t\u1ea1o c\u1ea3nh b\u00e1o cho admin v\u1ec1 s\u1ed1 d\u01b0 cao, nhi\u1ec1u withdrawal, v\u00e0 review spike",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 30,
+      "interval_unit": "minutes",
+      "interval_anchor": "2026-01-10T04:00:35.659000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_alert_check",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkAndCreateAlerts",
+            "args": {
+              "thresholds": {
+                "high_balance": 500000,
+                "withdrawal_count": 5,
+                "withdrawal_time_window": 24,
+                "review_spike": 200000
+              }
+            }
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "checkAndCreateAlerts"
+  }
+}

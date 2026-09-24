@@ -1,0 +1,44 @@
+{
+  "name": "Auto-Claim Check Daily",
+  "description": "Ki\u1ec3m tra v\u00e0 th\u1ef1c thi auto-claim CAMLY cho users \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n m\u1ed7i ng\u00e0y l\u00fac 9h s\u00e1ng",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 2 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_claim_check_daily",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkAndExecuteAutoClaim",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "x-base44-migrated-from-automation": {
+    "legacy_payload_function": "checkAndExecuteAutoClaim"
+  }
+}
